@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -55,7 +54,6 @@
 <body>
 
 <header>
-  <h1>Privacy Policy</h1>
   <p><strong>Thank you for choosing FTF Food Truck Finder (&quot;FTF&quot; or &quot;we&quot;).</strong> This Privacy Policy 
   explains how we collect, use, share, and protect your personal information when you use our mobile application 
   (&quot;App&quot; or &quot;Service&quot;). By using FTF, you agree to the terms in this Privacy Policy. If you 
