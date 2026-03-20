@@ -185,16 +185,17 @@ FTF: Food Truck Finder">App Store</a>
 
     <div class="footer">Best experience is in the Food Truck Finder app.</div>
   </main>
+  
+<script>
+  (function () {
+    var params = new URLSearchParams(window.location.search);
+    var truckId = params.get('truck');
+    var truckName = params.get('name');
+    var launchToken = String(Date.now());
 
-  <script>
-    (function () {
-      var params = new URLSearchParams(window.location.search);
-      var truckId = params.get('truck');
-      var truckName = params.get('name');
-
-      var appUrl = truckId
-        ? 'foodtruckfinder://truck/' + encodeURIComponent(truckId)
-        : 'foodtruckfinder://';
+    var appUrl = truckId
+      ? 'foodtruckfinder://truck/' + encodeURIComponent(truckId) + '?launch=' + encodeURIComponent(launchToken)
+      : 'foodtruckfinder://?launch=' + encodeURIComponent(launchToken);
 
       var message = document.getElementById('message');
       var status = document.getElementById('status');
