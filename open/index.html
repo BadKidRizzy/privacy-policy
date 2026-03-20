@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Open Food Truck Finder</title>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const truckId = params.get('truck');
+    const appUrl = truckId
+      ? `foodtruckfinder://truck/${encodeURIComponent(truckId)}`
+      : 'foodtruckfinder://';
+
+    const iosStore = 'https://apps.apple.com/app/idYOUR_APPLE_ID';
+    const androidStore = 'https://play.google.com/store/apps/details?id=com.innoryzen.foodtruckfinder';
+
+    function fallback() {
+      const ua = navigator.userAgent || '';
+      const isAndroid = /Android/i.test(ua);
+      const isIOS = /iPhone|iPad|iPod/i.test(ua);
+      if (isIOS) window.location.href = iosStore;
+      else if (isAndroid) window.location.href = androidStore;
+      else window.location.href = 'https://www.ftf-foodtruckfinder.com/';
+    }
+
+    window.onload = () => {
+      window.location.href = appUrl;
+      setTimeout(fallback, 1500);
+    };
+  </script>
+</head>
+<body>
+  <p>Opening Food Truck Finder...</p>
+  <p><a id="open-app" href="#">Open app</a></p>
+  <script>
+    document.getElementById('open-app').href = new URLSearchParams(window.location.search).get('truck')
+      ? `foodtruckfinder://truck/${encodeURIComponent(new URLSearchParams(window.location.search).get('truck'))}`
+      : 'foodtruckfinder://';
+  </script>
+</body>
+</html>
