@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Redirecting...</title>
+  <script>
+    (function () {
+      var path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+      var parts = path.split('/');
+
+      if (parts[0] === 'truck' && parts[1]) {
+        var truckId = decodeURIComponent(parts[1]);
+        var target =
+          window.location.origin +
+          '/open/index.html?truck=' +
+          encodeURIComponent(truckId);
+
+        window.location.replace(target);
+        return;
+      }
+
+      window.location.replace(window.location.origin + '/');
+    })();
+  </script>
+</head>
+<body>
+  <p>Redirecting...</p>
+</body>
+</html>
