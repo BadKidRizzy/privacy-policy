@@ -24,7 +24,7 @@ const bindLinkGroup = (selector, url, fallbackLabel) => {
     });
 };
 
-bindLinkGroup("[data-app-store]", APP_STORE_URL);
+bindLinkGroup("[data-app-store]", APP_STORE_URL, "App Store link coming soon");
 bindLinkGroup("[data-play-store]", PLAY_STORE_URL);
 
 const iosNote = document.querySelector("[data-ios-note]");
