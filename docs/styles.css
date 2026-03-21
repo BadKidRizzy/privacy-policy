@@ -12,8 +12,6 @@
     --line: #eddccf;
     --line-strong: #d7c5b7;
     --dark: #171311;
-    --info: #2573b8;
-    --info-soft: #e5f0fb;
     --hero-title: #1f1b18;
     --hero-subtitle: #6f645c;
     --hero-badge: rgba(255, 99, 71, 0.12);
@@ -35,8 +33,8 @@ body {
     color: var(--ink);
     background:
         radial-gradient(circle at top right, rgba(255, 99, 71, 0.28), transparent 28%),
-        radial-gradient(circle at left 15%, rgba(229, 240, 251, 0.92), transparent 32%),
-        radial-gradient(circle at 80% 78%, rgba(255, 224, 214, 0.9), transparent 26%),
+        radial-gradient(circle at left 15%, rgba(255, 224, 214, 0.82), transparent 32%),
+        radial-gradient(circle at 80% 78%, rgba(255, 241, 232, 0.92), transparent 26%),
         linear-gradient(180deg, var(--surface-strong) 0%, var(--bg) 100%);
     font-family: "Space Grotesk", sans-serif;
 }
@@ -83,7 +81,7 @@ code {
 .page-shell::after {
     right: -90px;
     bottom: 14%;
-    background: rgba(37, 115, 184, 0.14);
+    background: rgba(255, 224, 214, 0.22);
 }
 
 .topbar {
@@ -149,7 +147,7 @@ code {
     padding: 36px;
     background:
         radial-gradient(circle at 84% 16%, rgba(255, 99, 71, 0.18), transparent 24%),
-        radial-gradient(circle at 12% 90%, rgba(229, 240, 251, 0.82), transparent 28%),
+        radial-gradient(circle at 12% 90%, rgba(255, 224, 214, 0.82), transparent 28%),
         linear-gradient(135deg, rgba(255, 253, 249, 0.98), rgba(255, 241, 232, 0.96));
     border-color: var(--line);
     box-shadow: var(--shadow);
@@ -312,7 +310,7 @@ code {
 }
 
 .hero__assist-card:last-child {
-    background: linear-gradient(135deg, rgba(229, 240, 251, 0.96), rgba(255, 253, 249, 0.96));
+    background: linear-gradient(135deg, rgba(255, 241, 232, 0.96), rgba(255, 253, 249, 0.96));
 }
 
 .hero__assist-card strong {
@@ -493,7 +491,7 @@ code {
 }
 
 .proof-strip__item:nth-child(3) {
-    background: linear-gradient(135deg, rgba(255, 241, 232, 0.98), rgba(255, 250, 245, 0.96));
+    background: linear-gradient(135deg, rgba(255, 224, 214, 0.92), rgba(255, 250, 245, 0.96));
 }
 
 .proof-strip__item strong,
@@ -566,7 +564,7 @@ code {
 .quote-card {
     display: grid;
     align-content: center;
-    background: linear-gradient(135deg, rgba(255, 224, 214, 1), rgba(229, 240, 251, 0.88));
+    background: linear-gradient(135deg, rgba(255, 224, 214, 1), rgba(255, 241, 232, 0.9));
 }
 
 .quote-card p {
@@ -590,7 +588,7 @@ code {
 }
 
 .feature-card:nth-child(3n) {
-    background: linear-gradient(135deg, rgba(255, 241, 232, 0.92), rgba(255, 253, 249, 0.96));
+    background: linear-gradient(135deg, rgba(255, 224, 214, 0.82), rgba(255, 253, 249, 0.96));
 }
 
 .timeline__item {
@@ -605,7 +603,7 @@ code {
 }
 
 .timeline__item:nth-child(even) {
-    background: linear-gradient(135deg, rgba(255, 241, 232, 0.82), rgba(255, 253, 249, 0.96));
+    background: linear-gradient(135deg, rgba(255, 224, 214, 0.82), rgba(255, 253, 249, 0.96));
 }
 
 .timeline__number {
