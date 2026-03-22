@@ -6,94 +6,99 @@
     <title>Food Truck Finder for Owners</title>
     <meta
         name="description"
-        content="Food Truck Finder helps food truck owners share live location, update schedule and menu, and make it easier for customers to find the truck."
+        content="Food Truck Finder helps food truck owners share live location, schedule, menu, and deals so nearby foodies can find the truck faster."
     >
     <meta name="theme-color" content="#ff6347">
     <meta property="og:title" content="Food Truck Finder for Owners">
     <meta
         property="og:description"
-        content="Help more customers find your truck with live location, schedule updates, menu details, and deals."
+        content="Help more customers find your food truck with live location, schedule updates, menu details, and deals."
     >
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Food Truck Finder for Owners">
     <meta
         name="twitter:description"
-        content="Help more customers find your truck with live location, schedule updates, menu details, and deals."
+        content="Help more customers find your food truck with live location, schedule updates, menu details, and deals."
     >
     <link rel="icon" type="image/png" href="./favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap"
         rel="stylesheet"
     >
-    <link rel="stylesheet" href="./styles.css?v=3">
+    <link rel="stylesheet" href="./styles.css?v=5">
 </head>
 <body>
 <div class="page-shell">
     <header class="topbar">
         <div class="brand-mark">
-            <img class="brand-mark__logo" src="./logo.png" alt="Food Truck Finder logo">
+            <img
+                class="brand-mark__logo"
+                src="./IconLogo.png?v=2"
+                alt="Food Truck Finder logo"
+                width="42"
+                height="42"
+                onerror="this.onerror=null;this.src='./favicon.png?v=2';"
+            >
             <span class="brand-mark__text">FTF: Food Truck Finder</span>
         </div>
-        <a class="topbar__link" href="#download">Download Owner App</a>
+        <a class="topbar__link" href="#download">Download Free App</a>
     </header>
 
     <main>
         <section class="hero">
             <div class="hero__copy">
-                <p class="eyebrow">Owner Tools</p>
-                <h1>Help More Customers Find Your Truck.</h1>
+                <p class="eyebrow">For Truck Owners</p>
+                <h1>Help more customers <span class="hero__accent">find</span> your food truck.</h1>
                 <p class="hero__lede">
-                    Food Truck Finder gives owners one place to update Live Location, truck details,
-                    schedule, menu, and deals so hungry customers can see where you are and what you are serving.
+                    Food Truck Finder gives owners one place to share live location, schedule,
+                    menu, and deals so nearby foodies can see where you are and what you are serving right now.
                 </p>
 
-                <div class="hero__actions" id="download">
-                    <a
-                        class="button button--primary"
-                        data-app-store
-                        href="https://apps.apple.com/us/app/ftf-food-truck-finder/id6742719545"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Download on the App Store
-                    </a>
-                    <a
-                        class="button button--ghost"
-                        data-play-store
-                        href="https://play.google.com/store/apps/details?id=com.innoryzen.foodtruckfinder"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        Get it on Google Play
-                    </a>
+                <div class="hero__download" id="download">
+                    <p class="store-intro">Download free on iOS &amp; Android</p>
+                    <div class="hero__actions">
+                        <a
+                            class="button button--primary"
+                            data-app-store
+                            href="https://apps.apple.com/us/app/ftf-food-truck-finder/id6742719545"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            Download on the App Store
+                        </a>
+                        <a
+                            class="button button--ghost"
+                            data-play-store
+                            href="https://play.google.com/store/apps/details?id=com.innoryzen.foodtruckfinder"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            Get it on Google Play
+                        </a>
+                    </div>
                 </div>
 
-                <div class="hero__assist">
-                    <div class="hero__assist-card">
-                        <strong>Need An Owner Referral Code?</strong>
-                        <p>Reach out and we will help you get your owner account approved.</p>
-                        <a class="hero__assist-link" data-support-email href="mailto:Foodtruckfinderinfo@gmail.com">
-                            Email Support
-                        </a>
-                        <span class="hero__assist-meta">Foodtruckfinderinfo@gmail.com</span>
+                <div class="hero__referral">
+                    <div>
+                        <strong>Need an owner referral code?</strong>
+                        <p>
+                            Some owner sign-ups require a referral code. Email us and we will help get
+                            your account approved: <strong>Foodtruckfinderinfo@gmail.com</strong>
+                        </p>
                     </div>
-                    <div class="hero__assist-card">
-                        <strong>Want To Review Policy Details First?</strong>
-                        <p>Check the public privacy policy before downloading the app.</p>
-                        <a class="hero__assist-link" data-privacy-policy href="https://www.ftf-foodtruckfinder.com/">
-                            View Privacy Policy
-                        </a>
-                    </div>
+                    <a class="button button--ghost" data-support-email href="mailto:Foodtruckfinderinfo@gmail.com">
+                        Request Owner Referral Code
+                    </a>
                 </div>
 
                 <ul class="hero__feature-list">
-                    <li>Live Location</li>
-                    <li>Truck Overview</li>
+                    <li>Live location</li>
                     <li>Schedule</li>
-                    <li>Menu + Deals</li>
+                    <li>Menu + deals</li>
+                    <li>Truck details</li>
                 </ul>
             </div>
 
@@ -102,12 +107,12 @@
                     <div class="device-card__screen">
                         <div class="device-card__map"></div>
                         <div class="device-card__panel">
-                            <div class="device-card__badge">Truck Details</div>
+                            <div class="device-card__badge">Owner profile</div>
                             <h2>Northside BBQ Co.</h2>
-                            <p>Keep your truck details current so customers can check before they head out.</p>
+                            <p>Share your live stop, menu, and next service window in one place.</p>
                             <div class="device-card__stats">
                                 <span>Live Location</span>
-                                <span>Truck Overview</span>
+                                <span>Menu</span>
                                 <span>Schedule</span>
                             </div>
                         </div>
@@ -115,13 +120,13 @@
                 </div>
 
                 <div class="floating-card floating-card--one">
-                    <strong>Keep Your Truck Details In Sync</strong>
-                    <span>Location, hours, menu, and deals stay together in one clean profile.</span>
+                    <strong>Show where you are now</strong>
+                    <span>Give nearby customers a current location and your next stop without extra back-and-forth.</span>
                 </div>
 
                 <div class="floating-card floating-card--two">
-                    <strong>Let Customers Check Before They Go</strong>
-                    <span>Show where you are and what you are serving before they decide where to eat.</span>
+                    <strong>Help foodies decide faster</strong>
+                    <span>Let people check the menu, schedule, and deals before they head your way.</span>
                 </div>
             </div>
         </section>
@@ -132,8 +137,8 @@
                 <span>Share where the truck is serving right now.</span>
             </div>
             <div class="proof-strip__item">
-                <strong>Truck Overview</strong>
-                <span>Keep your hours, directions, and truck details current.</span>
+                <strong>Schedule</strong>
+                <span>Post your next stop so regulars know where to catch you.</span>
             </div>
             <div class="proof-strip__item">
                 <strong>Menu + Deals</strong>
@@ -141,133 +146,76 @@
             </div>
         </section>
 
-        <section class="section section--problem">
+        <section class="section section--benefits">
             <div class="section__heading">
-                <p class="eyebrow">Owner Profile</p>
-                <h2>Make It Easier For Customers To Find You.</h2>
+                <p class="eyebrow">Owner Benefits</p>
+                <h2>For Truck Owners: show up where foodies search</h2>
             </div>
-            <div class="split-grid">
-                <div class="copy-card">
+            <div class="split-grid split-grid--benefits">
+                <div class="copy-card benefits-card">
                     <p>
-                        When your location, schedule, menu, and specials live in different places,
-                        customers are left guessing. That usually means more direct messages and less confidence.
+                        Keep the details customers care about in one up-to-date place instead of spreading
+                        them across posts, stories, and direct messages.
                     </p>
-                    <p>
-                        Food Truck Finder gives owners one place to keep the truck profile current so
-                        nearby customers can check the latest details without digging through old posts.
-                    </p>
+                    <ul class="benefits-list">
+                        <li>Share your live location so customers see where you are serving now.</li>
+                        <li>Post your schedule so regulars always know your next stop.</li>
+                        <li>Keep hours, directions, and truck details in one current profile.</li>
+                        <li>Show your menu and deals so people can decide before they arrive.</li>
+                        <li>Make it easier for nearby foodies to discover and choose your truck.</li>
+                    </ul>
                 </div>
                 <div class="quote-card">
-                    <p>Show Up Clearly.</p>
-                    <p>Turn Search Into Orders.</p>
+                    <p>Show up where foodies search.</p>
+                    <p>Turn quick checks into real visits.</p>
                 </div>
-            </div>
-        </section>
-
-        <section class="section">
-            <div class="section__heading">
-                <p class="eyebrow">Owner Tools</p>
-                <h2>Show The Details Customers Check First.</h2>
-            </div>
-            <div class="feature-grid">
-                <article class="feature-card">
-                    <h3>Update Live Location</h3>
-                    <p>Show where your truck is serving right now instead of sending people to old posts.</p>
-                </article>
-                <article class="feature-card">
-                    <h3>Post Your Schedule</h3>
-                    <p>Keep upcoming stops current so regulars know where to catch you next.</p>
-                </article>
-                <article class="feature-card">
-                    <h3>Keep Your Truck Overview Current</h3>
-                    <p>Make it easy for people to check hours, directions, and the key details on your profile.</p>
-                </article>
-                <article class="feature-card">
-                    <h3>Show Menu Items Clearly</h3>
-                    <p>Help customers decide before they arrive by keeping your serving details visible.</p>
-                </article>
-                <article class="feature-card">
-                    <h3>Post Deals And Specials</h3>
-                    <p>Highlight limited-time offers without relying on social posts alone.</p>
-                </article>
-                <article class="feature-card">
-                    <h3>Make Your Truck Easier To Discover</h3>
-                    <p>Make it simpler for nearby foodies to check your truck and decide where to go.</p>
-                </article>
             </div>
         </section>
 
         <section class="section section--steps">
             <div class="section__heading">
                 <p class="eyebrow">How It Works</p>
-                <h2>Set Up Your Owner Profile And Start Getting Found.</h2>
+                <h2>Set up your owner profile in four quick steps.</h2>
             </div>
             <div class="timeline">
                 <article class="timeline__item">
                     <span class="timeline__number">01</span>
                     <div>
-                        <h3>Create Your Owner Account</h3>
-                        <p>Download the app, create your owner account, and get ready to manage your truck profile.</p>
+                        <h3>Create your owner account</h3>
+                        <p>Create your owner account and claim your truck.</p>
                     </div>
                 </article>
                 <article class="timeline__item">
                     <span class="timeline__number">02</span>
                     <div>
-                        <h3>Add Your Truck Profile</h3>
-                        <p>Add your truck details, hours, menu, and the basics customers look for first.</p>
+                        <h3>Add your truck profile</h3>
+                        <p>Add your hours, menu, truck details, and the basics customers check first.</p>
                     </div>
                 </article>
                 <article class="timeline__item">
                     <span class="timeline__number">03</span>
                     <div>
-                        <h3>Update Live Location Or Schedule</h3>
-                        <p>Share where you are serving now or keep future stops current before the day gets hectic.</p>
+                        <h3>Update on the go</h3>
+                        <p>Share your live location or adjust your schedule as you move.</p>
                     </div>
                 </article>
                 <article class="timeline__item">
                     <span class="timeline__number">04</span>
                     <div>
-                        <h3>Let Customers Find You Faster</h3>
-                        <p>Customers can see where you are, what you serve, and when to catch your truck next.</p>
+                        <h3>Get found faster</h3>
+                        <p>Let customers find you faster and turn searches into orders.</p>
                     </div>
-                </article>
-            </div>
-        </section>
-
-        <section class="section section--faq">
-            <div class="section__heading">
-                <p class="eyebrow">FAQ</p>
-                <h2>Questions Food Truck Owners Usually Ask First</h2>
-            </div>
-            <div class="faq-grid">
-                <article class="faq-card">
-                    <h3>Do I Need A Referral Code?</h3>
-                    <p>
-                        Owner signups may require a referral code. If you need one, contact
-                        <a href="mailto:Foodtruckfinderinfo@gmail.com?subject=Owner%20Referral%20Code%20Request">Foodtruckfinderinfo@gmail.com</a>.
-                    </p>
-                </article>
-                <article class="faq-card">
-                    <h3>Can I Update My Location Live?</h3>
-                    <p>Yes. Owners can share live truck location updates so customers can find the truck more easily.</p>
-                </article>
-                <article class="faq-card">
-                    <h3>Can I Add My Menu And Deals?</h3>
-                    <p>Yes. The owner tools support menu updates, truck details, and limited-time specials.</p>
-                </article>
-                <article class="faq-card">
-                    <h3>Is This Just For Truck Owners?</h3>
-                    <p>No. The app also supports foodies and organizers, but this page is built for truck owners deciding whether to join.</p>
                 </article>
             </div>
         </section>
 
         <section class="closing-banner">
             <div>
-                <p class="eyebrow">Ready To Grow Your Reach?</p>
-                <h2>Download Food Truck Finder And Put Your Truck In Front Of More Customers.</h2>
+                <p class="eyebrow">Ready to grow your reach?</p>
+                <h2>Download Food Truck Finder and put your truck in front of more customers.</h2>
             </div>
             <div class="closing-banner__actions">
+                <p class="store-intro">Download free on iOS &amp; Android</p>
                 <a
                     class="button button--primary"
                     data-app-store
@@ -286,6 +234,34 @@
                 >
                     Get it on Google Play
                 </a>
+            </div>
+        </section>
+
+        <section class="section section--faq">
+            <div class="section__heading">
+                <p class="eyebrow">FAQ</p>
+                <h2>Questions food truck owners usually ask first</h2>
+            </div>
+            <div class="faq-grid">
+                <article class="faq-card">
+                    <h3>Do I need a referral code?</h3>
+                    <p>
+                        Owner signups may require a referral code. If you need one, contact
+                        <a href="mailto:Foodtruckfinderinfo@gmail.com?subject=Owner%20Referral%20Code%20Request">Foodtruckfinderinfo@gmail.com</a>.
+                    </p>
+                </article>
+                <article class="faq-card">
+                    <h3>Can I update my location live?</h3>
+                    <p>Yes. Owners can share live truck location updates so customers can find the truck more easily.</p>
+                </article>
+                <article class="faq-card">
+                    <h3>Can I add my menu and deals?</h3>
+                    <p>Yes. The owner tools support menu updates, truck details, and limited-time specials.</p>
+                </article>
+                <article class="faq-card">
+                    <h3>Is this just for truck owners?</h3>
+                    <p>No. The app also supports foodies and organizers, but this page is built for truck owners deciding whether to join.</p>
+                </article>
             </div>
         </section>
     </main>
