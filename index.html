@@ -1,227 +1,547 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Privacy Policy - FTF Food Truck Finder</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    /* Basic reset & simple styling */
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      background-color: #fafafa;
-    }
-    header, section, footer {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #fff;
-      margin-bottom: 20px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
-    }
-    h1, h2, h3 {
-      color: #ff6347;
-    }
-    h1 {
-      margin-top: 0;
-    }
-    ul {
-      list-style: circle;
-    }
-    .section-title {
-      margin-top: 1.5rem;
-      margin-bottom: 0.5rem;
-      color: #555;
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-    footer {
-      text-align: center;
-      font-size: 0.9rem;
-      color: #777;
-    }
-    /* Optional: highlight code elements or certain text. */
-    code {
-      background-color: #f4f4f4;
-      padding: 2px 4px;
-      border-radius: 4px;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Truck Finder | Built for Foodies, Owners, and Event Organizers</title>
+  <meta
+    name="description"
+    content="Food Truck Finder helps foodies discover trucks faster, helps owners share live location and menus, and helps organizers plan stronger events."
+  >
+  <meta name="theme-color" content="#ee6c3f">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Food Truck Finder">
+  <meta
+    property="og:description"
+    content="One platform for foodies, food truck owners, and event organizers."
+  >
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Food Truck Finder">
+  <meta
+    name="twitter:description"
+    content="Find trucks faster, update live stops, and build better food-driven events."
+  >
+  <link rel="icon" type="image/png" href="./assets/brand/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="./assets/site.css?v=1">
 </head>
 <body>
+  <div class="site-shell">
+    <div class="ambient ambient--top"></div>
+    <div class="ambient ambient--bottom"></div>
 
-<header>
-  <h1>Privacy Policy</h1>
-  <p><strong>Thank you for choosing FTF Food Truck Finder (&quot;FTF&quot; or &quot;we&quot;).</strong> This Privacy Policy 
-  explains how we collect, use, share, and protect your personal information when you use our mobile application 
-  (&quot;App&quot; or &quot;Service&quot;). By using FTF, you agree to the terms in this Privacy Policy. If you 
-  do not agree, please discontinue use of our App.</p>
-</header>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Food Truck Finder home">
+        <img src="./assets/brand/IconLogo.png" alt="Food Truck Finder logo" width="44" height="44">
+        <span>Food Truck Finder</span>
+      </a>
 
-<section>
-  <h2>1. Information We Collect</h2>
-  <p class="section-title">Account &amp; Profile Information</p>
-  <ul>
-    <li><strong>Registration Data:</strong> When you create an account, we may collect your name, email address, and/or other profile details.</li>
-    <li><strong>Login Credentials:</strong> If you sign in via email/password or social logins (e.g., Google, Facebook), we collect information necessary to authenticate or create your account.</li>
-  </ul>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+        Menu
+      </button>
 
-  <p class="section-title">Location Data</p>
-  <ul>
-    <li><strong>Foreground Location:</strong> We collect your device’s precise location while the App is in use to show nearby food trucks, distances, or directions.</li>
-    <li><strong>Background Location:</strong> If you grant permission, we may collect location data even when the App is closed or not in use, so that food truck owners can share their live location with customers or for certain real-time features of the App.</li>
-  </ul>
+      <nav id="site-nav" class="site-nav" data-site-nav>
+        <a href="#foodies">Foodies</a>
+        <a href="#owners">Owners</a>
+        <a href="#organizers">Organizers</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#faq">FAQ</a>
+        <a class="nav-cta" href="#owners">Owners: Get Started</a>
+      </nav>
+    </header>
 
-  <p class="section-title">Device &amp; Usage Data</p>
-  <ul>
-    <li><strong>Device Information:</strong> We may collect device IDs, operating system type and version, unique device identifiers, and crash logs.</li>
-    <li><strong>Usage Data:</strong> We track how you interact with the App (e.g., pages viewed, buttons clicked) to improve features and user experience.</li>
-  </ul>
+    <main id="top">
+      <section class="hero">
+        <div class="hero__copy">
+          <p class="eyebrow">Built to help food truck owners get found, with tools for foodies and organizers</p>
+          <h1>Help more people find your truck, check your menu, and know where you will be next.</h1>
+          <p class="hero__lede">
+            Food Truck Finder gives owners one place to share live location, schedule, menu, and
+            specials, while foodies browse nearby trucks and organizers build better vendor lineups.
+          </p>
 
-  <p class="section-title">User Content</p>
-  <ul>
-    <li><strong>Photos/Images:</strong> If you upload a truck photo or profile picture, we store that image in our database.</li>
-    <li><strong>Reviews &amp; Ratings:</strong> If you submit reviews about food trucks, we collect and store that content.</li>
-  </ul>
+          <div class="hero__pills">
+            <span>Owner setup help</span>
+            <span>Live location</span>
+            <span>Menu and specials</span>
+            <span>Truck discovery</span>
+            <span>Event-ready profiles</span>
+          </div>
 
-  <p class="section-title">Cookies &amp; Similar Technologies</p>
-  <ul>
-    <li>While not always relevant on mobile, we may use analytics services that rely on in-app cookies or identifiers to track usage patterns.</li>
-  </ul>
-</section>
+          <div class="hero__actions" id="download">
+            <a
+              class="button button--primary"
+              href="mailto:Foodtruckfinderinfo@gmail.com?subject=Owner%20Setup%20Request"
+            >
+              Owners: Request Setup
+            </a>
+            <a
+              class="button button--secondary"
+              href="https://apps.apple.com/us/app/ftf-food-truck-finder/id6742719545"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Download on the App Store
+            </a>
+            <a
+              class="button button--ghost"
+              href="https://play.google.com/store/apps/details?id=com.innoryzen.foodtruckfinder"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Get it on Google Play
+            </a>
+          </div>
 
-<section>
-  <h2>2. How We Use Your Information</h2>
-  <p class="section-title">Providing &amp; Improving Services</p>
-  <ul>
-    <li>Show you nearby food trucks, distance calculations, and directional maps.</li>
-    <li>Let you favorite or review food trucks.</li>
-    <li>Analyze usage and identify trends to enhance the App’s features.</li>
-  </ul>
+          <div class="hero__owner-cta">
+            <div>
+              <p class="hero__owner-label">Owner support</p>
+              <strong>Need onboarding help or a referral code?</strong>
+              <span>Email us and we will help get your truck profile live faster.</span>
+            </div>
+            <a class="button button--ghost" href="mailto:Foodtruckfinderinfo@gmail.com?subject=Owner%20Referral%20Code%20Request">
+              Request Owner Help
+            </a>
+          </div>
 
-  <p class="section-title">Location-Based Services</p>
-  <ul>
-    <li>Provide real-time location tracking or check-ins for truck owners (if they opt in).</li>
-    <li>Display your approximate or precise location to show relevant food trucks or deals.</li>
-  </ul>
+          <div class="hero__notes">
+            <div>
+              <strong>Owners</strong>
+              <span>Keep your location, schedule, menu, and specials in one current place.</span>
+            </div>
+            <div>
+              <strong>Foodies</strong>
+              <span>Browse nearby trucks, check details, and decide faster.</span>
+            </div>
+            <div>
+              <strong>Organizers</strong>
+              <span>Discover trucks and build stronger food-driven events.</span>
+            </div>
+          </div>
+        </div>
 
-  <p class="section-title">Communications</p>
-  <ul>
-    <li>Send push notifications or emails about updates, features, or promotions (only if you opt in).</li>
-    <li>Respond to support inquiries.</li>
-  </ul>
+        <div class="hero__visual">
+          <div class="hero-card hero-card--primary">
+            <img
+              src="./assets/media/foodies/explore-live-simulator.png"
+              alt="Food Truck Finder explore experience"
+            >
+          </div>
 
-  <p class="section-title">Security &amp; Fraud Prevention</p>
-  <ul>
-    <li>Detect and prevent fraudulent activity or unauthorized access.</li>
-    <li>Enforce our Terms of Service.</li>
-  </ul>
+          <div class="hero-card hero-card--secondary">
+            <img
+              src="./assets/media/owners/owner-overview-explained.png"
+              alt="Food Truck Finder owner overview"
+            >
+          </div>
 
-  <p class="section-title">Aggregated Insights</p>
-  <ul>
-    <li>We may create aggregated or de-identified data (e.g., total number of users in a region) for internal use or lawful business purposes, which does not personally identify you.</li>
-  </ul>
-</section>
+          <div class="hero-stat hero-stat--one">
+            <strong>3 user groups</strong>
+            <span>Built for discovery, operations, and planning.</span>
+          </div>
 
-<section>
-  <h2>3. Sharing &amp; Disclosure of Information</h2>
-  <p class="section-title">Service Providers</p>
-  <ul>
-    <li>We share data with third-party vendors (e.g., hosting providers, analytics services) who help us operate the App. They are contractually required to protect your data.</li>
-  </ul>
+          <div class="hero-stat hero-stat--two">
+            <strong>1 shared platform</strong>
+            <span>Keep the customer view and the owner view connected.</span>
+          </div>
+        </div>
+      </section>
 
-  <p class="section-title">Legal Compliance &amp; Safety</p>
-  <ul>
-    <li>If required by law or subpoena, we may disclose your data to authorities.</li>
-    <li>We may disclose information to protect our rights, safety, or property, or that of our users or others.</li>
-  </ul>
+      <section class="role-strip">
+        <article class="role-card">
+          <p class="role-card__tag">Foodies</p>
+          <h2>Find something good before your lunch break is gone.</h2>
+          <p>
+            Stop bouncing between social posts, maps, and old menus. Use one place to see what is
+            nearby, what looks good, and where to go next.
+          </p>
+          <a href="#foodies">See the foodie walkthrough</a>
+        </article>
 
-  <p class="section-title">Business Transfers</p>
-  <ul>
-    <li>If we’re involved in a merger, acquisition, or asset sale, user data may be transferred as part of that transaction. We’ll notify you if this occurs.</li>
-  </ul>
+        <article class="role-card">
+          <p class="role-card__tag">Owners</p>
+          <h2>Stop losing orders because people cannot find you.</h2>
+          <p>
+            When your location, hours, or menu are buried in stories and comments, customers move
+            on. Give them one current place to check before they choose another truck.
+          </p>
+          <a href="#owners">See the owner walkthrough</a>
+        </article>
 
-  <p class="section-title">Consent</p>
-  <ul>
-    <li>We may share your data for purposes not covered by this policy if you give us your explicit consent.</li>
-  </ul>
-</section>
+        <article class="role-card">
+          <p class="role-card__tag">Organizers</p>
+          <h2>Plan events with better food options and less back-and-forth.</h2>
+          <p>
+            Discover trucks, evaluate fit, and support a smoother path from vendor research to
+            event coordination.
+          </p>
+          <a href="#organizers">See the organizer walkthrough</a>
+        </article>
+      </section>
 
-<section>
-  <h2>4. Your Choices &amp; Rights</h2>
-  <p class="section-title">Location Permissions</p>
-  <ul>
-    <li>You can grant or revoke location permissions at any time in your device settings. However, disabling location may affect the App’s core features.</li>
-  </ul>
+      <section class="section section--demo" id="how-it-works">
+        <div class="section-heading">
+          <p class="eyebrow">See It In Action</p>
+          <h2>A quick demo that shows how the app helps owners get picked faster.</h2>
+          <p>
+            The demo below walks through discovery for foodies, live updates for owners, and the
+            planning flow for organizers so the product value is clear in under a minute.
+          </p>
+        </div>
 
-  <p class="section-title">Account &amp; Profile</p>
-  <ul>
-    <li>You can update or delete your profile information in the App’s account settings.</li>
-  </ul>
+        <div class="demo-grid">
+          <div class="demo-video">
+            <video
+              controls
+              playsinline
+              preload="metadata"
+              poster="./assets/media/foodies/explore-live-simulator.png"
+              data-demo-video
+              hidden
+            >
+              <source src="./assets/media/video/ftf-demo.mp4" type="video/mp4">
+            </video>
 
-  <p class="section-title">Push Notifications</p>
-  <ul>
-    <li>You can enable or disable notifications in your device or account settings.</li>
-  </ul>
+            <div class="demo-placeholder" data-video-fallback>
+              <p class="demo-placeholder__eyebrow">Video Slot Ready</p>
+              <h3>Record one walkthrough that sells the app in under 60 seconds.</h3>
+              <ul>
+                <li>Start with the foodie discovery flow.</li>
+                <li>Show the owner dashboard, schedule, and menu updates.</li>
+                <li>End on organizer value and a download call to action.</li>
+              </ul>
+              <a class="button button--ghost" href="./assets/media/video/README.md">Open the video brief</a>
+            </div>
+          </div>
 
-  <p class="section-title">Access, Correction, Deletion</p>
-  <ul>
-    <li>Depending on your jurisdiction, you may have the right to request access to or deletion of your personal data. Contact us at the email below with such requests.</li>
-  </ul>
+          <div class="demo-panel">
+            <h3>What this demo sells</h3>
+            <ol class="number-list">
+              <li>Show foodies finding a truck quickly instead of searching through old posts.</li>
+              <li>Show owners updating location, stops, and menus so customers can act on current information.</li>
+              <li>Show organizers discovering trucks and moving toward a cleaner invite flow.</li>
+              <li>End with a direct owner setup and download call to action.</li>
+            </ol>
 
-  <p class="section-title">Opt-Out of Marketing</p>
-  <ul>
-    <li>If we send marketing emails, you can unsubscribe via the link in each email or by contacting us.</li>
-  </ul>
-</section>
+            <div class="media-callout">
+              <strong>Media library ready</strong>
+              <p>
+                All of the screenshots selected for the site live in
+                <code>assets/media/</code> and are organized by audience.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-<section>
-  <h2>5. Data Security</h2>
-  <p>We use technical and organizational measures to protect your personal data against unauthorized access, alteration, or destruction. Despite our efforts, no security measures are perfect or impenetrable. Use the App at your own risk and notify us if you suspect a breach.</p>
-</section>
+      <section class="section audience-section" id="foodies">
+        <div class="section-heading">
+          <p class="eyebrow">Foodies</p>
+          <h2>How Food Truck Finder helps users choose faster and eat better.</h2>
+          <p>
+            The foodie side of the app is about removing friction. The questions are simple:
+            What is near me? Are they open? What do they serve? Is it worth the trip?
+          </p>
+        </div>
 
-<section>
-  <h2>6. Children’s Privacy</h2>
-  <p>FTF is not intended for individuals under the age of 13 (or the age of majority in your jurisdiction). We do not knowingly collect personal data from minors. If you believe a child under 13 has provided us personal information, contact us so we can delete it.</p>
-</section>
+        <div class="audience-layout">
+          <div class="audience-copy">
+            <div class="feature-block">
+              <h3>What foodies can do</h3>
+              <ul>
+                <li>Discover nearby trucks from a map and browseable list.</li>
+                <li>Compare options without opening multiple apps or chasing old social posts.</li>
+                <li>Check screens that help answer the basics before leaving home or work.</li>
+                <li>Follow trucks that look worth revisiting.</li>
+              </ul>
+            </div>
 
-<section>
-  <h2>7. International Users</h2>
-  <p>Our servers may be located in different countries. By using the App, you consent to the transfer and processing of your information outside your country of residence. We comply with applicable data protection laws in the regions where we operate.</p>
-</section>
+            <div class="feature-block">
+              <h3>Foodie how-to</h3>
+              <ol class="number-list">
+                <li>Open the app and start on the explore or home feed.</li>
+                <li>Browse nearby trucks, map pins, and quick-hit discovery cards.</li>
+                <li>Check the truck details, menu, and timing before heading out.</li>
+                <li>Save the trucks you want to keep up with and come back when cravings hit again.</li>
+              </ol>
+            </div>
+          </div>
 
-<section>
-  <h2>8. Changes to This Policy</h2>
-  <p>We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements. If we make material changes, we’ll notify you via email or in-app notice. The date of the most recent revision is at the top of this policy. Continued use of the App indicates acceptance of the revised policy.</p>
-</section>
+          <div class="gallery">
+            <figure class="shot-card">
+              <img src="./assets/media/foodies/explore-screen.png" alt="Explore screen for foodies">
+              <figcaption>Explore map and list browsing for quick discovery.</figcaption>
+            </figure>
+            <figure class="shot-card">
+              <img src="./assets/media/foodies/home-feed.png" alt="Foodie home feed">
+              <figcaption>Home feed built to reduce the time it takes to pick a stop.</figcaption>
+            </figure>
+            <figure class="shot-card">
+              <img src="./assets/media/foodies/home-live-simulator.png" alt="Live foodie simulator view">
+              <figcaption>A live-feeling mobile view that works well in the hero or feature rail.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
 
-<section>
-  <h2>9. Third-Party Links &amp; Services</h2>
-  <p>The App may contain links to third-party websites or services (e.g., social media links for a food truck). We are <strong>not</strong> responsible for their content or privacy practices. Review those third-party policies before providing them any data.</p>
-</section>
+      <section class="section audience-section audience-section--owner" id="owners">
+        <div class="section-heading">
+          <p class="eyebrow">Food Truck Owners</p>
+          <h2>Make it easier for hungry customers to choose your truck.</h2>
+          <p>
+            If customers cannot quickly see where you are, when you are serving, and what you are
+            selling, you lose the visit before the order starts. This side of the app is built to
+            make the truck easier to find, easier to trust, and easier to choose.
+          </p>
+        </div>
 
-<section>
-  <h2>10. Contact Us</h2>
-  <p>If you have questions about this Privacy Policy or our data practices, or if you want to exercise your rights, please contact us at:</p>
-  <address>
-    <strong>FTF Food Truck Finder</strong><br/>
-    Email: <a href="mailto:Foodtruckfinderinfo@gmail.com">Foodtruckfinderinfo@gmail.com</a>
-  </address>
-  <p>Thank you for reviewing our Privacy Policy. We’re committed to safeguarding your data and providing a transparent user experience in FTF Food Truck Finder.</p>
-</section>
+        <div class="owner-proof-grid">
+          <article class="owner-proof-card">
+            <strong>Current location, not last week&apos;s post</strong>
+            <span>Keep today&apos;s stop visible instead of buried in stories, comments, or DMs.</span>
+          </article>
+          <article class="owner-proof-card">
+            <strong>Menu visibility before the customer commits</strong>
+            <span>Show people what you are serving and what is special before they spend elsewhere.</span>
+          </article>
+          <article class="owner-proof-card">
+            <strong>A stronger profile for customers and organizers</strong>
+            <span>Give both audiences a cleaner, more reliable snapshot of your truck.</span>
+          </article>
+          <article class="owner-proof-card">
+            <strong>Owner setup help when you need it</strong>
+            <span>Use the support email if you want help getting your profile live faster.</span>
+          </article>
+        </div>
 
-<footer>
-  &copy; <span id="year"></span> FTF Food Truck Finder. All rights reserved.
-</footer>
+        <div class="audience-layout">
+          <div class="audience-copy">
+            <div class="feature-block">
+              <h3>Why owners use it</h3>
+              <ul>
+                <li>Keep today&apos;s stop visible instead of buried across multiple platforms.</li>
+                <li>Show menu items and specials before customers decide where to spend.</li>
+                <li>Build a profile that makes the truck look active, reliable, and worth the drive.</li>
+                <li>Give organizers a better first look when they are deciding which trucks to invite.</li>
+              </ul>
+            </div>
 
-<script>
-  // Optional: set the current year in the footer automatically
-  document.getElementById('year').textContent = new Date().getFullYear();
-</script>
+            <div class="feature-block">
+              <h3>Owner setup flow</h3>
+              <ol class="number-list">
+                <li>Create or claim your owner account and complete the truck profile.</li>
+                <li>Add photos, truck details, cuisine, and the basics customers check first.</li>
+                <li>Update service stops, schedule, and menu whenever plans change.</li>
+                <li>Keep specials fresh so the app helps convert search intent into actual visits.</li>
+              </ol>
+            </div>
 
+            <div class="feature-block">
+              <h3>Need help getting live?</h3>
+              <p>
+                If you need onboarding help or an owner referral code, email
+                <a href="mailto:Foodtruckfinderinfo@gmail.com">Foodtruckfinderinfo@gmail.com</a>.
+              </p>
+              <p>
+                If you want the fastest path, send a note with your truck name and say you want
+                owner setup help.
+              </p>
+              <a class="button button--ghost" href="mailto:Foodtruckfinderinfo@gmail.com?subject=Owner%20Setup%20Help">
+                Email for Owner Setup
+              </a>
+            </div>
+          </div>
+
+          <div class="gallery gallery--dense">
+            <figure class="shot-card">
+              <img src="./assets/media/owners/owner-dashboard.png" alt="Owner dashboard screenshot">
+              <figcaption>Owner dashboard for truck-level management and updates.</figcaption>
+            </figure>
+            <figure class="shot-card">
+              <img src="./assets/media/owners/owner-schedule-explained.png" alt="Owner schedule management">
+              <figcaption>Schedule updates that show people where the truck is going next.</figcaption>
+            </figure>
+            <figure class="shot-card">
+              <img src="./assets/media/owners/owner-menu-explained.png" alt="Owner menu management">
+              <figcaption>Menu and specials that help people decide before they drive.</figcaption>
+            </figure>
+            <figure class="shot-card">
+              <img src="./assets/media/owners/edit-truck-fields.png" alt="Truck profile editing form">
+              <figcaption>Profile editing that helps owners build a stronger storefront inside the app.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section audience-section" id="organizers">
+        <div class="section-heading">
+          <p class="eyebrow">Event Organizers</p>
+          <h2>How organizers can use the platform to source better trucks and plan stronger events.</h2>
+          <p>
+            Organizers need a cleaner path from discovery to outreach. This section is designed to
+            explain that value even when you are still expanding event-specific visuals.
+          </p>
+        </div>
+
+        <div class="audience-layout">
+          <div class="audience-copy">
+            <div class="feature-block">
+              <h3>What organizers can do</h3>
+              <ul>
+                <li>Browse trucks with clearer business profiles and better discovery context.</li>
+                <li>Use the app as a starting point for food vendor research and outreach.</li>
+                <li>Build guest experience planning around a stronger vendor shortlist.</li>
+                <li>See the product as a shared layer between event planning and truck visibility.</li>
+              </ul>
+            </div>
+
+            <div class="feature-block">
+              <h3>Organizer how-to</h3>
+              <ol class="number-list">
+                <li>Start with local truck discovery and shortlist the right fit for the event.</li>
+                <li>Review truck profile information, cuisine fit, and service details.</li>
+                <li>Use the invite and coordination flows as the handoff point into event planning.</li>
+                <li>Keep a better paper trail for vendor communication and event lineup decisions.</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="gallery">
+            <figure class="shot-card">
+              <img src="./assets/media/organizers/discovery-map.png" alt="Truck discovery map for organizers">
+              <figcaption>Discovery matters to organizers too. Start with a real local vendor view.</figcaption>
+            </figure>
+            <figure class="shot-card">
+              <img src="./assets/media/organizers/invites-explained.png" alt="Organizer and invite flow">
+              <figcaption>Invite-oriented workflow that supports coordination and event planning.</figcaption>
+            </figure>
+            <figure class="shot-card">
+              <img src="./assets/media/organizers/role-signup.png" alt="Role-based sign up">
+              <figcaption>Role-based entry point that makes room for foodies, owners, and organizers.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--details">
+        <div class="section-heading">
+          <p class="eyebrow">Built for real usage</p>
+          <h2>What the website should make obvious in under a minute.</h2>
+        </div>
+
+        <div class="detail-grid">
+          <article class="detail-card">
+            <h3>Clear role messaging</h3>
+            <p>Each audience should instantly understand why the app matters to them, not just what screens it has.</p>
+          </article>
+          <article class="detail-card">
+            <h3>Useful screenshots</h3>
+            <p>Every screenshot on the site now has a home in the media library and a job to do on the page.</p>
+          </article>
+          <article class="detail-card">
+            <h3>How-to sections</h3>
+            <p>The page explains how people actually use the app instead of forcing visitors to infer it from UI alone.</p>
+          </article>
+          <article class="detail-card">
+            <h3>Legal and support links</h3>
+            <p>Privacy policy, account deletion, download links, and support contacts remain visible and easy to access.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section section--faq" id="faq">
+        <div class="section-heading">
+          <p class="eyebrow">FAQ</p>
+          <h2>Questions people are likely to ask before they download.</h2>
+        </div>
+
+        <div class="faq-grid">
+          <article class="faq-card">
+            <h3>Is Food Truck Finder only for food truck owners?</h3>
+            <p>No. The platform is positioned for foodies, owners, and event organizers, each with a different reason to use it.</p>
+          </article>
+          <article class="faq-card">
+            <h3>Can owners update location, schedule, and menu?</h3>
+            <p>Yes. That is the core owner workflow the site now shows most clearly.</p>
+          </article>
+          <article class="faq-card">
+            <h3>What if my truck moves during the day?</h3>
+            <p>The owner flow is meant to make stop and schedule changes easier to keep current so customers are not guessing.</p>
+          </article>
+          <article class="faq-card">
+            <h3>What should the demo video show?</h3>
+            <p>Discovery first, owner updates second, organizer coordination third, then a direct setup or download CTA.</p>
+          </article>
+          <article class="faq-card">
+            <h3>Where are the screenshots for the website stored?</h3>
+            <p>They live under <code>assets/media/</code> and are grouped by audience for easy reuse.</p>
+          </article>
+          <article class="faq-card">
+            <h3>What if an owner needs help getting started?</h3>
+            <p>They can email <a href="mailto:Foodtruckfinderinfo@gmail.com">Foodtruckfinderinfo@gmail.com</a> for onboarding help or referral code support.</p>
+          </article>
+          <article class="faq-card">
+            <h3>Where are the legal pages now?</h3>
+            <p>The site keeps dedicated links for the privacy policy and account deletion instructions in the footer.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="cta-banner">
+        <div>
+          <p class="eyebrow">Ready to get trucks onboard?</p>
+          <h2>If you run a truck, get your profile live. If you follow trucks, download and start browsing.</h2>
+        </div>
+        <div class="cta-banner__actions">
+          <a
+            class="button button--primary"
+            href="mailto:Foodtruckfinderinfo@gmail.com?subject=Owner%20Setup%20Request"
+          >
+            Owners: Request Setup
+          </a>
+          <a
+            class="button button--secondary"
+            href="https://apps.apple.com/us/app/ftf-food-truck-finder/id6742719545"
+            target="_blank"
+            rel="noreferrer"
+            >
+            Download on the App Store
+          </a>
+          <a
+            class="button button--ghost"
+            href="https://play.google.com/store/apps/details?id=com.innoryzen.foodtruckfinder"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Get it on Google Play
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <p class="site-footer__brand">Food Truck Finder</p>
+        <p class="site-footer__copy">Built to make discovery, operations, and event planning feel less scattered.</p>
+      </div>
+
+      <div class="site-footer__links">
+        <a href="./privacy.html">Privacy Policy</a>
+        <a href="./delete-account.html">Delete Account</a>
+        <a href="./docs/website-build-prompt.html">Website Prompt</a>
+        <a href="./assets/media/README.md">Media Library</a>
+        <a href="mailto:Foodtruckfinderinfo@gmail.com">Foodtruckfinderinfo@gmail.com</a>
+      </div>
+
+      <p class="site-footer__year">&copy; <span id="year"></span> Food Truck Finder</p>
+    </footer>
+  </div>
+
+  <script src="./assets/site.js?v=1"></script>
 </body>
 </html>

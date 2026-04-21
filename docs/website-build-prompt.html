@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Website Build Prompt | Food Truck Finder</title>
+  <style>
+    :root {
+      --bg: #f7efe6;
+      --card: rgba(255, 250, 245, 0.96);
+      --ink: #201713;
+      --muted: #655850;
+      --line: rgba(32, 23, 19, 0.1);
+      --accent: #d96f3d;
+      --shadow: 0 20px 50px rgba(32, 23, 19, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(217, 111, 61, 0.18), transparent 32%),
+        var(--bg);
+      padding: 24px;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .back {
+      display: inline-flex;
+      margin-bottom: 18px;
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    .card {
+      padding: 28px 24px;
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+    }
+
+    h2 {
+      margin: 28px 0 10px;
+      font-size: 1.35rem;
+      letter-spacing: -0.03em;
+    }
+
+    p, li {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    ul, ol {
+      padding-left: 20px;
+    }
+
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(32, 23, 19, 0.05);
+      white-space: pre-wrap;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(217, 111, 61, 0.12);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="../index.html">&larr; Back to site</a>
+    <div class="card">
+      <p class="eyebrow">Build Prompt</p>
+      <h1>Food Truck Finder Website Prompt</h1>
+      <p>
+        This is the same prompt captured in <code>website-build-prompt.md</code>, but formatted so
+        it opens cleanly from the live site.
+      </p>
+
+      <pre>Create a polished, conversion-focused marketing website for Food Truck Finder inside this GitHub Pages repo.
+
+Important context:
+- Use plain HTML, CSS, and lightweight JavaScript.
+- No build step, framework, or package manager.
+- The site must serve foodies, food truck owners, and event organizers.
+- The visual direction should feel warm, energetic, and local-food-driven.
+- Keep privacy policy, delete-account, download links, and support email visible.
+
+Required sections:
+1. Hero with layered screenshots and clear product explanation
+2. Three-role overview for foodies, owners, and organizers
+3. Demo section with embedded video or polished placeholder
+4. Foodies section with how-to and screenshots
+5. Owners section with business outcomes, onboarding steps, and screenshots
+6. Organizers section with discovery and coordination value
+7. Feature clarity section in plain language
+8. FAQ
+9. Final CTA
+10. Footer with legal, support, media, and prompt links
+
+Available assets live in:
+- assets/media/foodies/
+- assets/media/owners/
+- assets/media/organizers/
+- assets/media/video/
+
+Voice:
+- Direct
+- Useful
+- Credible
+- No startup fluff
+- Focus on practical value and real usage
+
+Technical rules:
+- Semantic HTML
+- Responsive navigation
+- Centralized CSS variables
+- Minimal JavaScript
+- Screenshots must scale cleanly on mobile
+- If ftf-demo.mp4 is missing, show a graceful video placeholder instead of a broken player</pre>
+    </div>
+  </div>
+</body>
+</html>

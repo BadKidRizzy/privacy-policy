@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "HB3M76EZS9.com.innoryzen.FoodTruckFinder",
+        "paths": [
+          "/truck/*"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.innoryzen.foodtruckfinder",
+      "sha256_cert_fingerprints": [
+        "CC:AB:1D:13:E2:99:DD:DD:5C:59:CC:D0:F4:AD:CB:62:68:EA:3E:78:DA:E6:A3:7E:7F:4B:B1:A6:D6:CB:41:2E",
+        "FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C"
+      ]
+    }
+  }
+]
