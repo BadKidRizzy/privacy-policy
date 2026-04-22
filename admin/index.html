@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../assets/site.css?v=1">
-  <link rel="stylesheet" href="../assets/management-console.css?v=1">
+  <link rel="stylesheet" href="../assets/management-console.css?v=4">
 </head>
 <body class="console-body">
   <div class="console-shell">
@@ -71,8 +71,8 @@
 
           <div class="console-toolbar__actions">
             <label class="search-box">
-              Search
-              <input type="search" placeholder="Search name, email, truck, event..." data-search>
+              <span data-search-label>Search Owners</span>
+              <input type="search" placeholder="Search owner name, email, phone, address..." data-search>
             </label>
             <button class="button button--secondary" type="button" data-refresh>Refresh</button>
           </div>
@@ -94,7 +94,10 @@
               <h3 data-panel-title>Owners</h3>
               <p data-panel-description>Owner account management and truck access.</p>
             </div>
-            <span data-loaded-at></span>
+            <div class="panel-heading__actions">
+              <span data-loaded-at></span>
+              <button class="button button--secondary" type="button" data-create-record hidden>Create</button>
+            </div>
           </div>
 
           <div class="table-wrap">
@@ -138,6 +141,6 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
-  <script defer src="../assets/management-console.js?v=1"></script>
+  <script defer src="../assets/management-console.js?v=5"></script>
 </body>
 </html>

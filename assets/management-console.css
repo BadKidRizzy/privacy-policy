@@ -116,6 +116,11 @@
   resize: vertical;
 }
 
+.field-help {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .record-field--checkbox {
   display: flex;
   align-items: center;
@@ -131,6 +136,49 @@
 .record-field--checkbox input {
   width: 22px;
   min-height: 22px;
+}
+
+.record-field--file {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.file-upload-card {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.file-upload-card input {
+  padding: 12px;
+  cursor: pointer;
+}
+
+.file-upload-card small {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.media-preview {
+  width: 118px;
+  height: 88px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--accent-soft);
+  object-fit: cover;
+}
+
+.media-preview--empty {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 .console-message {
@@ -151,6 +199,14 @@
   justify-content: space-between;
   gap: 18px;
   align-items: end;
+}
+
+.panel-heading__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 .search-box {
@@ -388,6 +444,10 @@
 
   .metric-grid,
   .record-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .file-upload-card {
     grid-template-columns: 1fr;
   }
 

@@ -15,7 +15,13 @@ const state = {
   users: [],
   trucks: [],
   events: [],
-  search: '',
+  searchByTab: {
+    owners: '',
+    trucks: '',
+    foodies: '',
+    organizers: '',
+    events: '',
+  },
   selected: null,
 };
 
@@ -27,11 +33,13 @@ const selectors = {
   sessionSummary: document.querySelector('[data-session-summary]'),
   metrics: document.querySelector('[data-metrics]'),
   refresh: document.querySelector('[data-refresh]'),
+  searchLabel: document.querySelector('[data-search-label]'),
   search: document.querySelector('[data-search]'),
   tabs: Array.from(document.querySelectorAll('[data-tab]')),
   panelTitle: document.querySelector('[data-panel-title]'),
   panelDescription: document.querySelector('[data-panel-description]'),
   loadedAt: document.querySelector('[data-loaded-at]'),
+  createRecord: document.querySelector('[data-create-record]'),
   tableHead: document.querySelector('[data-table-head]'),
   tableBody: document.querySelector('[data-table-body]'),
   empty: document.querySelector('[data-empty-state]'),
@@ -51,8 +59,12 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const functions = firebase.app().functions('us-central1');
 const getSnapshot = functions.httpsCallable('getManagementConsoleSnapshot');
+const createRecord = functions.httpsCallable('createManagementConsoleRecord');
 const updateRecord = functions.httpsCallable('updateManagementConsoleRecord');
 const deleteRecord = functions.httpsCallable('deleteManagementConsoleRecord');
+const uploadMedia = functions.httpsCallable('uploadManagementConsoleMedia');
+
+const MAX_ADMIN_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 const tabConfig = {
   owners: {
@@ -61,6 +73,9 @@ const tabConfig = {
     collection: 'users',
     filter: (record) => record.userType === 'Owner',
     columns: ['Owner', 'Email', 'Trucks', 'Access', 'Status', 'Auth', 'Action'],
+    searchLabel: 'Search Owners',
+    searchPlaceholder: 'Search owner name, email, phone, address...',
+    createLabel: '',
   },
   trucks: {
     title: 'Trucks',
@@ -68,6 +83,9 @@ const tabConfig = {
     collection: 'foodTrucks',
     filter: () => true,
     columns: ['Truck', 'Owner', 'Location', 'Claim', 'Status', 'Updated', 'Action'],
+    searchLabel: 'Search Trucks',
+    searchPlaceholder: 'Search truck, owner email, location, cuisine, tag...',
+    createLabel: 'Create Truck',
   },
   foodies: {
     title: 'Foodies',
@@ -75,6 +93,9 @@ const tabConfig = {
     collection: 'users',
     filter: (record) => record.userType === 'Foodie',
     columns: ['Foodie', 'Email', 'Status', 'Auth', 'Created', 'Action'],
+    searchLabel: 'Search Foodies',
+    searchPlaceholder: 'Search foodie name, email, status...',
+    createLabel: '',
   },
   organizers: {
     title: 'Event Organizers',
@@ -82,6 +103,9 @@ const tabConfig = {
     collection: 'users',
     filter: (record) => record.userType === 'Organizer',
     columns: ['Organizer', 'Organization', 'Email', 'Events', 'Access', 'Status', 'Action'],
+    searchLabel: 'Search Organizers',
+    searchPlaceholder: 'Search organizer, organization, email, phone...',
+    createLabel: '',
   },
   events: {
     title: 'Events',
@@ -89,12 +113,16 @@ const tabConfig = {
     collection: 'events',
     filter: () => true,
     columns: ['Event', 'Organizer', 'When', 'Capacity', 'Status', 'Updated', 'Action'],
+    searchLabel: 'Search Events',
+    searchPlaceholder: 'Search event, organizer, address, status...',
+    createLabel: 'Create Event',
   },
 };
 
 const fieldSets = {
   users: [
     {name: 'name', label: 'Name', type: 'text'},
+    {name: 'profilePhotoUpload', label: 'Upload Profile Photo', type: 'file', mediaType: 'profilePhoto', wide: true},
     {name: 'userType', label: 'User Type', type: 'select', options: ['Foodie', 'Owner', 'Organizer']},
     {name: 'accountStatus', label: 'Account Status', type: 'select', options: ['active', 'review', 'disabled']},
     {name: 'moderationStatus', label: 'Moderation Status', type: 'select', options: ['clear', 'review', 'restricted']},
@@ -112,8 +140,16 @@ const fieldSets = {
   ],
   foodTrucks: [
     {name: 'name', label: 'Truck Name', type: 'text'},
-    {name: 'ownerId', label: 'Owner UID', type: 'text'},
-    {name: 'ownerEmail', label: 'Owner Email', type: 'text'},
+    {name: 'truckImageUpload', label: 'Upload Truck Photo', type: 'file', mediaType: 'truckImage', wide: true},
+    {name: 'menuImageUpload', label: 'Upload Menu Photo', type: 'file', mediaType: 'menuImage', multiple: true, wide: true},
+    {
+      name: 'ownerEmail',
+      label: 'Owner Email (transfer)',
+      type: 'email',
+      list: 'owner-email-options',
+      help: 'Start typing and choose an owner email to transfer this truck.',
+    },
+    {name: 'ownerId', label: 'Owner UID (advanced)', type: 'text'},
     {name: 'description', label: 'Description', type: 'textarea', wide: true},
     {name: 'currentAddress', label: 'Current Address', type: 'textarea', wide: true},
     {name: 'businessPhone', label: 'Business Phone', type: 'text'},
@@ -133,7 +169,15 @@ const fieldSets = {
   ],
   events: [
     {name: 'title', label: 'Event Title', type: 'text'},
-    {name: 'organizerId', label: 'Organizer UID', type: 'text'},
+    {name: 'coverImageUpload', label: 'Upload Event Cover', type: 'file', mediaType: 'coverImage', wide: true},
+    {
+      name: 'organizerEmail',
+      label: 'Organizer Email (transfer)',
+      type: 'email',
+      list: 'organizer-email-options',
+      help: 'Start typing and choose an organizer email to transfer this event.',
+    },
+    {name: 'organizerId', label: 'Organizer UID (advanced)', type: 'text'},
     {name: 'organizerName', label: 'Organizer Name', type: 'text'},
     {name: 'organizationName', label: 'Organization Name', type: 'text'},
     {name: 'organizerPhone', label: 'Organizer Phone', type: 'text'},
@@ -213,6 +257,71 @@ function statusPill(value, warnValues = ['disabled', 'review', 'closed']) {
   return `<span class="status-pill ${warn ? 'status-pill--warn' : ''}">${escapeHtml(value || 'active')}</span>`;
 }
 
+function getProfileImage(record) {
+  return record.photoURL || record.profileImage || '';
+}
+
+function getMenuPreviewImage(record) {
+  return Array.isArray(record.menuImages) && record.menuImages.length
+    ? record.menuImages[0]
+    : record.menuImage || '';
+}
+
+function getMediaPreviewUrl(field, record) {
+  if (field.mediaType === 'profilePhoto') return getProfileImage(record);
+  if (field.mediaType === 'truckImage') return record.truckImage || '';
+  if (field.mediaType === 'menuImage') return getMenuPreviewImage(record);
+  if (field.mediaType === 'coverImage') return record.coverImageUrl || '';
+  return '';
+}
+
+function getCurrentSearch() {
+  return state.searchByTab[state.activeTab] || '';
+}
+
+function getOwnerEmailOptions() {
+  return state.users
+    .filter((user) => user.userType === 'Owner' && user.email)
+    .map((user) => ({
+      email: String(user.email).trim(),
+      label: [user.name, user.id].filter(Boolean).join(' - '),
+    }))
+    .sort((a, b) => a.email.localeCompare(b.email));
+}
+
+function getOrganizerEmailOptions() {
+  return state.users
+    .filter((user) => user.userType === 'Organizer' && user.email)
+    .map((user) => ({
+      email: String(user.email).trim(),
+      label: [user.organizationName || user.name, user.id].filter(Boolean).join(' - '),
+    }))
+    .sort((a, b) => a.email.localeCompare(b.email));
+}
+
+function renderEmailDatalist(id, options) {
+
+  if (!options.length) {
+    return '';
+  }
+
+  return `
+    <datalist id="${escapeHtml(id)}">
+      ${options.map((option) => `
+        <option value="${escapeHtml(option.email)}" label="${escapeHtml(option.label)}"></option>
+      `).join('')}
+    </datalist>
+  `;
+}
+
+function renderOwnerEmailDatalist() {
+  return renderEmailDatalist('owner-email-options', getOwnerEmailOptions());
+}
+
+function renderOrganizerEmailDatalist() {
+  return renderEmailDatalist('organizer-email-options', getOrganizerEmailOptions());
+}
+
 function getActiveRecords() {
   const config = tabConfig[state.activeTab];
   const source = config.collection === 'users'
@@ -220,7 +329,7 @@ function getActiveRecords() {
     : config.collection === 'foodTrucks'
       ? state.trucks
       : state.events;
-  const query = state.search.trim().toLowerCase();
+  const query = getCurrentSearch().trim().toLowerCase();
 
   return source
     .filter(config.filter)
@@ -257,6 +366,20 @@ function renderTable() {
   selectors.loadedAt.textContent = state.loadedAt ? `Loaded ${formatDate(state.loadedAt)}` : '';
   selectors.tableHead.innerHTML = `<tr>${config.columns.map((column) => `<th>${column}</th>`).join('')}</tr>`;
   selectors.empty.hidden = records.length > 0;
+  if (selectors.createRecord) {
+    selectors.createRecord.hidden = !config.createLabel;
+    selectors.createRecord.textContent = config.createLabel || 'Create';
+  }
+  if (selectors.searchLabel) {
+    selectors.searchLabel.textContent = config.searchLabel || 'Search';
+  }
+  if (selectors.search) {
+    selectors.search.placeholder = config.searchPlaceholder || 'Search records...';
+    const currentSearch = getCurrentSearch();
+    if (selectors.search.value !== currentSearch) {
+      selectors.search.value = currentSearch;
+    }
+  }
 
   selectors.tabs.forEach((tab) => {
     tab.classList.toggle('is-active', tab.dataset.tab === state.activeTab);
@@ -280,7 +403,7 @@ function renderOwnerRow(record) {
 
   return `
     <tr>
-      <td>${titleCell(record.name || 'Owner', record.id)}</td>
+      <td>${titleCell(record.name || 'Owner', record.id, getProfileImage(record))}</td>
       <td>${escapeHtml(record.email || 'No email')}</td>
       <td>${truckCount}</td>
       <td>${escapeHtml(access)}</td>
@@ -294,7 +417,7 @@ function renderOwnerRow(record) {
 function renderFoodieRow(record) {
   return `
     <tr>
-      <td>${titleCell(record.name || 'Foodie', record.id)}</td>
+      <td>${titleCell(record.name || 'Foodie', record.id, getProfileImage(record))}</td>
       <td>${escapeHtml(record.email || 'No email')}</td>
       <td>${statusPill(record.accountStatus || 'active')}</td>
       <td>${statusPill(record.authDisabled ? 'disabled' : 'enabled')}</td>
@@ -310,7 +433,7 @@ function renderOrganizerRow(record) {
 
   return `
     <tr>
-      <td>${titleCell(record.name || 'Organizer', record.id)}</td>
+      <td>${titleCell(record.name || 'Organizer', record.id, getProfileImage(record))}</td>
       <td>${escapeHtml(record.organizationName || 'No organization')}</td>
       <td>${escapeHtml(record.email || 'No email')}</td>
       <td>${eventCount}</td>
@@ -346,7 +469,7 @@ function renderEventRow(record) {
 
   return `
     <tr>
-      <td>${titleCell(record.title || 'Event', record.id)}</td>
+      <td>${titleCell(record.title || 'Event', record.id, record.coverImageUrl)}</td>
       <td>${escapeHtml(record.organizationName || organizer?.organizationName || record.organizerName || 'Unknown')}</td>
       <td>${formatDate(record.startAt)}</td>
       <td>${accepted}/${capacity || 'unset'}</td>
@@ -371,6 +494,12 @@ function titleCell(title, subtitle, imageUrl = '') {
 
 function actionButton(collection, id) {
   return `<button class="row-action" type="button" data-edit="${collection}:${escapeHtml(id)}">Manage</button>`;
+}
+
+function getDatalistHtml(collection) {
+  if (collection === 'foodTrucks') return renderOwnerEmailDatalist();
+  if (collection === 'events') return renderOrganizerEmailDatalist();
+  return '';
 }
 
 function renderAll() {
@@ -422,9 +551,48 @@ function openRecordDialog(collection, id) {
   selectors.dialogTitle.textContent = record.name || record.title || record.email || id;
   selectors.dialogSubtitle.textContent = id;
   selectors.deleteRecord.hidden = collection === 'users';
-  selectors.recordFields.innerHTML = (fieldSets[collection] || [])
+  const fieldsHtml = (fieldSets[collection] || [])
     .map((field) => renderField(field, record))
     .join('');
+  selectors.recordFields.innerHTML = fieldsHtml + getDatalistHtml(collection);
+
+  if (typeof selectors.dialog.showModal === 'function') {
+    selectors.dialog.showModal();
+  } else {
+    selectors.dialog.setAttribute('open', '');
+  }
+}
+
+function openCreateDialog() {
+  const config = tabConfig[state.activeTab];
+  const collection = config.collection;
+
+  if (collection !== 'foodTrucks' && collection !== 'events') return;
+
+  const record = collection === 'foodTrucks'
+    ? {
+        claimStatus: 'claimed',
+        locationType: 'stationary',
+        verificationStatus: 'owner_verified',
+        transferEligible: true,
+      }
+    : {
+        status: 'open',
+        truckCapacity: 1,
+        expectedTruckCount: 1,
+      };
+
+  state.selected = {collection, id: '', record, mode: 'create'};
+  selectors.recordMessage.textContent = '';
+  selectors.dialogEyebrow.textContent = collection;
+  selectors.dialogTitle.textContent = collection === 'foodTrucks' ? 'Create Truck' : 'Create Event';
+  selectors.dialogSubtitle.textContent = 'New record';
+  selectors.deleteRecord.hidden = true;
+
+  const fieldsHtml = (fieldSets[collection] || [])
+    .map((field) => renderField(field, record))
+    .join('');
+  selectors.recordFields.innerHTML = fieldsHtml + getDatalistHtml(collection);
 
   if (typeof selectors.dialog.showModal === 'function') {
     selectors.dialog.showModal();
@@ -436,6 +604,31 @@ function openRecordDialog(collection, id) {
 function renderField(field, record) {
   const value = record[field.name];
   const wideClass = field.wide ? ' record-field--wide' : '';
+
+  if (field.type === 'file') {
+    const previewUrl = getMediaPreviewUrl(field, record);
+    const mode = field.mediaType === 'menuImage' ? 'Adds to existing menu photos.' : 'Replaces the current image.';
+
+    return `
+      <div class="record-field record-field--file${wideClass}">
+        <span>${escapeHtml(field.label)}</span>
+        <div class="file-upload-card">
+          ${previewUrl ? `<img class="media-preview" src="${escapeHtml(previewUrl)}" alt="">` : '<div class="media-preview media-preview--empty">No image</div>'}
+          <div>
+            <input
+              type="file"
+              data-field="${escapeHtml(field.name)}"
+              data-type="file"
+              data-media-type="${escapeHtml(field.mediaType)}"
+              accept="image/jpeg,image/png,image/webp"
+              ${field.multiple ? 'multiple' : ''}
+            >
+            <small>${escapeHtml(mode)} JPG, PNG, or WebP. Max 5 MB each.</small>
+          </div>
+        </div>
+      </div>
+    `;
+  }
 
   if (field.type === 'checkbox') {
     return `
@@ -475,6 +668,8 @@ function renderField(field, record) {
     : Array.isArray(value)
       ? value.join(', ')
       : value ?? '';
+  const listAttr = field.list ? `list="${escapeHtml(field.list)}"` : '';
+  const helpText = field.help ? `<small class="field-help">${escapeHtml(field.help)}</small>` : '';
 
   return `
     <label class="record-field${wideClass}">
@@ -484,8 +679,10 @@ function renderField(field, record) {
         data-field="${escapeHtml(field.name)}"
         data-type="${escapeHtml(field.type)}"
         value="${escapeHtml(inputValue)}"
+        ${listAttr}
         ${field.type === 'number' ? 'step="any"' : ''}
       >
+      ${helpText}
     </label>
   `;
 }
@@ -521,14 +718,22 @@ function fieldValueMatches(type, nextValue, previousValue) {
 function readFormUpdates() {
   const updates = {};
   const originalRecord = state.selected?.record || {};
+  const isCreate = state.selected?.mode === 'create';
 
   selectors.recordFields.querySelectorAll('[data-field]').forEach((input) => {
     const field = input.dataset.field;
     const type = input.dataset.type;
 
+    if (type === 'file') return;
     if (!field) return;
 
     const nextValue = readInputValue(input, type);
+    if (isCreate) {
+      if (nextValue === '' || nextValue == null || (type === 'checkbox' && nextValue === false)) return;
+      updates[field] = nextValue;
+      return;
+    }
+
     if (fieldValueMatches(type, nextValue, originalRecord[field])) return;
 
     updates[field] = nextValue;
@@ -537,17 +742,86 @@ function readFormUpdates() {
   return updates;
 }
 
+function getSelectedUploads() {
+  const uploads = [];
+
+  selectors.recordFields.querySelectorAll('input[type="file"][data-media-type]').forEach((input) => {
+    const files = Array.from(input.files || []);
+    files.forEach((file) => {
+      uploads.push({
+        mediaType: input.dataset.mediaType,
+        file,
+      });
+    });
+  });
+
+  return uploads;
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error || new Error('Could not read image.'));
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.readAsDataURL(file);
+  });
+}
+
 async function saveSelectedRecord() {
   if (!state.selected) return;
 
-  setMessage(selectors.recordMessage, 'Saving...');
+  const updates = readFormUpdates();
+  const uploads = getSelectedUploads();
+  const isCreate = state.selected.mode === 'create';
+
+  if (Object.keys(updates).length === 0 && uploads.length === 0) {
+    setMessage(selectors.recordMessage, 'No changes to save.');
+    return;
+  }
+
+  setMessage(selectors.recordMessage, isCreate ? 'Creating record...' : 'Saving updates...');
 
   try {
-    await updateRecord({
-      collection: state.selected.collection,
-      id: state.selected.id,
-      updates: readFormUpdates(),
-    });
+    let recordId = state.selected.id;
+
+    if (isCreate) {
+      const result = await createRecord({
+        collection: state.selected.collection,
+        record: updates,
+      });
+      recordId = result.data?.id || '';
+
+      if (!recordId) {
+        throw new Error('Create succeeded but no record id was returned.');
+      }
+    } else if (Object.keys(updates).length > 0) {
+      await updateRecord({
+        collection: state.selected.collection,
+        id: recordId,
+        updates,
+      });
+    }
+
+    for (let index = 0; index < uploads.length; index += 1) {
+      const upload = uploads[index];
+      if (!upload.mediaType) continue;
+      if (upload.file.size > MAX_ADMIN_UPLOAD_BYTES) {
+        throw new Error(`${upload.file.name} is larger than 5 MB.`);
+      }
+
+      setMessage(selectors.recordMessage, `Uploading image ${index + 1} of ${uploads.length}...`);
+      const dataUrl = await readFileAsDataUrl(upload.file);
+
+      await uploadMedia({
+        collection: state.selected.collection,
+        id: recordId,
+        mediaType: upload.mediaType,
+        fileName: upload.file.name,
+        contentType: upload.file.type,
+        dataUrl,
+      });
+    }
+
     setMessage(selectors.recordMessage, 'Saved. Refreshing data...');
     await loadSnapshot();
     closeDialog();
@@ -606,9 +880,10 @@ selectors.signOut?.addEventListener('click', async () => {
 });
 
 selectors.refresh?.addEventListener('click', loadSnapshot);
+selectors.createRecord?.addEventListener('click', openCreateDialog);
 
 selectors.search?.addEventListener('input', (event) => {
-  state.search = event.target.value || '';
+  state.searchByTab[state.activeTab] = event.target.value || '';
   renderTable();
 });
 
