@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Truck Finder Management Console</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta
+    name="description"
+    content="Secure Food Truck Finder management console for owners, trucks, foodies, event organizers, and events."
+  >
+  <meta name="theme-color" content="#1f1713">
+  <link rel="icon" type="image/png" href="../assets/brand/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="../assets/site.css?v=1">
+  <link rel="stylesheet" href="../assets/management-console.css?v=1">
+</head>
+<body class="console-body">
+  <div class="console-shell">
+    <header class="console-header">
+      <a class="brand" href="../" aria-label="Food Truck Finder home">
+        <img src="../assets/brand/IconLogo.png" alt="Food Truck Finder logo" width="44" height="44">
+        <span>FTF Management</span>
+      </a>
+
+      <div class="console-header__actions">
+        <a href="../privacy.html">Privacy</a>
+        <a href="../delete-account.html">Delete Account</a>
+        <button class="button button--ghost" type="button" data-sign-out hidden>Sign Out</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="console-hero">
+        <div>
+          <p class="eyebrow">Private Console</p>
+          <h1>Manage the people, trucks, and events behind Food Truck Finder.</h1>
+          <p>
+            Sign in with an approved admin account to review owners, transfer trucks, support
+            foodies, manage event organizers, and update event records.
+          </p>
+        </div>
+
+        <form class="login-card" data-login-form>
+          <h2>Admin sign in</h2>
+          <label>
+            Email
+            <input name="email" type="email" autocomplete="email" required>
+          </label>
+          <label>
+            Password
+            <input name="password" type="password" autocomplete="current-password" required>
+          </label>
+          <button class="button button--primary" type="submit">Open Console</button>
+          <p class="console-message" data-auth-message></p>
+        </form>
+      </section>
+
+      <section class="console-app" data-console-app hidden>
+        <div class="console-toolbar">
+          <div>
+            <p class="eyebrow">Live Admin View</p>
+            <h2>Management Console</h2>
+            <p data-session-summary>Loading account...</p>
+          </div>
+
+          <div class="console-toolbar__actions">
+            <label class="search-box">
+              Search
+              <input type="search" placeholder="Search name, email, truck, event..." data-search>
+            </label>
+            <button class="button button--secondary" type="button" data-refresh>Refresh</button>
+          </div>
+        </div>
+
+        <div class="metric-grid" data-metrics></div>
+
+        <nav class="console-tabs" aria-label="Management sections">
+          <button type="button" class="is-active" data-tab="owners">Owners</button>
+          <button type="button" data-tab="trucks">Trucks</button>
+          <button type="button" data-tab="foodies">Foodies</button>
+          <button type="button" data-tab="organizers">Event Organizers</button>
+          <button type="button" data-tab="events">Events</button>
+        </nav>
+
+        <div class="console-panel">
+          <div class="panel-heading">
+            <div>
+              <h3 data-panel-title>Owners</h3>
+              <p data-panel-description>Owner account management and truck access.</p>
+            </div>
+            <span data-loaded-at></span>
+          </div>
+
+          <div class="table-wrap">
+            <table class="management-table">
+              <thead data-table-head></thead>
+              <tbody data-table-body></tbody>
+            </table>
+          </div>
+
+          <div class="empty-state" data-empty-state hidden>
+            No records match the current search.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog class="record-dialog" data-record-dialog>
+    <form method="dialog" class="record-dialog__content" data-record-form>
+      <div class="record-dialog__header">
+        <div>
+          <p class="eyebrow" data-dialog-eyebrow>Record</p>
+          <h2 data-dialog-title>Edit Record</h2>
+          <p data-dialog-subtitle></p>
+        </div>
+        <button type="button" class="icon-button" data-close-dialog aria-label="Close dialog">Close</button>
+      </div>
+
+      <div class="record-grid" data-record-fields></div>
+
+      <div class="record-dialog__actions">
+        <button class="button button--primary" type="submit">Save Changes</button>
+        <button class="button button--ghost" type="button" data-delete-record hidden>Delete Record</button>
+        <button class="button button--ghost" type="button" data-close-dialog>Cancel</button>
+      </div>
+
+      <p class="console-message" data-record-message></p>
+    </form>
+  </dialog>
+
+  <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
+  <script defer src="../assets/management-console.js?v=1"></script>
+</body>
+</html>
