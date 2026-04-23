@@ -63,6 +63,7 @@ const createRecord = functions.httpsCallable('createManagementConsoleRecord');
 const updateRecord = functions.httpsCallable('updateManagementConsoleRecord');
 const deleteRecord = functions.httpsCallable('deleteManagementConsoleRecord');
 const uploadMedia = functions.httpsCallable('uploadManagementConsoleMedia');
+const scanMenu = functions.httpsCallable('scanManagementConsoleMenu');
 
 const MAX_ADMIN_UPLOAD_BYTES = 5 * 1024 * 1024;
 
@@ -142,6 +143,7 @@ const fieldSets = {
     {name: 'name', label: 'Truck Name', type: 'text'},
     {name: 'truckImageUpload', label: 'Upload Truck Photo', type: 'file', mediaType: 'truckImage', wide: true},
     {name: 'menuImageUpload', label: 'Upload Menu Photo', type: 'file', mediaType: 'menuImage', multiple: true, wide: true},
+    {name: 'scanMenuAi', label: 'Scan Menu with AI', type: 'action', action: 'scan-menu', wide: true},
     {
       name: 'ownerEmail',
       label: 'Owner Email (transfer)',
@@ -605,6 +607,34 @@ function renderField(field, record) {
   const value = record[field.name];
   const wideClass = field.wide ? ' record-field--wide' : '';
 
+  if (field.type === 'action') {
+    const isCreate = state.selected?.mode === 'create';
+    const menuPhotoCount = Array.isArray(record.menuImages) ? record.menuImages.length : 0;
+    const disabled = isCreate || menuPhotoCount === 0;
+    const help = isCreate
+      ? 'Save the truck and upload menu photos before scanning.'
+      : menuPhotoCount > 0
+        ? `Scans ${menuPhotoCount} saved menu photo${menuPhotoCount === 1 ? '' : 's'} and replaces the current menu items.`
+        : 'Upload at least one menu photo, save, then scan.';
+
+    return `
+      <div class="record-field record-field--action${wideClass}">
+        <span>${escapeHtml(field.label)}</span>
+        <div class="record-action-card">
+          <button
+            class="button button--secondary"
+            type="button"
+            data-record-action="${escapeHtml(field.action)}"
+            ${disabled ? 'disabled' : ''}
+          >
+            ${escapeHtml(field.label)}
+          </button>
+          <small>${escapeHtml(help)}</small>
+        </div>
+      </div>
+    `;
+  }
+
   if (field.type === 'file') {
     const previewUrl = getMediaPreviewUrl(field, record);
     const mode = field.mediaType === 'menuImage' ? 'Adds to existing menu photos.' : 'Replaces the current image.';
@@ -767,6 +797,42 @@ function readFileAsDataUrl(file) {
   });
 }
 
+async function scanSelectedTruckMenu() {
+  if (!state.selected || state.selected.collection !== 'foodTrucks' || state.selected.mode === 'create') {
+    return;
+  }
+
+  const record = state.selected.record || {};
+  const menuImages = Array.isArray(record.menuImages) ? record.menuImages : [];
+
+  if (menuImages.length === 0) {
+    setMessage(selectors.recordMessage, 'Upload and save at least one menu photo before scanning.', true);
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `Scan ${menuImages.length} menu photo${menuImages.length === 1 ? '' : 's'} with AI? This will replace the current saved menu items for this truck.`
+  );
+  if (!confirmed) return;
+
+  setMessage(selectors.recordMessage, 'Scanning menu photos with AI...');
+
+  try {
+    const result = await scanMenu({
+      truckId: state.selected.id,
+      images: menuImages,
+    });
+    const count = Number(result.data?.count || result.data?.menuItems?.length || 0);
+
+    setMessage(selectors.recordMessage, `AI menu scan saved ${count} item${count === 1 ? '' : 's'}. Refreshing data...`);
+    await loadSnapshot();
+    closeDialog();
+    window.alert(`AI menu scan saved ${count} item${count === 1 ? '' : 's'}.`);
+  } catch (error) {
+    setMessage(selectors.recordMessage, error.message || 'Menu scan failed.', true);
+  }
+}
+
 async function saveSelectedRecord() {
   if (!state.selected) return;
 
@@ -900,6 +966,16 @@ selectors.tableBody?.addEventListener('click', (event) => {
   if (!button) return;
   const [collection, id] = button.dataset.edit.split(':');
   openRecordDialog(collection, id);
+});
+
+selectors.recordFields?.addEventListener('click', async (event) => {
+  const target = event.target instanceof Element ? event.target : null;
+  const button = target?.closest('[data-record-action]');
+  if (!button) return;
+
+  if (button.dataset.recordAction === 'scan-menu') {
+    await scanSelectedTruckMenu();
+  }
 });
 
 selectors.recordForm?.addEventListener('submit', async (event) => {
