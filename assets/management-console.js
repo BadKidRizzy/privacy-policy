@@ -203,6 +203,16 @@ function setMessage(element, message, isError = false) {
   element.style.color = isError ? '#b3261e' : '';
 }
 
+function setAuthenticatedView(isAuthenticated) {
+  if (selectors.loginForm) {
+    selectors.loginForm.hidden = isAuthenticated;
+  }
+
+  if (selectors.signOut) {
+    selectors.signOut.hidden = !isAuthenticated;
+  }
+}
+
 function formatDate(value) {
   if (!value) return 'Not set';
   const parsed = new Date(value);
@@ -523,12 +533,12 @@ async function loadSnapshot() {
     state.trucks = data.trucks || [];
     state.events = data.events || [];
     selectors.app.hidden = false;
-    selectors.signOut.hidden = false;
+    setAuthenticatedView(true);
     selectors.sessionSummary.textContent = `Signed in as ${auth.currentUser?.email || state.admin?.email || 'admin'}. Showing up to ${data.limit || 200} records per collection.`;
     renderAll();
   } catch (error) {
     selectors.app.hidden = true;
-    selectors.signOut.hidden = true;
+    setAuthenticatedView(false);
     setMessage(selectors.authMessage, error.message || 'Unable to load management data.', true);
   } finally {
     state.loading = false;
@@ -989,10 +999,11 @@ selectors.closeDialog.forEach((button) => button.addEventListener('click', close
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
     selectors.app.hidden = true;
-    selectors.signOut.hidden = true;
+    setAuthenticatedView(false);
     selectors.sessionSummary.textContent = '';
     return;
   }
 
+  setAuthenticatedView(true);
   await loadSnapshot();
 });
