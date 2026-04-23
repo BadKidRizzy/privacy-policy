@@ -2,20 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Privacy Policy | Food Truck Finder</title>
+  <title>Privacy Policy | FTF: Food Truck Finder</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta
     name="description"
-    content="Privacy policy for the Food Truck Finder mobile app."
+    content="Privacy Policy for FTF: Food Truck Finder, including location, account, photo, event, truck, notification, retention, and deletion practices."
   >
   <style>
     :root {
       --bg: #fbf3ea;
-      --card: rgba(255, 250, 244, 0.94);
+      --card: rgba(255, 250, 244, 0.96);
       --ink: #201713;
-      --muted: #685a52;
-      --line: rgba(32, 23, 19, 0.1);
+      --muted: #66574e;
+      --line: rgba(32, 23, 19, 0.12);
       --accent: #d96f3d;
+      --accent-dark: #954622;
       --shadow: 0 20px 50px rgba(32, 23, 19, 0.12);
       --radius: 30px;
     }
@@ -30,12 +31,12 @@
         radial-gradient(circle at top left, rgba(217, 111, 61, 0.18), transparent 36%),
         radial-gradient(circle at bottom right, rgba(17, 104, 114, 0.12), transparent 28%),
         var(--bg);
-      line-height: 1.7;
+      line-height: 1.65;
       padding: 24px;
     }
 
     .wrap {
-      max-width: 920px;
+      max-width: 980px;
       margin: 0 auto;
     }
 
@@ -46,7 +47,7 @@
       margin-bottom: 18px;
       color: var(--ink);
       text-decoration: none;
-      font-weight: 700;
+      font-weight: 800;
     }
 
     .card {
@@ -54,22 +55,29 @@
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 32px 24px;
+      padding: 34px 24px;
     }
 
     h1, h2, h3 {
       margin: 0 0 12px;
-      line-height: 1.1;
+      line-height: 1.15;
     }
 
     h1 {
-      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-size: clamp(2.1rem, 5vw, 3.5rem);
       letter-spacing: -0.04em;
     }
 
     h2 {
       font-size: 1.45rem;
-      margin-top: 28px;
+      margin-top: 30px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      margin-top: 18px;
     }
 
     p, li {
@@ -81,17 +89,29 @@
       padding-left: 20px;
     }
 
+    strong {
+      color: var(--ink);
+    }
+
     .eyebrow {
       display: inline-block;
       margin-bottom: 14px;
       padding: 8px 12px;
       border-radius: 999px;
       background: rgba(217, 111, 61, 0.12);
-      color: var(--accent);
-      font-weight: 800;
+      color: var(--accent-dark);
+      font-weight: 900;
       font-size: 12px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
+    }
+
+    .summary {
+      background: rgba(217, 111, 61, 0.08);
+      border: 1px solid rgba(217, 111, 61, 0.18);
+      border-radius: 22px;
+      padding: 18px;
+      margin: 22px 0;
     }
 
     .footer {
@@ -101,105 +121,191 @@
       text-align: center;
     }
 
-    a { color: var(--accent); }
+    a { color: var(--accent-dark); }
   </style>
 </head>
 <body>
   <div class="wrap">
     <a class="back" href="./index.html">&larr; Back to Food Truck Finder</a>
 
-    <div class="card">
-      <p class="eyebrow">Legal</p>
-      <h1>Privacy Policy</h1>
+    <main class="card">
+      <p class="eyebrow">Privacy Policy</p>
+      <h1>Privacy Policy for FTF: Food Truck Finder</h1>
       <p>
-        Thank you for choosing FTF Food Truck Finder. This Privacy Policy explains how we collect,
-        use, share, and protect your personal information when you use our mobile application.
+        <strong>Effective date:</strong> April 23, 2026<br>
+        <strong>Last updated:</strong> April 23, 2026
       </p>
 
+      <div class="summary">
+        <p>
+          This Privacy Policy explains how <strong>FTF: Food Truck Finder</strong>,
+          also referred to as <strong>Food Truck Finder</strong>, collects, uses, shares,
+          protects, retains, and deletes information when you use the Food Truck Finder
+          mobile app and related web pages.
+        </p>
+        <p>
+          Developer and privacy contact: <strong>Randy Trimble / Food Truck Finder</strong>,
+          <a href="mailto:foodtruckfinderinfo@gmail.com">foodtruckfinderinfo@gmail.com</a>.
+        </p>
+      </div>
+
       <h2>1. Information We Collect</h2>
+      <p>
+        The information we collect depends on how you use the app, whether you are using
+        Food Truck Finder as a foodie, food truck owner, or event organizer.
+      </p>
+
       <h3>Account and profile information</h3>
       <ul>
-        <li>Registration data such as name, email address, and profile details.</li>
-        <li>Authentication information needed to sign in with email or supported social logins.</li>
+        <li>Name, email address, account identifier, login provider, and authentication status.</li>
+        <li>Optional profile details, phone number, profile image, business address, organization name, and role type.</li>
+        <li>Account preferences, notification preferences, favorites, saved trucks, and support requests.</li>
       </ul>
 
       <h3>Location data</h3>
       <ul>
-        <li>Foreground location while the app is in use to show nearby trucks, directions, and distance.</li>
-        <li>Background location, if permission is granted, to support live truck location features.</li>
+        <li>
+          Food Truck Finder may collect approximate or precise device location while the app is in use
+          to show nearby trucks, nearby events, distances, directions, and map results.
+        </li>
+        <li>
+          Food truck owners may enable Live Location. When Live Location is enabled by the owner,
+          the app may collect and transmit the truck/device location in the background so customers
+          can see where the truck is serving, even when the app is not open.
+        </li>
+        <li>
+          Users can disable location permissions at any time in device settings. Food truck owners
+          can turn off Live Location in the app.
+        </li>
       </ul>
 
-      <h3>Device and usage data</h3>
+      <h3>Truck, event, and public listing content</h3>
       <ul>
-        <li>Device identifiers, operating system details, and crash logs.</li>
-        <li>Usage patterns that help improve product quality and feature decisions.</li>
+        <li>Truck names, descriptions, cuisines, menus, prices, schedules, deals, addresses, photos, social links, and operating status.</li>
+        <li>Event names, descriptions, dates, times, addresses, vendor counts, organizer details, event links, and event images.</li>
+        <li>Reviews, ratings, feedback, and other content users choose to submit.</li>
       </ul>
 
-      <h3>User content</h3>
+      <h3>Photos, media, and uploaded files</h3>
       <ul>
-        <li>Photos and uploaded images used for truck profiles or other supported content.</li>
-        <li>Ratings, reviews, and other content submitted through the app.</li>
+        <li>Truck photos, menu photos, profile images, and event images uploaded through the app or admin tools.</li>
+        <li>Metadata needed to store, display, moderate, and manage uploaded media.</li>
       </ul>
 
-      <h2>2. How We Use Your Information</h2>
+      <h3>Device, diagnostics, and usage information</h3>
       <ul>
-        <li>To provide nearby truck discovery, routing, and location-based features.</li>
-        <li>To support owner updates, menu visibility, favorites, and other product workflows.</li>
-        <li>To improve app performance, reliability, and product experience.</li>
-        <li>To communicate product updates, promotions, and support responses when allowed.</li>
+        <li>Device type, operating system, app version, push notification token, crash logs, and performance data.</li>
+        <li>Usage events needed to provide app functionality, improve reliability, prevent abuse, and troubleshoot issues.</li>
+      </ul>
+
+      <h2>2. How We Use Information</h2>
+      <ul>
+        <li>Provide nearby food truck and event discovery, maps, directions, search, and distance features.</li>
+        <li>Allow owners to manage truck profiles, menus, photos, schedules, deals, and live location.</li>
+        <li>Allow organizers to create events, invite trucks, manage event details, and display event listings.</li>
+        <li>Allow foodies to view trucks, save favorites, receive alerts, review trucks, and find events.</li>
+        <li>Send account, favorite truck, event invite, and operational notifications when enabled.</li>
+        <li>Authenticate accounts, secure the app, prevent abuse, investigate bugs, and provide support.</li>
+        <li>Improve the app experience, reliability, safety, and performance.</li>
       </ul>
 
       <h2>3. Sharing and Disclosure</h2>
+      <p>
+        We do not sell personal information. We share information only as needed to operate,
+        support, protect, and improve Food Truck Finder.
+      </p>
       <ul>
-        <li>We may share data with service providers who help operate the app.</li>
-        <li>We may disclose information when required by law or to protect safety and rights.</li>
-        <li>Data may transfer as part of a merger, acquisition, or business transaction.</li>
+        <li>
+          <strong>Public app listings:</strong> Truck profiles, event listings, menus, schedules,
+          deals, public photos, public event details, and public reviews may be visible to app users.
+        </li>
+        <li>
+          <strong>Service providers:</strong> We use vendors that help operate the app, including
+          cloud hosting, database, authentication, storage, maps, location search, analytics,
+          crash reporting, push notifications, app distribution, and support tools.
+        </li>
+        <li>
+          <strong>Examples of providers:</strong> Firebase/Google Cloud, Google Sign-In, Google Maps
+          and Places, Mapbox, Expo push notification services, Apple and Google app platform services,
+          and AI/menu processing services when used to read or organize menu images.
+        </li>
+        <li>
+          <strong>Legal and safety:</strong> We may disclose information if required by law, to protect
+          users, to investigate abuse, to enforce terms, or to protect our rights and services.
+        </li>
       </ul>
 
-      <h2>4. Your Choices and Rights</h2>
+      <h2>4. Secure Data Handling</h2>
+      <p>
+        We use reasonable administrative, technical, and organizational safeguards designed to protect
+        personal and sensitive user data. These safeguards include access controls, authenticated
+        accounts, encrypted transport where supported by service providers, managed cloud services,
+        and restricted administrative workflows. No system can be guaranteed to be completely secure,
+        but we work to protect user data and limit access to authorized purposes.
+      </p>
+
+      <h2>5. Data Retention and Deletion</h2>
       <ul>
-        <li>You can manage location permissions in your device settings.</li>
-        <li>You can update or delete profile information through the app where supported.</li>
-        <li>You can disable notifications in the app or device settings.</li>
-        <li>You may request access to or deletion of personal data where applicable by law.</li>
+        <li>Account information is generally kept while your account is active.</li>
+        <li>Truck, menu, schedule, event, media, review, favorite, and notification data is kept as needed to provide app features.</li>
+        <li>Location updates used for live truck discovery may be replaced or become stale as trucks update or stop sharing location.</li>
+        <li>Expired seeded events may be marked closed and deleted after a grace period. User-created event history may be retained unless deleted by the organizer or account owner.</li>
+        <li>Backups, logs, security records, fraud-prevention records, or legal records may be retained for a limited period when necessary.</li>
       </ul>
 
-      <h2>5. Data Security</h2>
+      <h2>6. Account Deletion</h2>
       <p>
-        We use reasonable technical and organizational measures to protect your data, but no system
-        is perfectly secure. Please contact us if you suspect unauthorized access.
+        You can request deletion of your Food Truck Finder account from inside the app by opening
+        the Profile tab and using the Delete Account option. You can also request deletion outside
+        the app from our account deletion page:
+        <a href="./delete-account.html">https://www.ftf-foodtruckfinder.com/delete-account.html</a>.
+      </p>
+      <p>
+        When account deletion is completed, we delete or anonymize personal data associated with the
+        account unless retention is required for legal, security, fraud-prevention, dispute-resolution,
+        or backup recovery purposes.
       </p>
 
-      <h2>6. Children&apos;s Privacy</h2>
+      <h2>7. Your Choices</h2>
+      <ul>
+        <li>You can manage location, photo, and notification permissions in your device settings.</li>
+        <li>You can turn off Live Location in the app if you are a food truck owner.</li>
+        <li>You can update truck, menu, schedule, event, and profile information in the app where available.</li>
+        <li>You can contact us to request access, correction, or deletion of personal data, subject to applicable law.</li>
+      </ul>
+
+      <h2>8. Children&apos;s Privacy</h2>
       <p>
-        Food Truck Finder is not intended for children under 13, or the age of majority in your
-        jurisdiction where applicable.
+        Food Truck Finder is not intended for children under 13. We do not knowingly collect personal
+        information from children under 13. If you believe a child has provided personal information,
+        contact us so we can review and delete it where appropriate.
       </p>
 
-      <h2>7. International Users</h2>
+      <h2>9. International Processing</h2>
       <p>
-        Your information may be processed outside your home country. By using the app, you consent
-        to such transfers where permitted by law.
+        Information may be processed and stored in the United States or other countries where we or our
+        service providers operate. Those locations may have data protection laws different from your jurisdiction.
       </p>
 
-      <h2>8. Changes to This Policy</h2>
+      <h2>10. Third-Party Links</h2>
       <p>
-        We may revise this policy over time. Continued use of the app after updates means you
-        accept the revised policy.
+        Food Truck Finder may link to third-party websites, social profiles, map providers, payment pages,
+        restaurant pages, or event pages. Those third parties are responsible for their own privacy practices.
       </p>
 
-      <h2>9. Third-Party Links and Services</h2>
+      <h2>11. Changes to This Privacy Policy</h2>
       <p>
-        The app may link to third-party services such as food truck social profiles. We are not
-        responsible for their privacy practices.
+        We may update this Privacy Policy from time to time. When we update it, we will change the
+        “Last updated” date above. Continued use of Food Truck Finder after an update means the revised
+        policy applies.
       </p>
 
-      <h2>10. Contact</h2>
+      <h2>12. Contact Us</h2>
       <p>
-        Questions about this policy can be sent to
-        <a href="mailto:Foodtruckfinderinfo@gmail.com">Foodtruckfinderinfo@gmail.com</a>.
+        For privacy questions, data requests, or account deletion help, contact:
+        <a href="mailto:foodtruckfinderinfo@gmail.com">foodtruckfinderinfo@gmail.com</a>.
       </p>
-    </div>
+    </main>
 
     <p class="footer">&copy; <span id="year"></span> Food Truck Finder</p>
   </div>
