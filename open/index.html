@@ -170,7 +170,7 @@
     <h1>Opening the app</h1>
     <p id="message">Getting your truck page ready now.</p>
     <div class="status" id="status">Trying to open Food Truck Finder...</div>
-    <div class="subtle">If nothing happens, use one of the buttons below.</div>
+    <div class="subtle">If the app is not installed, we will send you to the right store.</div>
 
     <div class="actions">
       <a class="btn btn-primary" id="open-app" href="#">Open in App</a>
@@ -187,18 +187,57 @@
   
 <script>
   (function () {
+    var APP_STORE_URL = 'https://apps.apple.com/us/app/ftf-food-truck-finder/id6742719545';
+    var PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.innoryzen.foodtruckfinder';
     var params = new URLSearchParams(window.location.search);
     var truckId = params.get('truck');
     var truckName = params.get('name');
     var launchToken = String(Date.now());
+    var pageWasHidden = false;
 
     var appUrl = truckId
       ? 'foodtruckfinder://truck/' + encodeURIComponent(truckId) + '?launch=' + encodeURIComponent(launchToken)
       : 'foodtruckfinder://?launch=' + encodeURIComponent(launchToken);
 
+    function getStoreUrl() {
+      var userAgent = navigator.userAgent || navigator.vendor || window.opera || '';
+      var isAndroid = /android/i.test(userAgent);
+      var isIos =
+        /iPad|iPhone|iPod/.test(userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      if (isAndroid) {
+        return {
+          label: 'Google Play',
+          url: PLAY_STORE_URL
+        };
+      }
+
+      if (isIos) {
+        return {
+          label: 'the App Store',
+          url: APP_STORE_URL
+        };
+      }
+
+      return null;
+    }
+
       var message = document.getElementById('message');
       var status = document.getElementById('status');
       var openApp = document.getElementById('open-app');
+      var storeTarget = getStoreUrl();
+
+      function markPageHidden() {
+        pageWasHidden = true;
+      }
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+          markPageHidden();
+        }
+      });
+      window.addEventListener('pagehide', markPageHidden);
 
       if (truckName) {
         message.textContent = 'Opening ' + truckName + ' in Food Truck Finder.';
@@ -211,8 +250,18 @@
       }, 250);
 
       setTimeout(function () {
+        if (pageWasHidden) {
+          return;
+        }
+
+        if (storeTarget) {
+          status.textContent = 'App not installed yet? Sending you to ' + storeTarget.label + '.';
+          window.location.href = storeTarget.url;
+          return;
+        }
+
         status.textContent = 'App not opening yet? Tap below to keep going.';
-      }, 1600);
+      }, 1800);
     })();
   </script>
 </body>
