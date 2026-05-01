@@ -39,6 +39,7 @@ const selectors = {
   panelTitle: document.querySelector('[data-panel-title]'),
   panelDescription: document.querySelector('[data-panel-description]'),
   loadedAt: document.querySelector('[data-loaded-at]'),
+  seedTruck: document.querySelector('[data-seed-truck]'),
   createRecord: document.querySelector('[data-create-record]'),
   tableHead: document.querySelector('[data-table-head]'),
   tableBody: document.querySelector('[data-table-body]'),
@@ -52,6 +53,11 @@ const selectors = {
   recordMessage: document.querySelector('[data-record-message]'),
   deleteRecord: document.querySelector('[data-delete-record]'),
   closeDialog: Array.from(document.querySelectorAll('[data-close-dialog]')),
+  seedDialog: document.querySelector('[data-seed-dialog]'),
+  seedForm: document.querySelector('[data-seed-form]'),
+  seedMessage: document.querySelector('[data-seed-message]'),
+  seedOwnerOptions: document.querySelector('[data-seed-owner-options]'),
+  closeSeedDialog: Array.from(document.querySelectorAll('[data-close-seed-dialog]')),
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -64,6 +70,7 @@ const updateRecord = functions.httpsCallable('updateManagementConsoleRecord');
 const deleteRecord = functions.httpsCallable('deleteManagementConsoleRecord');
 const uploadMedia = functions.httpsCallable('uploadManagementConsoleMedia');
 const scanMenu = functions.httpsCallable('scanManagementConsoleMenu');
+const seedTruck = functions.httpsCallable('seedManagementConsoleTruck');
 
 const MAX_ADMIN_UPLOAD_BYTES = 5 * 1024 * 1024;
 
@@ -156,6 +163,9 @@ const fieldSets = {
     {name: 'currentAddress', label: 'Current Address', type: 'textarea', wide: true},
     {name: 'businessPhone', label: 'Business Phone', type: 'text'},
     {name: 'websiteUrl', label: 'Website URL', type: 'text'},
+    {name: 'socialLinks', label: 'Social Links, comma separated', type: 'textarea', wide: true},
+    {name: 'doordashUrl', label: 'DoorDash URL', type: 'text'},
+    {name: 'uberEatsUrl', label: 'Uber Eats URL', type: 'text'},
     {name: 'cuisines', label: 'Cuisines, comma separated', type: 'textarea'},
     {name: 'tags', label: 'Tags, comma separated', type: 'textarea'},
     {name: 'claimStatus', label: 'Claim Status', type: 'select', options: ['unclaimed', 'claim_pending', 'claimed']},
@@ -381,6 +391,9 @@ function renderTable() {
   if (selectors.createRecord) {
     selectors.createRecord.hidden = !config.createLabel;
     selectors.createRecord.textContent = config.createLabel || 'Create';
+  }
+  if (selectors.seedTruck) {
+    selectors.seedTruck.hidden = state.activeTab !== 'trucks';
   }
   if (selectors.searchLabel) {
     selectors.searchLabel.textContent = config.searchLabel || 'Search';
@@ -610,6 +623,36 @@ function openCreateDialog() {
     selectors.dialog.showModal();
   } else {
     selectors.dialog.setAttribute('open', '');
+  }
+}
+
+function renderSeedOwnerOptions() {
+  if (!selectors.seedOwnerOptions) return;
+
+  selectors.seedOwnerOptions.innerHTML = getOwnerEmailOptions()
+    .map((option) => `<option value="${escapeHtml(option.email)}" label="${escapeHtml(option.label)}"></option>`)
+    .join('');
+}
+
+function openSeedTruckDialog() {
+  renderSeedOwnerOptions();
+  if (selectors.seedForm) {
+    selectors.seedForm.reset();
+  }
+  setMessage(selectors.seedMessage, '');
+
+  if (typeof selectors.seedDialog?.showModal === 'function') {
+    selectors.seedDialog.showModal();
+  } else {
+    selectors.seedDialog?.setAttribute('open', '');
+  }
+}
+
+function closeSeedTruckDialog() {
+  if (typeof selectors.seedDialog?.close === 'function') {
+    selectors.seedDialog.close();
+  } else {
+    selectors.seedDialog?.removeAttribute('open');
   }
 }
 
@@ -906,6 +949,119 @@ async function saveSelectedRecord() {
   }
 }
 
+function splitCommaList(value) {
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+async function buildImagePayload(file) {
+  if (!file) {
+    throw new Error('Image file is required.');
+  }
+
+  if (file.size > MAX_ADMIN_UPLOAD_BYTES) {
+    throw new Error(`${file.name} is larger than 5 MB.`);
+  }
+
+  return {
+    dataUrl: await readFileAsDataUrl(file),
+    fileName: file.name,
+    contentType: file.type,
+  };
+}
+
+async function seedTruckFromForm() {
+  if (!selectors.seedForm) return;
+
+  const formData = new FormData(selectors.seedForm);
+  const address = String(formData.get('address') || '').trim();
+  const truckName = String(formData.get('name') || '').trim();
+  const truckFile = selectors.seedForm.querySelector('input[name="truckImage"]')?.files?.[0] || null;
+  const menuFiles = Array.from(
+    selectors.seedForm.querySelector('input[name="menuImages"]')?.files || []
+  );
+  const submitButton = selectors.seedForm.querySelector('button[type="submit"]');
+
+  if (!address) {
+    setMessage(selectors.seedMessage, 'Address is required.', true);
+    return;
+  }
+
+  if (!truckName) {
+    setMessage(selectors.seedMessage, 'Truck name is required.', true);
+    return;
+  }
+
+  if (!truckFile) {
+    setMessage(selectors.seedMessage, 'Truck photo is required.', true);
+    return;
+  }
+
+  if (menuFiles.length === 0) {
+    setMessage(selectors.seedMessage, 'At least one menu photo is required.', true);
+    return;
+  }
+
+  if (menuFiles.length > 3) {
+    setMessage(selectors.seedMessage, 'Upload up to three menu photos.', true);
+    return;
+  }
+
+  try {
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = 'Seeding...';
+    }
+
+    setMessage(selectors.seedMessage, 'Reading images...');
+    const truckImage = await buildImagePayload(truckFile);
+    const menuImages = [];
+
+    for (let index = 0; index < menuFiles.length; index += 1) {
+      setMessage(selectors.seedMessage, `Reading menu image ${index + 1} of ${menuFiles.length}...`);
+      menuImages.push(await buildImagePayload(menuFiles[index]));
+    }
+
+    setMessage(selectors.seedMessage, 'Uploading, scanning menu, writing description, and finding links...');
+    const result = await seedTruck({
+      address,
+      ownerEmail: String(formData.get('ownerEmail') || '').trim(),
+      name: truckName,
+      description: String(formData.get('description') || '').trim(),
+      cuisines: splitCommaList(formData.get('cuisines')),
+      tags: splitCommaList(formData.get('tags')),
+      truckImage,
+      menuImages,
+    });
+    const seededTruckName = result.data?.name || truckName;
+    const menuItemCount = Number(result.data?.menuItemCount || 0);
+    const linkCount = [
+      result.data?.websiteUrl,
+      result.data?.doordashUrl,
+      result.data?.uberEatsUrl,
+      ...(Array.isArray(result.data?.socialLinks) ? result.data.socialLinks : []),
+    ].filter(Boolean).length;
+
+    setMessage(
+      selectors.seedMessage,
+      `${seededTruckName} seeded with ${menuItemCount} menu item${menuItemCount === 1 ? '' : 's'} and ${linkCount} discovered link${linkCount === 1 ? '' : 's'}. Refreshing...`
+    );
+    state.activeTab = 'trucks';
+    await loadSnapshot();
+    closeSeedTruckDialog();
+    window.alert(`${seededTruckName} was seeded successfully.`);
+  } catch (error) {
+    setMessage(selectors.seedMessage, error.message || 'Truck seed failed.', true);
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = 'Seed Truck';
+    }
+  }
+}
+
 async function deleteSelectedRecord() {
   if (!state.selected || state.selected.collection === 'users') return;
 
@@ -957,6 +1113,7 @@ selectors.signOut?.addEventListener('click', async () => {
 
 selectors.refresh?.addEventListener('click', loadSnapshot);
 selectors.createRecord?.addEventListener('click', openCreateDialog);
+selectors.seedTruck?.addEventListener('click', openSeedTruckDialog);
 
 selectors.search?.addEventListener('input', (event) => {
   state.searchByTab[state.activeTab] = event.target.value || '';
@@ -993,8 +1150,14 @@ selectors.recordForm?.addEventListener('submit', async (event) => {
   await saveSelectedRecord();
 });
 
+selectors.seedForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  await seedTruckFromForm();
+});
+
 selectors.deleteRecord?.addEventListener('click', deleteSelectedRecord);
 selectors.closeDialog.forEach((button) => button.addEventListener('click', closeDialog));
+selectors.closeSeedDialog.forEach((button) => button.addEventListener('click', closeSeedTruckDialog));
 
 auth.onAuthStateChanged(async (user) => {
   if (!user) {

@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../assets/site.css?v=1">
-  <link rel="stylesheet" href="../assets/management-console.css?v=5">
+  <link rel="stylesheet" href="../assets/management-console.css?v=6">
 </head>
 <body class="console-body">
   <div class="console-shell">
@@ -96,6 +96,7 @@
             </div>
             <div class="panel-heading__actions">
               <span data-loaded-at></span>
+              <button class="button button--secondary" type="button" data-seed-truck hidden>Seed Truck From Photos</button>
               <button class="button button--secondary" type="button" data-create-record hidden>Create</button>
             </div>
           </div>
@@ -138,9 +139,76 @@
     </form>
   </dialog>
 
+  <dialog class="record-dialog seed-dialog" data-seed-dialog>
+    <form method="dialog" class="record-dialog__content" data-seed-form>
+      <div class="record-dialog__header">
+        <div>
+          <p class="eyebrow">Truck Seed</p>
+          <h2>Seed Truck From Photos</h2>
+          <p>Upload the truck photo, menu photo, and address. The console will create the listing, menu, description, links, and map pin.</p>
+        </div>
+        <button type="button" class="icon-button" data-close-seed-dialog aria-label="Close seed dialog">Close</button>
+      </div>
+
+      <div class="record-grid">
+        <label class="record-field record-field--wide">
+          Address
+          <textarea name="address" required placeholder="5700 Rowanberry Dr, Elkridge, MD 21075"></textarea>
+        </label>
+
+        <label class="record-field">
+          Owner Email
+          <input name="ownerEmail" type="email" list="seed-owner-email-options" placeholder="foodtruckfinderinfo+owner@gmail.com">
+          <small class="field-help">Leave blank to use the FTF seed owner account.</small>
+        </label>
+
+        <label class="record-field">
+          Truck Name
+          <input name="name" type="text" maxlength="80" placeholder="Required" required>
+        </label>
+
+        <label class="record-field record-field--wide">
+          Description Override
+          <textarea name="description" maxlength="280" placeholder="Optional. Leave blank to generate from photos."></textarea>
+        </label>
+
+        <label class="record-field">
+          Cuisine Override
+          <textarea name="cuisines" placeholder="Optional, comma separated"></textarea>
+        </label>
+
+        <label class="record-field">
+          Tags Override
+          <textarea name="tags" placeholder="Optional, comma separated"></textarea>
+        </label>
+
+        <label class="record-field record-field--file">
+          Truck Photo
+          <input name="truckImage" type="file" accept="image/jpeg,image/png,image/webp" required>
+          <small class="field-help">Photo of the actual truck. Max 5 MB.</small>
+        </label>
+
+        <label class="record-field record-field--file">
+          Menu Photos
+          <input name="menuImages" type="file" accept="image/jpeg,image/png,image/webp" multiple required>
+          <small class="field-help">Upload one to three menu photos. Max 5 MB each.</small>
+        </label>
+      </div>
+
+      <datalist id="seed-owner-email-options" data-seed-owner-options></datalist>
+
+      <div class="record-dialog__actions">
+        <button class="button button--primary" type="submit">Seed Truck</button>
+        <button class="button button--ghost" type="button" data-close-seed-dialog>Cancel</button>
+      </div>
+
+      <p class="console-message" data-seed-message></p>
+    </form>
+  </dialog>
+
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
-  <script defer src="../assets/management-console.js?v=7"></script>
+  <script defer src="../assets/management-console.js?v=9"></script>
 </body>
 </html>

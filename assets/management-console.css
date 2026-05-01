@@ -401,6 +401,10 @@
   background: transparent;
 }
 
+.seed-dialog {
+  width: min(980px, calc(100% - 28px));
+}
+
 .record-dialog::backdrop {
   background: rgba(31, 23, 19, 0.48);
   backdrop-filter: blur(8px);
