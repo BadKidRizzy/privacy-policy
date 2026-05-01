@@ -26,6 +26,7 @@ const state = {
 };
 
 const selectors = {
+  authSection: document.querySelector('[data-auth-section]'),
   loginForm: document.querySelector('[data-login-form]'),
   authMessage: document.querySelector('[data-auth-message]'),
   signOut: document.querySelector('[data-sign-out]'),
@@ -214,6 +215,10 @@ function setMessage(element, message, isError = false) {
 }
 
 function setAuthenticatedView(isAuthenticated) {
+  if (selectors.authSection) {
+    selectors.authSection.hidden = isAuthenticated;
+  }
+
   if (selectors.loginForm) {
     selectors.loginForm.hidden = isAuthenticated;
   }

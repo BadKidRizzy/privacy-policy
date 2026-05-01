@@ -5,6 +5,10 @@
     #f6efe6;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .console-shell {
   width: min(calc(100% - 32px), 1360px);
   margin: 0 auto;
