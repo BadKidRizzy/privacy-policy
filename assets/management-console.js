@@ -178,6 +178,7 @@ const fieldSets = {
     {name: 'longitude', label: 'Longitude', type: 'number'},
     {name: 'isOpen', label: 'Open Now', type: 'checkbox'},
     {name: 'isSharingLocation', label: 'Sharing Live Location', type: 'checkbox'},
+    {name: 'isMapHidden', label: 'Hide From Map', type: 'checkbox'},
     {name: 'transferEligible', label: 'Transfer Eligible', type: 'checkbox'},
   ],
   events: [
@@ -476,6 +477,7 @@ function renderOrganizerRow(record) {
 
 function renderTruckRow(record) {
   const owner = getUserById(record.ownerId);
+  const status = record.isMapHidden ? 'hidden' : record.isOpen ? 'open' : 'closed';
   return `
     <tr>
       <td>${titleCell(record.name || 'Truck', record.id, record.truckImage)}</td>
@@ -485,9 +487,14 @@ function renderTruckRow(record) {
       </td>
       <td>${escapeHtml(record.currentAddress || 'No address')}</td>
       <td>${statusPill(record.claimStatus || 'unclaimed')}</td>
-      <td>${statusPill(record.isOpen ? 'open' : 'closed', ['closed'])}</td>
+      <td>${statusPill(status, ['closed', 'hidden'])}</td>
       <td>${formatShortDate(record.updatedAt)}</td>
-      <td>${actionButton('foodTrucks', record.id)}</td>
+      <td>
+        <div class="row-actions">
+          ${actionButton('foodTrucks', record.id)}
+          ${truckMapVisibilityButton(record)}
+        </div>
+      </td>
     </tr>
   `;
 }
@@ -524,6 +531,23 @@ function titleCell(title, subtitle, imageUrl = '') {
 
 function actionButton(collection, id) {
   return `<button class="row-action" type="button" data-edit="${collection}:${escapeHtml(id)}">Manage</button>`;
+}
+
+function truckMapVisibilityButton(record) {
+  const hidden = record.isMapHidden === true;
+  const label = hidden ? 'Show on Map' : 'Disappear';
+  const nextHidden = hidden ? 'false' : 'true';
+
+  return `
+    <button
+      class="row-action row-action--ghost"
+      type="button"
+      data-toggle-map-visibility="${escapeHtml(record.id)}"
+      data-next-hidden="${nextHidden}"
+    >
+      ${escapeHtml(label)}
+    </button>
+  `;
 }
 
 function getDatalistHtml(collection) {
@@ -891,6 +915,42 @@ async function scanSelectedTruckMenu() {
   }
 }
 
+async function toggleTruckMapVisibility(button) {
+  const truckId = button?.dataset?.toggleMapVisibility || '';
+  const nextHidden = button?.dataset?.nextHidden === 'true';
+  const truck = state.trucks.find((record) => record.id === truckId);
+
+  if (!truckId || !truck) {
+    return;
+  }
+
+  const confirmed = window.confirm(
+    nextHidden
+      ? `Hide ${truck.name || 'this truck'} from the public map without deleting it?`
+      : `Show ${truck.name || 'this truck'} on the public map again?`
+  );
+  if (!confirmed) return;
+
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = nextHidden ? 'Hiding...' : 'Showing...';
+
+  try {
+    await updateRecord({
+      collection: 'foodTrucks',
+      id: truckId,
+      updates: {
+        isMapHidden: nextHidden,
+      },
+    });
+    await loadSnapshot();
+  } catch (error) {
+    window.alert(error.message || 'Could not update map visibility.');
+    button.disabled = false;
+    button.textContent = originalText;
+  }
+}
+
 async function saveSelectedRecord() {
   if (!state.selected) return;
 
@@ -1134,6 +1194,12 @@ selectors.tabs.forEach((tab) => {
 
 selectors.tableBody?.addEventListener('click', (event) => {
   const target = event.target instanceof Element ? event.target : null;
+  const visibilityButton = target?.closest('[data-toggle-map-visibility]');
+  if (visibilityButton) {
+    void toggleTruckMapVisibility(visibilityButton);
+    return;
+  }
+
   const button = target?.closest('[data-edit]');
   if (!button) return;
   const [collection, id] = button.dataset.edit.split(':');

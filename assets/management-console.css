@@ -388,6 +388,23 @@
   font-weight: 800;
 }
 
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.row-action--ghost {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--muted);
+}
+
+.row-action:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
 .empty-state {
   margin-top: 16px;
   padding: 22px;
