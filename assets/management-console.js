@@ -1434,78 +1434,19 @@ function createBulkRowHtml(index) {
           <span>Truck name</span>
           <input data-bulk-field="name" type="text" placeholder="Truck name">
         </label>
-        <label class="bulk-mini-field">
-          <span>Owner email</span>
-          <input data-bulk-field="ownerEmail" type="email" list="owner-email-options" placeholder="Optional">
-        </label>
-      </td>
-      <td>
-        <label class="bulk-mini-field">
-          <span>Street address</span>
-          <textarea data-bulk-field="address" placeholder="Use event address if blank"></textarea>
-        </label>
-        <div class="bulk-mini-grid">
-          <label class="bulk-mini-field">
-            <span>City</span>
-            <input data-bulk-field="city" type="text" placeholder="City">
-          </label>
-          <label class="bulk-mini-field">
-            <span>State</span>
-            <input data-bulk-field="state" type="text" placeholder="State">
-          </label>
-          <label class="bulk-mini-field">
-            <span>Zip</span>
-            <input data-bulk-field="zip" type="text" placeholder="Zip">
-          </label>
-        </div>
-      </td>
-      <td>
-        <label class="bulk-mini-field">
-          <span>Cuisine</span>
-          <textarea data-bulk-field="cuisine" placeholder="Comma separated"></textarea>
-        </label>
-        <label class="bulk-mini-field">
-          <span>Source name</span>
-          <input data-bulk-field="sourceName" type="text" placeholder="Event, flyer, website">
-        </label>
-        <label class="bulk-mini-field">
-          <span>Source URL</span>
-          <input data-bulk-field="sourceUrl" type="url" placeholder="https://">
-        </label>
-      </td>
-      <td>
-        <label class="bulk-mini-field">
-          <span>Phone</span>
-          <input data-bulk-field="phone" type="tel" placeholder="Phone">
-        </label>
-        <label class="bulk-mini-field">
-          <span>Website</span>
-          <input data-bulk-field="websiteUrl" type="url" placeholder="https://">
-        </label>
-        <label class="bulk-mini-field">
-          <span>Social</span>
-          <input data-bulk-field="instagram" type="text" placeholder="Instagram or social link">
-        </label>
       </td>
       <td>
         <label class="bulk-mini-field">
           <span>Truck photo</span>
           <input data-bulk-field="truckImage" type="file" accept="image/jpeg,image/png,image/webp">
         </label>
-        <label class="bulk-mini-field">
-          <span>Menu photos</span>
-          <input data-bulk-field="menuImages" type="file" accept="image/jpeg,image/png,image/webp" multiple>
-        </label>
       </td>
       <td>
         <label class="bulk-mini-field">
-          <span>Duplicate action</span>
-          <select data-bulk-field="duplicateAction">
-            <option value="skip">Skip duplicate</option>
-            <option value="merge">Merge/update</option>
-            <option value="create">Create anyway</option>
-          </select>
+          <span>Menu photo</span>
+          <input data-bulk-field="menuImages" type="file" accept="image/jpeg,image/png,image/webp">
         </label>
+        <input data-bulk-field="duplicateAction" type="hidden" value="skip">
       </td>
       <td class="bulk-row-status" data-bulk-status>Row ${index + 1} pending preview.</td>
     </tr>
@@ -1582,17 +1523,6 @@ function collectBulkRows(includeFiles = false) {
       const payload = {
         rowId: `row-${index + 1}`,
         name: getBulkRowValue(row, 'name'),
-        ownerEmail: getBulkRowValue(row, 'ownerEmail'),
-        address: getBulkRowValue(row, 'address'),
-        city: getBulkRowValue(row, 'city'),
-        state: getBulkRowValue(row, 'state'),
-        zip: getBulkRowValue(row, 'zip'),
-        cuisine: getBulkRowValue(row, 'cuisine'),
-        sourceName: getBulkRowValue(row, 'sourceName'),
-        sourceUrl: getBulkRowValue(row, 'sourceUrl'),
-        phone: getBulkRowValue(row, 'phone'),
-        websiteUrl: getBulkRowValue(row, 'websiteUrl'),
-        instagram: getBulkRowValue(row, 'instagram'),
         duplicateAction: getBulkRowValue(row, 'duplicateAction') || 'skip',
       };
 
@@ -1603,10 +1533,14 @@ function collectBulkRows(includeFiles = false) {
 
       return payload;
     })
-    .filter((row) => Object.entries(row).some(([key, value]) =>
-      !['rowId', 'duplicateAction', 'truckImageFile', 'menuImageFiles'].includes(key)
-      && (Array.isArray(value) ? value.length > 0 : Boolean(value))
-    ));
+    .filter((row) => {
+      const hasFile = Boolean(row.truckImageFile) || row.menuImageFiles?.length > 0;
+      const hasValue = Object.entries(row).some(([key, value]) =>
+        !['rowId', 'duplicateAction', 'truckImageFile', 'menuImageFiles'].includes(key)
+        && (Array.isArray(value) ? value.length > 0 : Boolean(value))
+      );
+      return hasFile || hasValue;
+    });
 }
 
 function setBulkRowStatus(rowId, html) {
@@ -1662,7 +1596,7 @@ async function previewBulkImport() {
 
     const hasErrors = previewRows.some((row) => row.errors?.length);
     selectors.importBulk.disabled = hasErrors;
-    setMessage(selectors.bulkMessage, hasErrors ? 'Fix row errors before import.' : 'Preview ready. Duplicate rows default to skip unless changed.');
+    setMessage(selectors.bulkMessage, hasErrors ? 'Fix row errors before import.' : 'Preview ready. Possible duplicates will be skipped.');
   } catch (error) {
     setMessage(selectors.bulkMessage, error.message || 'Preview failed.', true);
   }

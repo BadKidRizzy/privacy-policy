@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../assets/site.css?v=1">
-  <link rel="stylesheet" href="../assets/management-console.css?v=10">
+  <link rel="stylesheet" href="../assets/management-console.css?v=11">
 </head>
 <body class="console-body">
   <div class="console-shell">
@@ -308,7 +308,7 @@
         <div>
           <p class="eyebrow">Event Onboarding</p>
           <h2>Bulk Import Seed Trucks</h2>
-          <p>Add trucks from an event or field visit, preview validation and duplicates, then import only confirmed rows.</p>
+          <p>Add trucks from one event or shared location, then enrich each listing from its photos.</p>
         </div>
         <button type="button" class="icon-button" data-close-bulk-dialog aria-label="Close bulk import dialog">X</button>
       </div>
@@ -316,27 +316,27 @@
       <div class="bulk-section">
         <div class="bulk-section__heading">
           <div>
-            <h3>Event defaults</h3>
-            <p>Optional details used when truck rows leave address or location blank.</p>
+            <h3>Shared location</h3>
+            <p>Every truck in this import uses this address.</p>
           </div>
         </div>
 
         <div class="bulk-event-grid">
           <label class="record-field">
-            Existing Event ID
-            <input name="eventId" type="text" list="event-id-options" placeholder="Optional">
-          </label>
-          <label class="record-field">
             Event Name
-            <input name="eventName" type="text" placeholder="Taste of Elkridge">
+            <input name="eventName" type="text" placeholder="Optional">
           </label>
           <label class="record-field">
             Event Date
             <input name="eventDate" type="date">
           </label>
+          <label class="record-field">
+            Existing Event ID
+            <input name="eventId" type="text" list="event-id-options" placeholder="Optional">
+          </label>
           <label class="record-field record-field--wide">
-            Event Address
-            <input name="eventAddress" type="text" placeholder="Used when a truck row address is blank">
+            Address
+            <input name="eventAddress" type="text" placeholder="Street address for all trucks">
           </label>
           <label class="record-field">
             Event City
@@ -369,7 +369,7 @@
         <div class="bulk-section__heading">
           <div>
             <h3>Truck rows</h3>
-            <p>Add one truck per row, preview issues, then import confirmed rows.</p>
+            <p>Add the truck name and photos. The import will scan menus and enrich the listing.</p>
           </div>
         </div>
 
@@ -378,11 +378,8 @@
             <thead>
               <tr>
                 <th>Truck</th>
-                <th>Address</th>
-                <th>Cuisine</th>
-                <th>Contact</th>
-                <th>Photos</th>
-                <th>Duplicate</th>
+                <th>Truck photo</th>
+                <th>Menu photo</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -408,6 +405,6 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
-  <script defer src="../assets/management-console.js?v=13"></script>
+  <script defer src="../assets/management-console.js?v=14"></script>
 </body>
 </html>
