@@ -241,6 +241,37 @@
   min-width: min(360px, 100%);
 }
 
+.truck-controls {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.truck-controls label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.truck-controls select {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--ink);
+  font: inherit;
+  padding: 8px 10px;
+  text-transform: none;
+}
+
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -376,6 +407,70 @@
   color: var(--accent-deep);
 }
 
+.status-pill--success {
+  background: rgba(15, 124, 130, 0.14);
+  color: var(--cool);
+}
+
+.status-pill--danger {
+  background: rgba(179, 38, 30, 0.12);
+  color: #b3261e;
+}
+
+.truck-health {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.truck-detail-card,
+.bulk-preview-card {
+  grid-column: 1 / -1;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.truck-detail-card h3,
+.bulk-preview-card h3 {
+  margin: 0 0 10px;
+}
+
+.truck-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.truck-detail-grid div {
+  min-width: 0;
+}
+
+.truck-detail-grid strong {
+  display: block;
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.truck-detail-media {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.truck-detail-media img {
+  width: 118px;
+  height: 88px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  object-fit: cover;
+}
+
 .row-action {
   min-height: 40px;
   padding: 0 14px;
@@ -426,6 +521,14 @@
   width: min(980px, calc(100% - 28px));
 }
 
+.transfer-dialog {
+  width: min(720px, calc(100% - 28px));
+}
+
+.bulk-dialog {
+  width: min(1280px, calc(100% - 28px));
+}
+
 .record-dialog::backdrop {
   background: rgba(31, 23, 19, 0.48);
   backdrop-filter: blur(8px);
@@ -454,6 +557,77 @@
   grid-column: 1 / -1;
 }
 
+.bulk-event-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.bulk-table-wrap {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.bulk-table {
+  width: 100%;
+  min-width: 1120px;
+  border-collapse: collapse;
+}
+
+.bulk-table th,
+.bulk-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.bulk-table th {
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.bulk-table input,
+.bulk-table select,
+.bulk-table textarea {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--ink);
+  font: inherit;
+  padding: 7px 9px;
+}
+
+.bulk-table textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.bulk-row-status {
+  min-width: 170px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.bulk-row-status strong {
+  color: var(--ink);
+}
+
+.bulk-row-status .error {
+  color: #b3261e;
+}
+
+.bulk-row-status .warning {
+  color: var(--accent-deep);
+}
+
 @media (max-width: 980px) {
   .console-hero,
   .console-toolbar,
@@ -477,6 +651,12 @@
   .metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .truck-controls,
+  .bulk-event-grid,
+  .truck-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 620px) {
@@ -492,7 +672,10 @@
   }
 
   .metric-grid,
-  .record-grid {
+  .record-grid,
+  .truck-controls,
+  .bulk-event-grid,
+  .truck-detail-grid {
     grid-template-columns: 1fr;
   }
 

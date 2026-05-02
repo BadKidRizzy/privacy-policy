@@ -96,9 +96,61 @@
             </div>
             <div class="panel-heading__actions">
               <span data-loaded-at></span>
+              <button class="button button--secondary" type="button" data-bulk-import hidden>Bulk Import</button>
               <button class="button button--secondary" type="button" data-seed-truck hidden>Seed Truck From Photos</button>
               <button class="button button--secondary" type="button" data-create-record hidden>Create</button>
             </div>
+          </div>
+
+          <div class="truck-controls" data-truck-controls hidden>
+            <label>
+              Claim
+              <select data-truck-filter="claim">
+                <option value="all">All claims</option>
+                <option value="claimed">Claimed</option>
+                <option value="unclaimed">Unclaimed</option>
+              </select>
+            </label>
+            <label>
+              Activity
+              <select data-truck-filter="movement">
+                <option value="all">All movement</option>
+                <option value="active">Active</option>
+                <option value="needs_review">Needs Review</option>
+                <option value="stale">Stale</option>
+                <option value="inactive">Inactive</option>
+                <option value="no_location_data">No Location Data</option>
+              </select>
+            </label>
+            <label>
+              Source
+              <select data-truck-filter="source">
+                <option value="all">All sources</option>
+                <option value="seeded">Seeded</option>
+                <option value="owner-created">Owner-created</option>
+                <option value="event_seed">Event seed</option>
+              </select>
+            </label>
+            <label>
+              Missing
+              <select data-truck-filter="missing">
+                <option value="all">No missing filter</option>
+                <option value="missing_photo">Missing photos</option>
+                <option value="missing_menu">Missing menu</option>
+                <option value="missing_address">Missing address</option>
+                <option value="missing_owner">Missing owner</option>
+              </select>
+            </label>
+            <label>
+              Sort
+              <select data-truck-sort>
+                <option value="recently_updated">Recently updated</option>
+                <option value="last_location_update">Last location update</option>
+                <option value="oldest_movement">Oldest movement</option>
+                <option value="truck_name">Truck name</option>
+                <option value="created_date">Created date</option>
+              </select>
+            </label>
           </div>
 
           <div class="table-wrap">
@@ -131,6 +183,9 @@
 
       <div class="record-dialog__actions">
         <button class="button button--primary" type="submit">Save Changes</button>
+        <button class="button button--secondary" type="button" data-transfer-truck hidden>Transfer Ownership</button>
+        <button class="button button--secondary" type="button" data-mark-reviewed hidden>Mark Reviewed</button>
+        <button class="button button--ghost" type="button" data-archive-truck hidden>Archive/Deactivate</button>
         <button class="button button--ghost" type="button" data-delete-record hidden>Delete Record</button>
         <button class="button button--ghost" type="button" data-close-dialog>Cancel</button>
       </div>
@@ -206,9 +261,131 @@
     </form>
   </dialog>
 
+  <dialog class="record-dialog transfer-dialog" data-transfer-dialog>
+    <form method="dialog" class="record-dialog__content" data-transfer-form>
+      <div class="record-dialog__header">
+        <div>
+          <p class="eyebrow">Ownership Transfer</p>
+          <h2 data-transfer-title>Transfer Truck</h2>
+          <p>Move this truck to a verified owner account without deleting photos, menu, favorites, reviews, or history.</p>
+        </div>
+        <button type="button" class="icon-button" data-close-transfer-dialog aria-label="Close transfer dialog">Close</button>
+      </div>
+
+      <div class="record-grid">
+        <label class="record-field">
+          New Owner Email
+          <input name="newOwnerEmail" type="email" list="owner-email-options" placeholder="owner@example.com">
+        </label>
+        <label class="record-field">
+          New Owner UID
+          <input name="newOwnerUid" type="text" placeholder="Use only when email is ambiguous">
+        </label>
+        <label class="record-field record-field--wide">
+          Transfer Reason
+          <textarea name="transferReason" required placeholder="Owner claimed this listing at the event."></textarea>
+        </label>
+      </div>
+
+      <div data-transfer-owner-options></div>
+
+      <div class="record-dialog__actions">
+        <button class="button button--primary" type="submit">Transfer Truck</button>
+        <button class="button button--ghost" type="button" data-close-transfer-dialog>Cancel</button>
+      </div>
+
+      <p class="console-message" data-transfer-message></p>
+    </form>
+  </dialog>
+
+  <dialog class="record-dialog bulk-dialog" data-bulk-dialog>
+    <form method="dialog" class="record-dialog__content" data-bulk-form>
+      <div class="record-dialog__header">
+        <div>
+          <p class="eyebrow">Event Onboarding</p>
+          <h2>Bulk Import Seed Trucks</h2>
+          <p>Add trucks from an event or field visit, preview validation and duplicates, then import only confirmed rows.</p>
+        </div>
+        <button type="button" class="icon-button" data-close-bulk-dialog aria-label="Close bulk import dialog">Close</button>
+      </div>
+
+      <div class="bulk-event-grid">
+        <label class="record-field">
+          Existing Event ID
+          <input name="eventId" type="text" list="event-id-options" placeholder="Optional">
+        </label>
+        <label class="record-field">
+          Event Name
+          <input name="eventName" type="text" placeholder="Taste of Elkridge">
+        </label>
+        <label class="record-field">
+          Event Date
+          <input name="eventDate" type="date">
+        </label>
+        <label class="record-field record-field--wide">
+          Event Address
+          <input name="eventAddress" type="text" placeholder="Defaults truck rows when their address is blank">
+        </label>
+        <label class="record-field">
+          Event City
+          <input name="eventCity" type="text">
+        </label>
+        <label class="record-field">
+          Event State
+          <input name="eventState" type="text" maxlength="2">
+        </label>
+        <label class="record-field">
+          Event Zip
+          <input name="eventZip" type="text">
+        </label>
+        <label class="record-field">
+          Source URL
+          <input name="sourceUrl" type="url" placeholder="https://event-site.com">
+        </label>
+        <label class="record-field">
+          Event Latitude
+          <input name="eventLatitude" type="number" step="any" placeholder="Optional">
+        </label>
+        <label class="record-field">
+          Event Longitude
+          <input name="eventLongitude" type="number" step="any" placeholder="Optional">
+        </label>
+      </div>
+
+      <div class="bulk-table-wrap">
+        <table class="bulk-table">
+          <thead>
+            <tr>
+              <th>Truck</th>
+              <th>Address</th>
+              <th>Cuisine</th>
+              <th>Contact</th>
+              <th>Photos</th>
+              <th>Duplicate</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody data-bulk-rows></tbody>
+        </table>
+      </div>
+
+      <div data-bulk-owner-options></div>
+      <div data-bulk-event-options></div>
+
+      <div class="record-dialog__actions">
+        <button class="button button--secondary" type="button" data-add-bulk-row>Add Row</button>
+        <button class="button button--secondary" type="button" data-preview-bulk>Preview Import</button>
+        <button class="button button--primary" type="submit" disabled data-import-bulk>Import Confirmed Rows</button>
+        <button class="button button--ghost" type="button" data-close-bulk-dialog>Cancel</button>
+      </div>
+
+      <p class="console-message" data-bulk-message></p>
+    </form>
+  </dialog>
+
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
-  <script defer src="../assets/management-console.js?v=11"></script>
+  <script defer src="../assets/management-console.js?v=12"></script>
 </body>
 </html>

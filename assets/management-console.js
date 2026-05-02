@@ -15,6 +15,7 @@ const state = {
   users: [],
   trucks: [],
   events: [],
+  seedEvents: [],
   searchByTab: {
     owners: '',
     trucks: '',
@@ -22,6 +23,14 @@ const state = {
     organizers: '',
     events: '',
   },
+  truckFilters: {
+    claim: 'all',
+    movement: 'all',
+    source: 'all',
+    missing: 'all',
+  },
+  truckSort: 'recently_updated',
+  bulkPreview: null,
   selected: null,
 };
 
@@ -40,6 +49,10 @@ const selectors = {
   panelTitle: document.querySelector('[data-panel-title]'),
   panelDescription: document.querySelector('[data-panel-description]'),
   loadedAt: document.querySelector('[data-loaded-at]'),
+  truckControls: document.querySelector('[data-truck-controls]'),
+  truckFilterInputs: Array.from(document.querySelectorAll('[data-truck-filter]')),
+  truckSort: document.querySelector('[data-truck-sort]'),
+  bulkImport: document.querySelector('[data-bulk-import]'),
   seedTruck: document.querySelector('[data-seed-truck]'),
   createRecord: document.querySelector('[data-create-record]'),
   tableHead: document.querySelector('[data-table-head]'),
@@ -53,12 +66,31 @@ const selectors = {
   dialogSubtitle: document.querySelector('[data-dialog-subtitle]'),
   recordMessage: document.querySelector('[data-record-message]'),
   deleteRecord: document.querySelector('[data-delete-record]'),
+  transferTruck: document.querySelector('[data-transfer-truck]'),
+  markReviewed: document.querySelector('[data-mark-reviewed]'),
+  archiveTruck: document.querySelector('[data-archive-truck]'),
   closeDialog: Array.from(document.querySelectorAll('[data-close-dialog]')),
   seedDialog: document.querySelector('[data-seed-dialog]'),
   seedForm: document.querySelector('[data-seed-form]'),
   seedMessage: document.querySelector('[data-seed-message]'),
   seedOwnerOptions: document.querySelector('[data-seed-owner-options]'),
   closeSeedDialog: Array.from(document.querySelectorAll('[data-close-seed-dialog]')),
+  transferDialog: document.querySelector('[data-transfer-dialog]'),
+  transferForm: document.querySelector('[data-transfer-form]'),
+  transferTitle: document.querySelector('[data-transfer-title]'),
+  transferMessage: document.querySelector('[data-transfer-message]'),
+  transferOwnerOptions: document.querySelector('[data-transfer-owner-options]'),
+  closeTransferDialog: Array.from(document.querySelectorAll('[data-close-transfer-dialog]')),
+  bulkDialog: document.querySelector('[data-bulk-dialog]'),
+  bulkForm: document.querySelector('[data-bulk-form]'),
+  bulkRows: document.querySelector('[data-bulk-rows]'),
+  bulkMessage: document.querySelector('[data-bulk-message]'),
+  bulkOwnerOptions: document.querySelector('[data-bulk-owner-options]'),
+  bulkEventOptions: document.querySelector('[data-bulk-event-options]'),
+  addBulkRow: document.querySelector('[data-add-bulk-row]'),
+  previewBulk: document.querySelector('[data-preview-bulk]'),
+  importBulk: document.querySelector('[data-import-bulk]'),
+  closeBulkDialog: Array.from(document.querySelectorAll('[data-close-bulk-dialog]')),
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -72,8 +104,12 @@ const deleteRecord = functions.httpsCallable('deleteManagementConsoleRecord');
 const uploadMedia = functions.httpsCallable('uploadManagementConsoleMedia');
 const scanMenu = functions.httpsCallable('scanManagementConsoleMenu');
 const seedTruck = functions.httpsCallable('seedManagementConsoleTruck');
+const transferTruckOwnership = functions.httpsCallable('transferManagementTruckOwnership');
+const previewTruckImport = functions.httpsCallable('previewManagementConsoleTruckImport');
+const importTrucks = functions.httpsCallable('importManagementConsoleTrucks');
 
 const MAX_ADMIN_UPLOAD_BYTES = 5 * 1024 * 1024;
+const INITIAL_BULK_ROW_COUNT = 5;
 
 const tabConfig = {
   owners: {
@@ -91,7 +127,7 @@ const tabConfig = {
     description: 'Truck profiles, transfer ownership, claim status, and visibility.',
     collection: 'foodTrucks',
     filter: () => true,
-    columns: ['Truck', 'Owner', 'Location', 'Claim', 'Status', 'Updated', 'Action'],
+    columns: ['Truck', 'Owner', 'Location', 'Source', 'Movement', 'Health', 'Updated', 'Action'],
     searchLabel: 'Search Trucks',
     searchPlaceholder: 'Search truck, owner email, location, cuisine, tag...',
     createLabel: 'Create Truck',
@@ -152,6 +188,7 @@ const fieldSets = {
     {name: 'truckImageUpload', label: 'Upload Truck Photo', type: 'file', mediaType: 'truckImage', wide: true},
     {name: 'menuImageUpload', label: 'Upload Menu Photo', type: 'file', mediaType: 'menuImage', multiple: true, wide: true},
     {name: 'scanMenuAi', label: 'Scan Menu with AI', type: 'action', action: 'scan-menu', wide: true},
+    {name: 'adminSummary', label: 'Admin Detail Summary', type: 'summary', wide: true},
     {
       name: 'ownerEmail',
       label: 'Owner Email (transfer)',
@@ -170,6 +207,19 @@ const fieldSets = {
     {name: 'cuisines', label: 'Cuisines, comma separated', type: 'textarea'},
     {name: 'tags', label: 'Tags, comma separated', type: 'textarea'},
     {name: 'claimStatus', label: 'Claim Status', type: 'select', options: ['unclaimed', 'claim_pending', 'claimed']},
+    {name: 'seeded', label: 'Seeded Truck', type: 'checkbox'},
+    {name: 'claimed', label: 'Claimed', type: 'checkbox'},
+    {name: 'archived', label: 'Archived / Deactivated', type: 'checkbox'},
+    {name: 'seedSource', label: 'Seed Source', type: 'select', options: ['photo_seed', 'event_seed', 'admin_bulk_import', 'owner_created']},
+    {name: 'sourceName', label: 'Source Name', type: 'text'},
+    {name: 'sourceUrl', label: 'Source URL', type: 'text'},
+    {name: 'sourceId', label: 'Source ID', type: 'text'},
+    {name: 'eventId', label: 'Event ID', type: 'text'},
+    {name: 'eventName', label: 'Event Name', type: 'text'},
+    {name: 'adminNotes', label: 'Admin Notes', type: 'textarea', wide: true},
+    {name: 'enrichmentStatus', label: 'Enrichment Status', type: 'text'},
+    {name: 'seedConfidenceScore', label: 'Seed Confidence Score', type: 'number'},
+    {name: 'seedWarnings', label: 'Seed Warnings, comma separated', type: 'textarea', wide: true},
     {name: 'locationType', label: 'Location Type', type: 'select', options: ['stationary', 'mobile', 'event_based']},
     {name: 'verificationStatus', label: 'Verification Status', type: 'select', options: ['owner_verified', 'public_sources_only', 'needs_owner_verification']},
     {name: 'menuStatus', label: 'Menu Status', type: 'text'},
@@ -285,6 +335,112 @@ function statusPill(value, warnValues = ['disabled', 'review', 'closed']) {
   return `<span class="status-pill ${warn ? 'status-pill--warn' : ''}">${escapeHtml(value || 'active')}</span>`;
 }
 
+function movementPill(record) {
+  const status = record.movementStatus || record.lastMovementStatus || 'no_location_data';
+  const label = record.movementStatusLabel || status.replace(/_/g, ' ');
+  const className = status === 'active'
+    ? 'status-pill--success'
+    : status === 'inactive'
+      ? 'status-pill--danger'
+      : status === 'stale' || status === 'needs_review'
+        ? 'status-pill--warn'
+        : '';
+  const days = record.daysSinceLastMovement == null
+    ? 'No movement date'
+    : `${record.daysSinceLastMovement}d`;
+
+  return `
+    <div>
+      <span class="status-pill ${className}">${escapeHtml(label)}</span>
+      <span class="muted-cell">${escapeHtml(days)}</span>
+    </div>
+  `;
+}
+
+function yesNo(value) {
+  return value ? 'Yes' : 'No';
+}
+
+function getTruckValidationWarnings(record) {
+  return Array.isArray(record.validationWarnings)
+    ? record.validationWarnings
+    : [
+        record.truckImage ? '' : 'missing_photo',
+        record.menuImage || (Array.isArray(record.menuImages) && record.menuImages.length) ? '' : 'missing_menu',
+        record.currentAddress ? '' : 'missing_address',
+        record.ownerId || record.ownerUid ? '' : 'missing_owner',
+      ].filter(Boolean);
+}
+
+function renderTruckHealth(record) {
+  const warnings = getTruckValidationWarnings(record);
+
+  if (record.archived) {
+    warnings.unshift('archived');
+  }
+
+  if (!warnings.length) {
+    return '<span class="status-pill status-pill--success">Complete</span>';
+  }
+
+  return `
+    <div class="truck-health">
+      ${warnings.map((warning) => `<span class="status-pill status-pill--warn">${escapeHtml(warning.replace(/_/g, ' '))}</span>`).join('')}
+    </div>
+  `;
+}
+
+function toTimestamp(value) {
+  if (!value) return 0;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+}
+
+function compareText(left, right) {
+  return String(left || '').localeCompare(String(right || ''), undefined, {sensitivity: 'base'});
+}
+
+function matchesTruckFilters(record) {
+  const filters = state.truckFilters;
+  const claimed = record.claimed === true || record.claimStatus === 'claimed';
+  const seeded = record.seeded === true || Boolean(record.seedSource || record.seededBy || record.managementCreatedBy);
+  const movement = record.movementStatus || record.lastMovementStatus || 'no_location_data';
+  const warnings = getTruckValidationWarnings(record);
+  const source = String(record.seedSource || record.seededBy || '').toLowerCase();
+
+  if (filters.claim === 'claimed' && !claimed) return false;
+  if (filters.claim === 'unclaimed' && claimed) return false;
+  if (filters.movement !== 'all' && movement !== filters.movement) return false;
+  if (filters.source === 'seeded' && !seeded) return false;
+  if (filters.source === 'owner-created' && seeded) return false;
+  if (filters.source === 'event_seed' && source !== 'event_seed') return false;
+  if (filters.missing !== 'all' && !warnings.includes(filters.missing)) return false;
+
+  return true;
+}
+
+function sortTruckRecords(records) {
+  const sorted = [...records];
+
+  sorted.sort((left, right) => {
+    if (state.truckSort === 'last_location_update') {
+      return toTimestamp(right.lastLocationUpdatedAt || right.locationUpdatedAt) - toTimestamp(left.lastLocationUpdatedAt || left.locationUpdatedAt);
+    }
+    if (state.truckSort === 'oldest_movement') {
+      return toTimestamp(left.lastLocationUpdatedAt || left.locationUpdatedAt) - toTimestamp(right.lastLocationUpdatedAt || right.locationUpdatedAt);
+    }
+    if (state.truckSort === 'truck_name') {
+      return compareText(left.name, right.name);
+    }
+    if (state.truckSort === 'created_date') {
+      return toTimestamp(right.createdAt) - toTimestamp(left.createdAt);
+    }
+    return toTimestamp(right.updatedAt || right.managementUpdatedAt) - toTimestamp(left.updatedAt || left.managementUpdatedAt);
+  });
+
+  return sorted;
+}
+
 function getProfileImage(record) {
   return record.photoURL || record.profileImage || '';
 }
@@ -350,6 +506,28 @@ function renderOrganizerEmailDatalist() {
   return renderEmailDatalist('organizer-email-options', getOrganizerEmailOptions());
 }
 
+function renderEventIdDatalist() {
+  const publicEvents = state.events.map((event) => ({
+    id: event.id,
+    label: [event.title, event.address].filter(Boolean).join(' - '),
+  }));
+  const seedEvents = state.seedEvents.map((event) => ({
+    id: event.id,
+    label: [event.eventName, event.eventAddress].filter(Boolean).join(' - '),
+  }));
+  const options = [...publicEvents, ...seedEvents]
+    .filter((event) => event.id)
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  if (!options.length) return '';
+
+  return `
+    <datalist id="event-id-options">
+      ${options.map((option) => `<option value="${escapeHtml(option.id)}" label="${escapeHtml(option.label)}"></option>`).join('')}
+    </datalist>
+  `;
+}
+
 function getActiveRecords() {
   const config = tabConfig[state.activeTab];
   const source = config.collection === 'users'
@@ -359,24 +537,34 @@ function getActiveRecords() {
       : state.events;
   const query = getCurrentSearch().trim().toLowerCase();
 
-  return source
+  const records = source
     .filter(config.filter)
-    .filter((record) => !query || recordText(record).includes(query));
+    .filter((record) => !query || recordText(record).includes(query))
+    .filter((record) => state.activeTab !== 'trucks' || matchesTruckFilters(record));
+
+  return state.activeTab === 'trucks' ? sortTruckRecords(records) : records;
 }
 
 function renderMetrics() {
   const ownerCount = state.users.filter((user) => user.userType === 'Owner').length;
-  const foodieCount = state.users.filter((user) => user.userType === 'Foodie').length;
-  const organizerCount = state.users.filter((user) => user.userType === 'Organizer').length;
-  const openEventCount = state.events.filter((event) => ['open', 'full'].includes(event.status)).length;
-  const liveTruckCount = state.trucks.filter((truck) => truck.isSharingLocation || truck.isOpen).length;
+  const activeTruckCount = state.trucks.filter((truck) => truck.movementStatus === 'active').length;
+  const needsReviewCount = state.trucks.filter((truck) => truck.movementStatus === 'needs_review').length;
+  const staleTruckCount = state.trucks.filter((truck) => truck.movementStatus === 'stale').length;
+  const inactiveTruckCount = state.trucks.filter((truck) => truck.movementStatus === 'inactive').length;
+  const unclaimedSeededCount = state.trucks.filter((truck) => {
+    const seeded = truck.seeded === true || truck.seedSource || truck.seededBy || truck.managementCreatedBy;
+    const claimed = truck.claimed === true || truck.claimStatus === 'claimed';
+    return seeded && !claimed;
+  }).length;
 
   selectors.metrics.innerHTML = [
+    ['Total trucks', state.trucks.length],
+    ['Active trucks', activeTruckCount],
+    ['Needs review', needsReviewCount],
+    ['Stale trucks', staleTruckCount],
+    ['Inactive trucks', inactiveTruckCount],
+    ['Unclaimed seeded', unclaimedSeededCount],
     ['Owners', ownerCount],
-    ['Trucks', state.trucks.length],
-    ['Foodies', foodieCount],
-    ['Organizers', organizerCount],
-    ['Live/Open', liveTruckCount + openEventCount],
   ].map(([label, value]) => `
     <article class="metric-card">
       <strong>${value}</strong>
@@ -400,6 +588,12 @@ function renderTable() {
   }
   if (selectors.seedTruck) {
     selectors.seedTruck.hidden = state.activeTab !== 'trucks';
+  }
+  if (selectors.bulkImport) {
+    selectors.bulkImport.hidden = state.activeTab !== 'trucks';
+  }
+  if (selectors.truckControls) {
+    selectors.truckControls.hidden = state.activeTab !== 'trucks';
   }
   if (selectors.searchLabel) {
     selectors.searchLabel.textContent = config.searchLabel || 'Search';
@@ -476,19 +670,27 @@ function renderOrganizerRow(record) {
 }
 
 function renderTruckRow(record) {
-  const owner = getUserById(record.ownerId);
-  const status = record.isMapHidden ? 'hidden' : record.isOpen ? 'open' : 'closed';
+  const owner = getUserById(record.ownerUid || record.ownerId);
+  const status = record.archived ? 'archived' : record.isMapHidden ? 'hidden' : record.isOpen ? 'open' : 'closed';
+  const sourceLabel = record.eventName || record.sourceName || record.seedSource || (record.seeded ? 'Seeded' : 'Owner-created');
   return `
     <tr>
       <td>${titleCell(record.name || 'Truck', record.id, record.truckImage)}</td>
       <td>
         <strong>${escapeHtml(owner?.name || record.ownerEmail || 'Unknown owner')}</strong>
-        <span class="muted-cell">${escapeHtml(record.ownerId || 'No owner id')}</span>
+        <span class="muted-cell">${escapeHtml(record.ownerUid || record.ownerId || 'No owner id')}</span>
       </td>
       <td>${escapeHtml(record.currentAddress || 'No address')}</td>
-      <td>${statusPill(record.claimStatus || 'unclaimed')}</td>
-      <td>${statusPill(status, ['closed', 'hidden'])}</td>
-      <td>${formatShortDate(record.updatedAt)}</td>
+      <td>
+        <strong>${escapeHtml(sourceLabel)}</strong>
+        <span class="muted-cell">${escapeHtml(record.sourceUrl || record.sourceId || '')}</span>
+      </td>
+      <td>${movementPill(record)}</td>
+      <td>${renderTruckHealth(record)}</td>
+      <td>
+        ${formatShortDate(record.updatedAt)}
+        <span class="muted-cell">${statusPill(status, ['closed', 'hidden', 'archived'])}</span>
+      </td>
       <td>
         <div class="row-actions">
           ${actionButton('foodTrucks', record.id)}
@@ -567,16 +769,17 @@ async function loadSnapshot() {
   selectors.refresh.textContent = 'Loading...';
 
   try {
-    const result = await getSnapshot({limit: 200});
+    const result = await getSnapshot({limit: 500});
     const data = result.data || {};
     state.admin = data.admin || null;
     state.loadedAt = data.loadedAt || new Date().toISOString();
     state.users = data.users || [];
     state.trucks = data.trucks || [];
     state.events = data.events || [];
+    state.seedEvents = data.seedEvents || [];
     selectors.app.hidden = false;
     setAuthenticatedView(true);
-    selectors.sessionSummary.textContent = `Signed in as ${auth.currentUser?.email || state.admin?.email || 'admin'}. Showing up to ${data.limit || 200} records per collection.`;
+    selectors.sessionSummary.textContent = `Signed in as ${auth.currentUser?.email || state.admin?.email || 'admin'}. Showing up to ${data.limit || 500} records per collection.`;
     renderAll();
   } catch (error) {
     selectors.app.hidden = true;
@@ -605,6 +808,9 @@ function openRecordDialog(collection, id) {
   selectors.dialogTitle.textContent = record.name || record.title || record.email || id;
   selectors.dialogSubtitle.textContent = id;
   selectors.deleteRecord.hidden = collection === 'users';
+  selectors.transferTruck.hidden = collection !== 'foodTrucks';
+  selectors.markReviewed.hidden = collection !== 'foodTrucks';
+  selectors.archiveTruck.hidden = collection !== 'foodTrucks' || record.archived === true;
   const fieldsHtml = (fieldSets[collection] || [])
     .map((field) => renderField(field, record))
     .join('');
@@ -642,6 +848,9 @@ function openCreateDialog() {
   selectors.dialogTitle.textContent = collection === 'foodTrucks' ? 'Create Truck' : 'Create Event';
   selectors.dialogSubtitle.textContent = 'New record';
   selectors.deleteRecord.hidden = true;
+  selectors.transferTruck.hidden = true;
+  selectors.markReviewed.hidden = true;
+  selectors.archiveTruck.hidden = true;
 
   const fieldsHtml = (fieldSets[collection] || [])
     .map((field) => renderField(field, record))
@@ -685,9 +894,99 @@ function closeSeedTruckDialog() {
   }
 }
 
+function openTransferDialog() {
+  if (!state.selected || state.selected.collection !== 'foodTrucks') return;
+  const truck = state.selected.record;
+  selectors.transferForm?.reset();
+  selectors.transferTitle.textContent = `Transfer ${truck.name || 'Truck'}`;
+  selectors.transferOwnerOptions.innerHTML = renderOwnerEmailDatalist();
+  setMessage(selectors.transferMessage, '');
+
+  if (typeof selectors.transferDialog?.showModal === 'function') {
+    selectors.transferDialog.showModal();
+  } else {
+    selectors.transferDialog?.setAttribute('open', '');
+  }
+}
+
+function closeTransferDialog() {
+  if (typeof selectors.transferDialog?.close === 'function') {
+    selectors.transferDialog.close();
+  } else {
+    selectors.transferDialog?.removeAttribute('open');
+  }
+}
+
+async function submitTransferTruck() {
+  if (!state.selected || state.selected.collection !== 'foodTrucks' || !selectors.transferForm) return;
+
+  const formData = new FormData(selectors.transferForm);
+  const newOwnerEmail = String(formData.get('newOwnerEmail') || '').trim();
+  const newOwnerUid = String(formData.get('newOwnerUid') || '').trim();
+  const transferReason = String(formData.get('transferReason') || '').trim();
+
+  if (!newOwnerEmail && !newOwnerUid) {
+    setMessage(selectors.transferMessage, 'Enter the new owner email or UID.', true);
+    return;
+  }
+
+  if (!transferReason) {
+    setMessage(selectors.transferMessage, 'Transfer reason is required.', true);
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `Transfer ${state.selected.record.name || 'this truck'} to ${newOwnerEmail || newOwnerUid}? This keeps photos, menus, reviews, and favorites.`
+  );
+  if (!confirmed) return;
+
+  setMessage(selectors.transferMessage, 'Transferring ownership...');
+
+  try {
+    await transferTruckOwnership({
+      truckId: state.selected.id,
+      newOwnerEmail,
+      newOwnerUid,
+      transferReason,
+    });
+    setMessage(selectors.transferMessage, 'Transfer complete. Refreshing...');
+    await loadSnapshot();
+    closeTransferDialog();
+    closeDialog();
+  } catch (error) {
+    setMessage(selectors.transferMessage, error.message || 'Transfer failed.', true);
+  }
+}
+
 function renderField(field, record) {
   const value = record[field.name];
   const wideClass = field.wide ? ' record-field--wide' : '';
+
+  if (field.type === 'summary') {
+    const images = [
+      record.truckImage,
+      ...(Array.isArray(record.menuImages) ? record.menuImages : []),
+    ].filter(Boolean).slice(0, 4);
+
+    return `
+      <div class="truck-detail-card">
+        <h3>${escapeHtml(field.label)}</h3>
+        <div class="truck-detail-grid">
+          <div><strong>Owner</strong>${escapeHtml(record.ownerEmail || record.ownerUid || record.ownerId || 'Missing')}</div>
+          <div><strong>Claim</strong>${escapeHtml(record.claimStatus || (record.claimed ? 'claimed' : 'unclaimed'))}</div>
+          <div><strong>Source</strong>${escapeHtml(record.eventName || record.seedSource || record.sourceName || 'Unknown')}</div>
+          <div><strong>Movement</strong>${escapeHtml(record.movementStatusLabel || 'No Location Data')}</div>
+          <div><strong>Days Since Movement</strong>${escapeHtml(record.daysSinceLastMovement ?? 'Not set')}</div>
+          <div><strong>Visibility</strong>${escapeHtml(record.archived ? 'Archived' : record.isMapHidden ? 'Hidden from map' : 'Visible')}</div>
+          <div><strong>Created</strong>${escapeHtml(formatDate(record.createdAt))}</div>
+          <div><strong>Updated</strong>${escapeHtml(formatDate(record.updatedAt))}</div>
+          <div><strong>Reviewed</strong>${escapeHtml(formatDate(record.lastReviewedAt))}</div>
+        </div>
+        <div class="truck-health">${renderTruckHealth(record)}</div>
+        ${images.length ? `<div class="truck-detail-media">${images.map((url) => `<img src="${escapeHtml(url)}" alt="">`).join('')}</div>` : ''}
+      </div>
+    `;
+  }
 
   if (field.type === 'action') {
     const isCreate = state.selected?.mode === 'create';
@@ -1127,6 +1426,272 @@ async function seedTruckFromForm() {
   }
 }
 
+function createBulkRowHtml(index) {
+  return `
+    <tr data-bulk-row>
+      <td>
+        <input data-bulk-field="name" type="text" placeholder="Truck name">
+        <input data-bulk-field="ownerEmail" type="email" list="owner-email-options" placeholder="Owner email optional">
+      </td>
+      <td>
+        <textarea data-bulk-field="address" placeholder="Truck address. Leave blank to use event address."></textarea>
+        <div class="row-actions">
+          <input data-bulk-field="city" type="text" placeholder="City">
+          <input data-bulk-field="state" type="text" placeholder="State">
+          <input data-bulk-field="zip" type="text" placeholder="Zip">
+        </div>
+      </td>
+      <td>
+        <textarea data-bulk-field="cuisine" placeholder="Comma separated"></textarea>
+        <input data-bulk-field="sourceName" type="text" placeholder="Source name">
+        <input data-bulk-field="sourceUrl" type="url" placeholder="Source URL">
+      </td>
+      <td>
+        <input data-bulk-field="phone" type="tel" placeholder="Phone">
+        <input data-bulk-field="websiteUrl" type="url" placeholder="Website">
+        <input data-bulk-field="instagram" type="text" placeholder="Instagram/social">
+      </td>
+      <td>
+        <input data-bulk-field="truckImage" type="file" accept="image/jpeg,image/png,image/webp">
+        <input data-bulk-field="menuImages" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+      </td>
+      <td>
+        <select data-bulk-field="duplicateAction">
+          <option value="skip">Skip duplicate</option>
+          <option value="merge">Merge/update</option>
+          <option value="create">Create anyway</option>
+        </select>
+      </td>
+      <td class="bulk-row-status" data-bulk-status>Row ${index + 1} pending preview.</td>
+    </tr>
+  `;
+}
+
+function resetBulkRows(count = INITIAL_BULK_ROW_COUNT) {
+  if (!selectors.bulkRows) return;
+  selectors.bulkRows.innerHTML = Array.from({length: count}, (_value, index) => createBulkRowHtml(index)).join('');
+  state.bulkPreview = null;
+  if (selectors.importBulk) selectors.importBulk.disabled = true;
+}
+
+function openBulkImportDialog() {
+  selectors.bulkForm?.reset();
+  if (selectors.bulkOwnerOptions) {
+    selectors.bulkOwnerOptions.innerHTML = renderOwnerEmailDatalist();
+  }
+  if (selectors.bulkEventOptions) {
+    selectors.bulkEventOptions.innerHTML = renderEventIdDatalist();
+  }
+  resetBulkRows();
+  setMessage(selectors.bulkMessage, '');
+
+  if (typeof selectors.bulkDialog?.showModal === 'function') {
+    selectors.bulkDialog.showModal();
+  } else {
+    selectors.bulkDialog?.setAttribute('open', '');
+  }
+}
+
+function closeBulkImportDialog() {
+  if (typeof selectors.bulkDialog?.close === 'function') {
+    selectors.bulkDialog.close();
+  } else {
+    selectors.bulkDialog?.removeAttribute('open');
+  }
+}
+
+function addBulkRow() {
+  if (!selectors.bulkRows) return;
+  const index = selectors.bulkRows.querySelectorAll('[data-bulk-row]').length;
+  selectors.bulkRows.insertAdjacentHTML('beforeend', createBulkRowHtml(index));
+  if (selectors.importBulk) selectors.importBulk.disabled = true;
+}
+
+function getBulkEventPayload() {
+  const formData = new FormData(selectors.bulkForm);
+  return {
+    eventId: String(formData.get('eventId') || '').trim(),
+    eventName: String(formData.get('eventName') || '').trim(),
+    eventDate: String(formData.get('eventDate') || '').trim(),
+    eventAddress: String(formData.get('eventAddress') || '').trim(),
+    eventCity: String(formData.get('eventCity') || '').trim(),
+    eventState: String(formData.get('eventState') || '').trim(),
+    eventZip: String(formData.get('eventZip') || '').trim(),
+    eventLatitude: String(formData.get('eventLatitude') || '').trim(),
+    eventLongitude: String(formData.get('eventLongitude') || '').trim(),
+    sourceUrl: String(formData.get('sourceUrl') || '').trim(),
+  };
+}
+
+function getBulkRowValue(row, field) {
+  const input = row.querySelector(`[data-bulk-field="${field}"]`);
+  if (!input) return '';
+  return input.type === 'file' ? input : input.value.trim();
+}
+
+function collectBulkRows(includeFiles = false) {
+  return Array.from(selectors.bulkRows?.querySelectorAll('[data-bulk-row]') || [])
+    .map((row, index) => {
+      const truckImageInput = getBulkRowValue(row, 'truckImage');
+      const menuImagesInput = getBulkRowValue(row, 'menuImages');
+      const payload = {
+        rowId: `row-${index + 1}`,
+        name: getBulkRowValue(row, 'name'),
+        ownerEmail: getBulkRowValue(row, 'ownerEmail'),
+        address: getBulkRowValue(row, 'address'),
+        city: getBulkRowValue(row, 'city'),
+        state: getBulkRowValue(row, 'state'),
+        zip: getBulkRowValue(row, 'zip'),
+        cuisine: getBulkRowValue(row, 'cuisine'),
+        sourceName: getBulkRowValue(row, 'sourceName'),
+        sourceUrl: getBulkRowValue(row, 'sourceUrl'),
+        phone: getBulkRowValue(row, 'phone'),
+        websiteUrl: getBulkRowValue(row, 'websiteUrl'),
+        instagram: getBulkRowValue(row, 'instagram'),
+        duplicateAction: getBulkRowValue(row, 'duplicateAction') || 'skip',
+      };
+
+      if (includeFiles) {
+        payload.truckImageFile = truckImageInput?.files?.[0] || null;
+        payload.menuImageFiles = Array.from(menuImagesInput?.files || []);
+      }
+
+      return payload;
+    })
+    .filter((row) => Object.entries(row).some(([key, value]) =>
+      !['rowId', 'duplicateAction', 'truckImageFile', 'menuImageFiles'].includes(key)
+      && (Array.isArray(value) ? value.length > 0 : Boolean(value))
+    ));
+}
+
+function setBulkRowStatus(rowId, html) {
+  const index = Number(String(rowId).replace('row-', '')) - 1;
+  const row = selectors.bulkRows?.querySelectorAll('[data-bulk-row]')[index];
+  const status = row?.querySelector('[data-bulk-status]');
+  if (status) status.innerHTML = html;
+}
+
+async function previewBulkImport() {
+  const rows = collectBulkRows(true).map((row) => {
+    const next = {...row};
+    if (row.truckImageFile) {
+      next.truckImage = {fileName: row.truckImageFile.name, contentType: row.truckImageFile.type, dataUrl: 'selected-for-preview'};
+    }
+    if (row.menuImageFiles?.length) {
+      next.menuImages = row.menuImageFiles.slice(0, 3).map((file) => ({
+        fileName: file.name,
+        contentType: file.type,
+        dataUrl: 'selected-for-preview',
+      }));
+    }
+    delete next.truckImageFile;
+    delete next.menuImageFiles;
+    return next;
+  });
+
+  if (!rows.length) {
+    setMessage(selectors.bulkMessage, 'Add at least one truck row.', true);
+    return;
+  }
+
+  setMessage(selectors.bulkMessage, 'Checking validation and duplicates...');
+
+  try {
+    const result = await previewTruckImport({
+      event: getBulkEventPayload(),
+      rows,
+    });
+    const previewRows = result.data?.rows || [];
+    state.bulkPreview = previewRows;
+
+    previewRows.forEach((row) => {
+      const errors = row.errors || [];
+      const warnings = row.warnings || [];
+      const duplicates = row.duplicates || [];
+      setBulkRowStatus(row.rowId, `
+        ${errors.length ? `<div class="error"><strong>Errors</strong><br>${errors.map(escapeHtml).join('<br>')}</div>` : '<strong>Valid</strong>'}
+        ${warnings.length ? `<div class="warning">${warnings.map(escapeHtml).join('<br>')}</div>` : ''}
+        ${duplicates.length ? `<div class="warning">Possible duplicate: ${duplicates.map((item) => escapeHtml(item.name || item.truckId)).join(', ')}</div>` : ''}
+      `);
+    });
+
+    const hasErrors = previewRows.some((row) => row.errors?.length);
+    selectors.importBulk.disabled = hasErrors;
+    setMessage(selectors.bulkMessage, hasErrors ? 'Fix row errors before import.' : 'Preview ready. Duplicate rows default to skip unless changed.');
+  } catch (error) {
+    setMessage(selectors.bulkMessage, error.message || 'Preview failed.', true);
+  }
+}
+
+async function attachBulkImages(rows) {
+  const prepared = [];
+
+  for (const row of rows) {
+    const next = {...row};
+    delete next.truckImageFile;
+    delete next.menuImageFiles;
+
+    if (row.truckImageFile) {
+      next.truckImage = await buildImagePayload(row.truckImageFile);
+    }
+
+    if (row.menuImageFiles?.length) {
+      next.menuImages = [];
+      for (const file of row.menuImageFiles.slice(0, 3)) {
+        next.menuImages.push(await buildImagePayload(file));
+      }
+    }
+
+    prepared.push(next);
+  }
+
+  return prepared;
+}
+
+async function submitBulkImport() {
+  const rows = collectBulkRows(true);
+
+  if (!rows.length) {
+    setMessage(selectors.bulkMessage, 'Add at least one truck row.', true);
+    return;
+  }
+
+  const confirmed = window.confirm('Import the valid rows now? Duplicate rows set to Skip will not be created.');
+  if (!confirmed) return;
+
+  try {
+    selectors.importBulk.disabled = true;
+    setMessage(selectors.bulkMessage, 'Reading images...');
+    const rowsWithImages = await attachBulkImages(rows);
+
+    setMessage(selectors.bulkMessage, 'Importing trucks...');
+    const result = await importTrucks({
+      event: getBulkEventPayload(),
+      rows: rowsWithImages,
+    });
+    const results = result.data?.results || [];
+
+    results.forEach((row) => {
+      const errors = row.errors || [];
+      const warnings = row.warnings || [];
+      setBulkRowStatus(row.rowId, `
+        <strong>${escapeHtml(row.status || 'done')}</strong>
+        ${row.truckId ? `<br>${escapeHtml(row.truckId)}` : ''}
+        ${errors.length ? `<div class="error">${errors.map(escapeHtml).join('<br>')}</div>` : ''}
+        ${warnings.length ? `<div class="warning">${warnings.map(escapeHtml).join('<br>')}</div>` : ''}
+      `);
+    });
+
+    setMessage(selectors.bulkMessage, 'Import complete. Refreshing dashboard...');
+    state.activeTab = 'trucks';
+    await loadSnapshot();
+  } catch (error) {
+    setMessage(selectors.bulkMessage, error.message || 'Bulk import failed.', true);
+  } finally {
+    selectors.importBulk.disabled = false;
+  }
+}
+
 async function deleteSelectedRecord() {
   if (!state.selected || state.selected.collection === 'users') return;
 
@@ -1144,6 +1709,44 @@ async function deleteSelectedRecord() {
     closeDialog();
   } catch (error) {
     setMessage(selectors.recordMessage, error.message || 'Delete failed.', true);
+  }
+}
+
+async function markSelectedTruckReviewed() {
+  if (!state.selected || state.selected.collection !== 'foodTrucks') return;
+  setMessage(selectors.recordMessage, 'Marking reviewed...');
+
+  try {
+    await updateRecord({
+      collection: 'foodTrucks',
+      id: state.selected.id,
+      updates: {adminAction: 'mark_reviewed'},
+    });
+    await loadSnapshot();
+    closeDialog();
+  } catch (error) {
+    setMessage(selectors.recordMessage, error.message || 'Could not mark reviewed.', true);
+  }
+}
+
+async function archiveSelectedTruck() {
+  if (!state.selected || state.selected.collection !== 'foodTrucks') return;
+
+  const confirmed = window.confirm(`Archive/deactivate ${state.selected.record.name || 'this truck'} and hide it from the map?`);
+  if (!confirmed) return;
+
+  setMessage(selectors.recordMessage, 'Archiving truck...');
+
+  try {
+    await updateRecord({
+      collection: 'foodTrucks',
+      id: state.selected.id,
+      updates: {adminAction: 'archive'},
+    });
+    await loadSnapshot();
+    closeDialog();
+  } catch (error) {
+    setMessage(selectors.recordMessage, error.message || 'Could not archive truck.', true);
   }
 }
 
@@ -1179,6 +1782,22 @@ selectors.signOut?.addEventListener('click', async () => {
 selectors.refresh?.addEventListener('click', loadSnapshot);
 selectors.createRecord?.addEventListener('click', openCreateDialog);
 selectors.seedTruck?.addEventListener('click', openSeedTruckDialog);
+selectors.bulkImport?.addEventListener('click', openBulkImportDialog);
+selectors.transferTruck?.addEventListener('click', openTransferDialog);
+selectors.markReviewed?.addEventListener('click', markSelectedTruckReviewed);
+selectors.archiveTruck?.addEventListener('click', archiveSelectedTruck);
+
+selectors.truckFilterInputs.forEach((input) => {
+  input.addEventListener('change', (event) => {
+    state.truckFilters[event.target.dataset.truckFilter] = event.target.value || 'all';
+    renderTable();
+  });
+});
+
+selectors.truckSort?.addEventListener('change', (event) => {
+  state.truckSort = event.target.value || 'recently_updated';
+  renderTable();
+});
 
 selectors.search?.addEventListener('input', (event) => {
   state.searchByTab[state.activeTab] = event.target.value || '';
@@ -1226,9 +1845,23 @@ selectors.seedForm?.addEventListener('submit', async (event) => {
   await seedTruckFromForm();
 });
 
+selectors.transferForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  await submitTransferTruck();
+});
+
+selectors.addBulkRow?.addEventListener('click', addBulkRow);
+selectors.previewBulk?.addEventListener('click', previewBulkImport);
+selectors.bulkForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  await submitBulkImport();
+});
+
 selectors.deleteRecord?.addEventListener('click', deleteSelectedRecord);
 selectors.closeDialog.forEach((button) => button.addEventListener('click', closeDialog));
 selectors.closeSeedDialog.forEach((button) => button.addEventListener('click', closeSeedTruckDialog));
+selectors.closeTransferDialog.forEach((button) => button.addEventListener('click', closeTransferDialog));
+selectors.closeBulkDialog.forEach((button) => button.addEventListener('click', closeBulkImportDialog));
 
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
