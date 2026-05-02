@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../assets/site.css?v=1">
-  <link rel="stylesheet" href="../assets/management-console.css?v=9">
+  <link rel="stylesheet" href="../assets/management-console.css?v=10">
 </head>
 <body class="console-body">
   <div class="console-shell">
@@ -63,7 +63,7 @@
 
       <section class="console-app" data-console-app hidden>
         <div class="console-toolbar">
-          <div>
+          <div class="console-toolbar__copy">
             <p class="eyebrow">Live Admin View</p>
             <h2>Management Console</h2>
             <p data-session-summary>Loading account...</p>
@@ -103,6 +103,10 @@
           </div>
 
           <div class="truck-controls" data-truck-controls hidden>
+            <div class="truck-controls__header">
+              <strong>Truck filters</strong>
+              <span>Refine the truck table below.</span>
+            </div>
             <label>
               Claim
               <select data-truck-filter="claim">
@@ -309,64 +313,82 @@
         <button type="button" class="icon-button" data-close-bulk-dialog aria-label="Close bulk import dialog">X</button>
       </div>
 
-      <div class="bulk-event-grid">
-        <label class="record-field">
-          Existing Event ID
-          <input name="eventId" type="text" list="event-id-options" placeholder="Optional">
-        </label>
-        <label class="record-field">
-          Event Name
-          <input name="eventName" type="text" placeholder="Taste of Elkridge">
-        </label>
-        <label class="record-field">
-          Event Date
-          <input name="eventDate" type="date">
-        </label>
-        <label class="record-field record-field--wide">
-          Event Address
-          <input name="eventAddress" type="text" placeholder="Defaults truck rows when their address is blank">
-        </label>
-        <label class="record-field">
-          Event City
-          <input name="eventCity" type="text">
-        </label>
-        <label class="record-field">
-          Event State
-          <input name="eventState" type="text" maxlength="2">
-        </label>
-        <label class="record-field">
-          Event Zip
-          <input name="eventZip" type="text">
-        </label>
-        <label class="record-field">
-          Source URL
-          <input name="sourceUrl" type="url" placeholder="https://event-site.com">
-        </label>
-        <label class="record-field">
-          Event Latitude
-          <input name="eventLatitude" type="number" step="any" placeholder="Optional">
-        </label>
-        <label class="record-field">
-          Event Longitude
-          <input name="eventLongitude" type="number" step="any" placeholder="Optional">
-        </label>
+      <div class="bulk-section">
+        <div class="bulk-section__heading">
+          <div>
+            <h3>Event defaults</h3>
+            <p>Optional details used when truck rows leave address or location blank.</p>
+          </div>
+        </div>
+
+        <div class="bulk-event-grid">
+          <label class="record-field">
+            Existing Event ID
+            <input name="eventId" type="text" list="event-id-options" placeholder="Optional">
+          </label>
+          <label class="record-field">
+            Event Name
+            <input name="eventName" type="text" placeholder="Taste of Elkridge">
+          </label>
+          <label class="record-field">
+            Event Date
+            <input name="eventDate" type="date">
+          </label>
+          <label class="record-field record-field--wide">
+            Event Address
+            <input name="eventAddress" type="text" placeholder="Used when a truck row address is blank">
+          </label>
+          <label class="record-field">
+            Event City
+            <input name="eventCity" type="text">
+          </label>
+          <label class="record-field">
+            Event State
+            <input name="eventState" type="text" maxlength="2">
+          </label>
+          <label class="record-field">
+            Event Zip
+            <input name="eventZip" type="text">
+          </label>
+          <label class="record-field">
+            Source URL
+            <input name="sourceUrl" type="url" placeholder="https://event-site.com">
+          </label>
+          <label class="record-field">
+            Event Latitude
+            <input name="eventLatitude" type="number" step="any" placeholder="Optional">
+          </label>
+          <label class="record-field">
+            Event Longitude
+            <input name="eventLongitude" type="number" step="any" placeholder="Optional">
+          </label>
+        </div>
       </div>
 
-      <div class="bulk-table-wrap">
-        <table class="bulk-table">
-          <thead>
-            <tr>
-              <th>Truck</th>
-              <th>Address</th>
-              <th>Cuisine</th>
-              <th>Contact</th>
-              <th>Photos</th>
-              <th>Duplicate</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody data-bulk-rows></tbody>
-        </table>
+      <div class="bulk-section bulk-section--rows">
+        <div class="bulk-section__heading">
+          <div>
+            <h3>Truck rows</h3>
+            <p>Add one truck per row, preview issues, then import confirmed rows.</p>
+          </div>
+        </div>
+
+        <div class="bulk-table-wrap">
+          <table class="bulk-table">
+            <thead>
+              <tr>
+                <th>Truck</th>
+                <th>Address</th>
+                <th>Cuisine</th>
+                <th>Contact</th>
+                <th>Photos</th>
+                <th>Duplicate</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody data-bulk-rows></tbody>
+          </table>
+        </div>
       </div>
 
       <div data-bulk-owner-options></div>
@@ -386,6 +408,6 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
-  <script defer src="../assets/management-console.js?v=12"></script>
+  <script defer src="../assets/management-console.js?v=13"></script>
 </body>
 </html>

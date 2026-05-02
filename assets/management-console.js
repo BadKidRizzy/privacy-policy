@@ -1430,37 +1430,82 @@ function createBulkRowHtml(index) {
   return `
     <tr data-bulk-row>
       <td>
-        <input data-bulk-field="name" type="text" placeholder="Truck name">
-        <input data-bulk-field="ownerEmail" type="email" list="owner-email-options" placeholder="Owner email optional">
+        <label class="bulk-mini-field">
+          <span>Truck name</span>
+          <input data-bulk-field="name" type="text" placeholder="Truck name">
+        </label>
+        <label class="bulk-mini-field">
+          <span>Owner email</span>
+          <input data-bulk-field="ownerEmail" type="email" list="owner-email-options" placeholder="Optional">
+        </label>
       </td>
       <td>
-        <textarea data-bulk-field="address" placeholder="Truck address. Leave blank to use event address."></textarea>
-        <div class="row-actions">
-          <input data-bulk-field="city" type="text" placeholder="City">
-          <input data-bulk-field="state" type="text" placeholder="State">
-          <input data-bulk-field="zip" type="text" placeholder="Zip">
+        <label class="bulk-mini-field">
+          <span>Street address</span>
+          <textarea data-bulk-field="address" placeholder="Use event address if blank"></textarea>
+        </label>
+        <div class="bulk-mini-grid">
+          <label class="bulk-mini-field">
+            <span>City</span>
+            <input data-bulk-field="city" type="text" placeholder="City">
+          </label>
+          <label class="bulk-mini-field">
+            <span>State</span>
+            <input data-bulk-field="state" type="text" placeholder="State">
+          </label>
+          <label class="bulk-mini-field">
+            <span>Zip</span>
+            <input data-bulk-field="zip" type="text" placeholder="Zip">
+          </label>
         </div>
       </td>
       <td>
-        <textarea data-bulk-field="cuisine" placeholder="Comma separated"></textarea>
-        <input data-bulk-field="sourceName" type="text" placeholder="Source name">
-        <input data-bulk-field="sourceUrl" type="url" placeholder="Source URL">
+        <label class="bulk-mini-field">
+          <span>Cuisine</span>
+          <textarea data-bulk-field="cuisine" placeholder="Comma separated"></textarea>
+        </label>
+        <label class="bulk-mini-field">
+          <span>Source name</span>
+          <input data-bulk-field="sourceName" type="text" placeholder="Event, flyer, website">
+        </label>
+        <label class="bulk-mini-field">
+          <span>Source URL</span>
+          <input data-bulk-field="sourceUrl" type="url" placeholder="https://">
+        </label>
       </td>
       <td>
-        <input data-bulk-field="phone" type="tel" placeholder="Phone">
-        <input data-bulk-field="websiteUrl" type="url" placeholder="Website">
-        <input data-bulk-field="instagram" type="text" placeholder="Instagram/social">
+        <label class="bulk-mini-field">
+          <span>Phone</span>
+          <input data-bulk-field="phone" type="tel" placeholder="Phone">
+        </label>
+        <label class="bulk-mini-field">
+          <span>Website</span>
+          <input data-bulk-field="websiteUrl" type="url" placeholder="https://">
+        </label>
+        <label class="bulk-mini-field">
+          <span>Social</span>
+          <input data-bulk-field="instagram" type="text" placeholder="Instagram or social link">
+        </label>
       </td>
       <td>
-        <input data-bulk-field="truckImage" type="file" accept="image/jpeg,image/png,image/webp">
-        <input data-bulk-field="menuImages" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+        <label class="bulk-mini-field">
+          <span>Truck photo</span>
+          <input data-bulk-field="truckImage" type="file" accept="image/jpeg,image/png,image/webp">
+        </label>
+        <label class="bulk-mini-field">
+          <span>Menu photos</span>
+          <input data-bulk-field="menuImages" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+        </label>
       </td>
       <td>
-        <select data-bulk-field="duplicateAction">
-          <option value="skip">Skip duplicate</option>
-          <option value="merge">Merge/update</option>
-          <option value="create">Create anyway</option>
-        </select>
+        <label class="bulk-mini-field">
+          <span>Duplicate action</span>
+          <select data-bulk-field="duplicateAction">
+            <option value="skip">Skip duplicate</option>
+            <option value="merge">Merge/update</option>
+            <option value="create">Create anyway</option>
+          </select>
+        </label>
       </td>
       <td class="bulk-row-status" data-bulk-status>Row ${index + 1} pending preview.</td>
     </tr>
