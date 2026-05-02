@@ -1,8 +1,8 @@
 .console-body {
   background:
-    radial-gradient(circle at top left, rgba(238, 108, 63, 0.18), transparent 34rem),
-    radial-gradient(circle at bottom right, rgba(15, 124, 130, 0.18), transparent 34rem),
-    #f6efe6;
+    radial-gradient(circle at 12% 8%, rgba(238, 108, 63, 0.16), transparent 30rem),
+    radial-gradient(circle at 88% 92%, rgba(15, 124, 130, 0.15), transparent 34rem),
+    linear-gradient(180deg, #fbf7f1 0%, #f4ece3 100%);
 }
 
 [hidden] {
@@ -106,17 +106,32 @@
 .record-field select,
 .record-field textarea {
   width: 100%;
-  min-height: 48px;
+  min-height: 44px;
   border: 1px solid var(--line);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.78);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
   color: var(--ink);
   font: inherit;
   padding: 10px 12px;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.login-card input:focus,
+.search-box input:focus,
+.record-field input:focus,
+.record-field select:focus,
+.record-field textarea:focus,
+.bulk-table input:focus,
+.bulk-table select:focus,
+.bulk-table textarea:focus {
+  border-color: rgba(15, 124, 130, 0.48);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(15, 124, 130, 0.1);
+  background: #fff;
 }
 
 .record-field textarea {
-  min-height: 98px;
+  min-height: 88px;
   resize: vertical;
 }
 
@@ -146,7 +161,7 @@
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.68);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .record-field--action {
@@ -181,8 +196,28 @@
 }
 
 .file-upload-card input {
-  padding: 12px;
+  padding: 9px;
   cursor: pointer;
+}
+
+.record-field input[type="file"] {
+  min-height: 42px;
+  border-style: dashed;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.record-field input[type="file"]::file-selector-button,
+.bulk-table input[type="file"]::file-selector-button {
+  min-height: 30px;
+  margin-right: 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  padding: 0 12px;
 }
 
 .file-upload-card small {
@@ -313,6 +348,26 @@
   font: inherit;
   font-weight: 800;
   padding: 11px 15px;
+}
+
+.icon-button {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-color: rgba(31, 23, 19, 0.12);
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 10px 24px rgba(31, 23, 19, 0.08);
+  line-height: 1;
+}
+
+.icon-button:hover,
+.icon-button:focus-visible {
+  border-color: rgba(238, 108, 63, 0.42);
+  color: var(--accent-deep);
 }
 
 .console-tabs button.is-active {
@@ -512,13 +567,13 @@
 .record-dialog {
   width: min(920px, calc(100% - 28px));
   border: 0;
-  border-radius: 30px;
+  border-radius: 26px;
   padding: 0;
   background: transparent;
 }
 
 .seed-dialog {
-  width: min(980px, calc(100% - 28px));
+  width: min(900px, calc(100% - 28px));
 }
 
 .transfer-dialog {
@@ -530,31 +585,79 @@
 }
 
 .record-dialog::backdrop {
-  background: rgba(31, 23, 19, 0.48);
-  backdrop-filter: blur(8px);
+  background: rgba(31, 23, 19, 0.5);
+  backdrop-filter: blur(12px);
 }
 
 .record-dialog__content {
   display: grid;
-  gap: 20px;
+  max-height: calc(100dvh - 48px);
+  gap: 18px;
+  overflow: auto;
   padding: 24px;
-  border-radius: 30px;
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 249, 0.98), rgba(255, 248, 241, 0.98)),
+    var(--paper-strong);
+  box-shadow:
+    0 32px 90px rgba(31, 23, 19, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
 }
 
 .record-dialog__header {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.record-dialog__header > div {
+  max-width: 760px;
+  min-width: 0;
+}
+
+.record-dialog__header .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  margin-bottom: 12px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+}
+
+.record-dialog h2 {
+  font-size: clamp(1.55rem, 2.4vw, 2.15rem);
+  line-height: 1.08;
+}
+
+.record-dialog__header p:not(.eyebrow) {
+  max-width: 760px;
+  margin-bottom: 0;
+  font-size: clamp(0.98rem, 1.35vw, 1.1rem);
+  line-height: 1.55;
 }
 
 .record-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
+  align-items: start;
 }
 
 .record-field--wide {
   grid-column: 1 / -1;
+}
+
+.record-dialog__actions {
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.record-dialog__actions .button {
+  min-height: 42px;
 }
 
 .bulk-event-grid {
@@ -602,6 +705,7 @@
   color: var(--ink);
   font: inherit;
   padding: 7px 9px;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
 .bulk-table textarea {
