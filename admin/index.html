@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../assets/site.css?v=1">
-  <link rel="stylesheet" href="../assets/management-console.css?v=11">
+  <link rel="stylesheet" href="../assets/management-console.css?v=13">
 </head>
 <body class="console-body">
   <div class="console-shell">
@@ -133,6 +133,15 @@
                 <option value="seeded">Seeded</option>
                 <option value="owner-created">Owner-created</option>
                 <option value="event_seed">Event seed</option>
+              </select>
+            </label>
+            <label>
+              Visibility
+              <select data-truck-filter="visibility">
+                <option value="all">All visibility</option>
+                <option value="visible">Visible on map</option>
+                <option value="hidden">Hidden from map</option>
+                <option value="archived">Archived</option>
               </select>
             </label>
             <label>
@@ -405,6 +414,6 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
-  <script defer src="../assets/management-console.js?v=14"></script>
+  <script defer src="../assets/management-console.js?v=17"></script>
 </body>
 </html>

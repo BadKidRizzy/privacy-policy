@@ -10,9 +10,9 @@
 }
 
 .console-shell {
-  width: min(calc(100% - 32px), 1240px);
+  width: min(calc(100% - 32px), 1680px);
   margin: 0 auto;
-  padding: 18px 0 48px;
+  padding: 16px 0 48px;
 }
 
 .console-header {
@@ -252,8 +252,8 @@
 }
 
 .console-app {
-  padding: 22px;
-  border-radius: var(--radius-xl);
+  padding: 18px;
+  border-radius: 28px;
 }
 
 .console-app .button,
@@ -266,10 +266,10 @@
 
 .console-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+  gap: 18px;
   align-items: start;
-  padding-bottom: 18px;
+  padding-bottom: 14px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -325,13 +325,13 @@
 
 .truck-controls {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 16px;
-  padding: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px;
   border: 1px solid var(--line);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
 }
 
 .truck-controls__header {
@@ -340,7 +340,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
-  padding-bottom: 10px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -365,13 +365,13 @@
 }
 
 .truck-controls select {
-  min-height: 40px;
+  min-height: 38px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.82);
   color: var(--ink);
   font: inherit;
-  padding: 8px 10px;
+  padding: 7px 10px;
   text-transform: none;
 }
 
@@ -450,36 +450,46 @@
 }
 
 .console-panel {
-  padding: 20px;
-  border-radius: 22px;
+  padding: 18px;
+  border-radius: 20px;
 }
 
 .table-wrap {
   width: 100%;
   overflow: auto;
-  margin-top: 16px;
+  margin-top: 14px;
   border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .management-table {
   width: 100%;
-  min-width: 920px;
+  min-width: 980px;
   border-collapse: collapse;
-  background: rgba(255, 255, 255, 0.62);
+  background: transparent;
+}
+
+.management-table--trucks {
+  min-width: 1480px;
+  table-layout: fixed;
 }
 
 .management-table th,
 .management-table td {
-  padding: 13px 14px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--line);
   text-align: left;
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 .management-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: rgba(255, 253, 249, 0.96);
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -490,20 +500,72 @@
 
 .management-table td {
   color: var(--ink);
-  font-size: 0.94rem;
+  font-size: 0.88rem;
+  line-height: 1.38;
+}
+
+.management-table tbody tr {
+  transition: background 140ms ease;
+}
+
+.management-table tbody tr:hover {
+  background: rgba(15, 124, 130, 0.045);
+}
+
+.management-table--trucks th:nth-child(1),
+.management-table--trucks td:nth-child(1) {
+  width: 260px;
+}
+
+.management-table--trucks th:nth-child(2),
+.management-table--trucks td:nth-child(2) {
+  width: 250px;
+}
+
+.management-table--trucks th:nth-child(3),
+.management-table--trucks td:nth-child(3) {
+  width: 210px;
+}
+
+.management-table--trucks th:nth-child(4),
+.management-table--trucks td:nth-child(4) {
+  width: 140px;
+}
+
+.management-table--trucks th:nth-child(5),
+.management-table--trucks td:nth-child(5),
+.management-table--trucks th:nth-child(6),
+.management-table--trucks td:nth-child(6) {
+  width: 132px;
+}
+
+.management-table--trucks th:nth-child(7),
+.management-table--trucks td:nth-child(7) {
+  width: 160px;
+}
+
+.management-table--trucks th:nth-child(8),
+.management-table--trucks td:nth-child(8) {
+  width: 118px;
+}
+
+.management-table--trucks th:nth-child(9),
+.management-table--trucks td:nth-child(9) {
+  width: 156px;
 }
 
 .record-title {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
-  min-width: 220px;
+  min-width: 0;
 }
 
 .record-title img {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   object-fit: cover;
   background: var(--accent-soft);
 }
@@ -511,24 +573,39 @@
 .record-title strong,
 .record-title span {
   display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.record-title strong {
+  line-height: 1.25;
 }
 
 .record-title span,
 .muted-cell {
   color: var(--muted);
-  font-size: 0.84rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.muted-cell {
+  display: block;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
 }
 
 .status-pill {
   display: inline-flex;
   align-items: center;
-  min-height: 30px;
-  padding: 5px 10px;
+  min-height: 26px;
+  padding: 4px 9px;
   border-radius: 999px;
   background: var(--cool-soft);
   color: var(--cool);
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 800;
+  line-height: 1.15;
+  white-space: nowrap;
 }
 
 .status-pill--warn {
@@ -550,7 +627,35 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  min-width: 180px;
+  min-width: 0;
+}
+
+.visibility-stack {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  justify-items: start;
+}
+
+.truck-row--hidden {
+  background: rgba(238, 108, 63, 0.035);
+}
+
+.truck-row--archived {
+  background: rgba(179, 38, 30, 0.045);
+}
+
+.truck-owner-cell strong,
+.truck-source-cell strong {
+  display: block;
+  line-height: 1.25;
+}
+
+.truck-address-cell,
+.truck-owner-cell,
+.truck-source-cell,
+.truck-updated-cell {
+  overflow-wrap: anywhere;
 }
 
 .truck-detail-card,
@@ -601,21 +706,28 @@
 }
 
 .row-action {
-  min-height: 40px;
-  padding: 0 14px;
+  min-height: 34px;
+  padding: 0 11px;
   border: 0;
   border-radius: 999px;
   background: var(--ink);
   color: #fff;
   cursor: pointer;
   font: inherit;
+  font-size: 0.8rem;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .row-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  align-items: start;
+}
+
+.row-actions .row-action:first-child {
+  grid-column: 1 / -1;
 }
 
 .row-action--ghost {

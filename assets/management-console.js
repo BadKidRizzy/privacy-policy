@@ -27,6 +27,7 @@ const state = {
     claim: 'all',
     movement: 'all',
     source: 'all',
+    visibility: 'all',
     missing: 'all',
   },
   truckSort: 'recently_updated',
@@ -55,6 +56,7 @@ const selectors = {
   bulkImport: document.querySelector('[data-bulk-import]'),
   seedTruck: document.querySelector('[data-seed-truck]'),
   createRecord: document.querySelector('[data-create-record]'),
+  managementTable: document.querySelector('.management-table'),
   tableHead: document.querySelector('[data-table-head]'),
   tableBody: document.querySelector('[data-table-body]'),
   empty: document.querySelector('[data-empty-state]'),
@@ -110,6 +112,7 @@ const importTrucks = functions.httpsCallable('importManagementConsoleTrucks');
 
 const MAX_ADMIN_UPLOAD_BYTES = 5 * 1024 * 1024;
 const INITIAL_BULK_ROW_COUNT = 5;
+const PUBLIC_TRUCK_SHARE_BASE_URL = 'https://www.ftf-foodtruckfinder.com/truck/';
 
 const tabConfig = {
   owners: {
@@ -127,7 +130,7 @@ const tabConfig = {
     description: 'Truck profiles, transfer ownership, claim status, and visibility.',
     collection: 'foodTrucks',
     filter: () => true,
-    columns: ['Truck', 'Owner', 'Location', 'Source', 'Movement', 'Health', 'Updated', 'Action'],
+    columns: ['Truck', 'Owner', 'Location', 'Source', 'Visibility', 'Movement', 'Health', 'Updated', 'Action'],
     searchLabel: 'Search Trucks',
     searchPlaceholder: 'Search truck, owner email, location, cuisine, tag...',
     createLabel: 'Create Truck',
@@ -390,6 +393,29 @@ function renderTruckHealth(record) {
   `;
 }
 
+function renderTruckVisibility(record) {
+  const archived = record.archived === true;
+  const hidden = record.isMapHidden === true;
+  const label = archived ? 'Archived' : hidden ? 'Hidden' : 'Visible';
+  const className = archived
+    ? 'status-pill--danger'
+    : hidden
+      ? 'status-pill--warn'
+      : 'status-pill--success';
+  const help = archived
+    ? 'Not public'
+    : hidden
+      ? 'Hidden from public map'
+      : 'Public map/list';
+
+  return `
+    <div class="visibility-stack">
+      <span class="status-pill ${className}">${escapeHtml(label)}</span>
+      <span class="muted-cell">${escapeHtml(help)}</span>
+    </div>
+  `;
+}
+
 function toTimestamp(value) {
   if (!value) return 0;
   const parsed = new Date(value);
@@ -407,6 +433,8 @@ function matchesTruckFilters(record) {
   const movement = record.movementStatus || record.lastMovementStatus || 'no_location_data';
   const warnings = getTruckValidationWarnings(record);
   const source = String(record.seedSource || record.seededBy || '').toLowerCase();
+  const hidden = record.isMapHidden === true;
+  const archived = record.archived === true;
 
   if (filters.claim === 'claimed' && !claimed) return false;
   if (filters.claim === 'unclaimed' && claimed) return false;
@@ -414,6 +442,9 @@ function matchesTruckFilters(record) {
   if (filters.source === 'seeded' && !seeded) return false;
   if (filters.source === 'owner-created' && seeded) return false;
   if (filters.source === 'event_seed' && source !== 'event_seed') return false;
+  if (filters.visibility === 'visible' && (hidden || archived)) return false;
+  if (filters.visibility === 'hidden' && (!hidden || archived)) return false;
+  if (filters.visibility === 'archived' && !archived) return false;
   if (filters.missing !== 'all' && !warnings.includes(filters.missing)) return false;
 
   return true;
@@ -551,6 +582,7 @@ function renderMetrics() {
   const needsReviewCount = state.trucks.filter((truck) => truck.movementStatus === 'needs_review').length;
   const staleTruckCount = state.trucks.filter((truck) => truck.movementStatus === 'stale').length;
   const inactiveTruckCount = state.trucks.filter((truck) => truck.movementStatus === 'inactive').length;
+  const hiddenTruckCount = state.trucks.filter((truck) => truck.isMapHidden === true && truck.archived !== true).length;
   const unclaimedSeededCount = state.trucks.filter((truck) => {
     const seeded = truck.seeded === true || truck.seedSource || truck.seededBy || truck.managementCreatedBy;
     const claimed = truck.claimed === true || truck.claimStatus === 'claimed';
@@ -563,6 +595,7 @@ function renderMetrics() {
     ['Needs review', needsReviewCount],
     ['Stale trucks', staleTruckCount],
     ['Inactive trucks', inactiveTruckCount],
+    ['Hidden trucks', hiddenTruckCount],
     ['Unclaimed seeded', unclaimedSeededCount],
     ['Owners', ownerCount],
   ].map(([label, value]) => `
@@ -580,6 +613,7 @@ function renderTable() {
   selectors.panelTitle.textContent = config.title;
   selectors.panelDescription.textContent = config.description;
   selectors.loadedAt.textContent = state.loadedAt ? `Loaded ${formatDate(state.loadedAt)}` : '';
+  selectors.managementTable?.classList.toggle('management-table--trucks', state.activeTab === 'trucks');
   selectors.tableHead.innerHTML = `<tr>${config.columns.map((column) => `<th>${column}</th>`).join('')}</tr>`;
   selectors.empty.hidden = records.length > 0;
   if (selectors.createRecord) {
@@ -673,27 +707,34 @@ function renderTruckRow(record) {
   const owner = getUserById(record.ownerUid || record.ownerId);
   const status = record.archived ? 'archived' : record.isMapHidden ? 'hidden' : record.isOpen ? 'open' : 'closed';
   const sourceLabel = record.eventName || record.sourceName || record.seedSource || (record.seeded ? 'Seeded' : 'Owner-created');
+  const rowClass = [
+    'truck-row',
+    record.isMapHidden ? 'truck-row--hidden' : '',
+    record.archived ? 'truck-row--archived' : '',
+  ].filter(Boolean).join(' ');
   return `
-    <tr>
+    <tr class="${escapeHtml(rowClass)}">
       <td>${titleCell(record.name || 'Truck', record.id, record.truckImage)}</td>
-      <td>
+      <td class="truck-owner-cell">
         <strong>${escapeHtml(owner?.name || record.ownerEmail || 'Unknown owner')}</strong>
         <span class="muted-cell">${escapeHtml(record.ownerUid || record.ownerId || 'No owner id')}</span>
       </td>
-      <td>${escapeHtml(record.currentAddress || 'No address')}</td>
-      <td>
+      <td class="truck-address-cell">${escapeHtml(record.currentAddress || 'No address')}</td>
+      <td class="truck-source-cell">
         <strong>${escapeHtml(sourceLabel)}</strong>
         <span class="muted-cell">${escapeHtml(record.sourceUrl || record.sourceId || '')}</span>
       </td>
+      <td>${renderTruckVisibility(record)}</td>
       <td>${movementPill(record)}</td>
       <td>${renderTruckHealth(record)}</td>
-      <td>
+      <td class="truck-updated-cell">
         ${formatShortDate(record.updatedAt)}
         <span class="muted-cell">${statusPill(status, ['closed', 'hidden', 'archived'])}</span>
       </td>
       <td>
         <div class="row-actions">
           ${actionButton('foodTrucks', record.id)}
+          ${truckShareLinkButton(record)}
           ${truckMapVisibilityButton(record)}
         </div>
       </td>
@@ -735,10 +776,37 @@ function actionButton(collection, id) {
   return `<button class="row-action" type="button" data-edit="${collection}:${escapeHtml(id)}">Manage</button>`;
 }
 
+function getTruckShareUrl(record) {
+  const url = new URL(PUBLIC_TRUCK_SHARE_BASE_URL);
+  url.searchParams.set('id', record.id);
+
+  if (record.name) {
+    url.searchParams.set('name', record.name);
+  }
+
+  return url.toString();
+}
+
+function truckShareLinkButton(record) {
+  return `
+    <button
+      class="row-action row-action--ghost"
+      type="button"
+      data-copy-truck-link="${escapeHtml(record.id)}"
+      data-share-url="${escapeHtml(getTruckShareUrl(record))}"
+      aria-label="Copy share link for ${escapeHtml(record.name || 'this truck')}"
+    >
+      Copy Link
+    </button>
+  `;
+}
+
 function truckMapVisibilityButton(record) {
   const hidden = record.isMapHidden === true;
-  const label = hidden ? 'Show on Map' : 'Disappear';
+  const archived = record.archived === true;
+  const label = archived ? 'Archived' : hidden ? 'Unhide' : 'Hide';
   const nextHidden = hidden ? 'false' : 'true';
+  const disabled = archived ? 'disabled aria-disabled="true"' : '';
 
   return `
     <button
@@ -746,6 +814,7 @@ function truckMapVisibilityButton(record) {
       type="button"
       data-toggle-map-visibility="${escapeHtml(record.id)}"
       data-next-hidden="${nextHidden}"
+      ${disabled}
     >
       ${escapeHtml(label)}
     </button>
@@ -1225,14 +1294,14 @@ async function toggleTruckMapVisibility(button) {
 
   const confirmed = window.confirm(
     nextHidden
-      ? `Hide ${truck.name || 'this truck'} from the public map without deleting it?`
-      : `Show ${truck.name || 'this truck'} on the public map again?`
+      ? `Hide ${truck.name || 'this truck'} from the public map/list without deleting it?`
+      : `Unhide ${truck.name || 'this truck'} and show it on the public map/list again?`
   );
   if (!confirmed) return;
 
   const originalText = button.textContent;
   button.disabled = true;
-  button.textContent = nextHidden ? 'Hiding...' : 'Showing...';
+  button.textContent = nextHidden ? 'Hiding...' : 'Unhiding...';
 
   try {
     await updateRecord({
@@ -1247,6 +1316,54 @@ async function toggleTruckMapVisibility(button) {
     window.alert(error.message || 'Could not update map visibility.');
     button.disabled = false;
     button.textContent = originalText;
+  }
+}
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard?.writeText && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  try {
+    return document.execCommand('copy');
+  } finally {
+    document.body.removeChild(textarea);
+  }
+}
+
+async function copyTruckShareLink(button) {
+  const shareUrl = button?.dataset?.shareUrl || '';
+
+  if (!shareUrl) return;
+
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = 'Copied';
+
+  try {
+    const copied = await copyTextToClipboard(shareUrl);
+
+    if (!copied) {
+      window.prompt('Truck share link:', shareUrl);
+    }
+
+    setTimeout(() => {
+      button.disabled = false;
+      button.textContent = originalText;
+    }, 1200);
+  } catch {
+    button.disabled = false;
+    button.textContent = originalText;
+    window.prompt('Truck share link:', shareUrl);
   }
 }
 
@@ -1792,6 +1909,12 @@ selectors.tabs.forEach((tab) => {
 
 selectors.tableBody?.addEventListener('click', (event) => {
   const target = event.target instanceof Element ? event.target : null;
+  const shareButton = target?.closest('[data-copy-truck-link]');
+  if (shareButton) {
+    void copyTruckShareLink(shareButton);
+    return;
+  }
+
   const visibilityButton = target?.closest('[data-toggle-map-visibility]');
   if (visibilityButton) {
     void toggleTruckMapVisibility(visibilityButton);
