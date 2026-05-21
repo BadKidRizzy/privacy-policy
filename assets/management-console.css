@@ -706,6 +706,9 @@
 }
 
 .row-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 34px;
   padding: 0 11px;
   border: 0;
@@ -716,6 +719,7 @@
   font: inherit;
   font-size: 0.8rem;
   font-weight: 800;
+  text-decoration: none;
   white-space: nowrap;
 }
 
@@ -734,6 +738,13 @@
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.78);
   color: var(--muted);
+}
+
+.truck-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
 }
 
 .row-action:disabled {

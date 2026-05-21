@@ -737,6 +737,7 @@ function renderTruckRow(record) {
       <td>
         <div class="row-actions">
           ${actionButton('foodTrucks', record.id)}
+          ${truckPublicSiteLink(record)}
           ${truckShareLinkButton(record)}
           ${truckMapVisibilityButton(record)}
         </div>
@@ -801,6 +802,20 @@ function truckShareLinkButton(record) {
     >
       Copy Link
     </button>
+  `;
+}
+
+function truckPublicSiteLink(record) {
+  return `
+    <a
+      class="row-action row-action--ghost row-action--link"
+      href="${escapeHtml(getTruckShareUrl(record))}"
+      target="_blank"
+      rel="noreferrer"
+      aria-label="Open public site for ${escapeHtml(record.name || 'this truck')}"
+    >
+      Open Site
+    </a>
   `;
 }
 
@@ -1055,6 +1070,17 @@ function renderField(field, record) {
           <div><strong>Reviewed</strong>${escapeHtml(formatDate(record.lastReviewedAt))}</div>
         </div>
         <div class="truck-health">${renderTruckHealth(record)}</div>
+        <div class="truck-detail-actions">
+          <a class="button button--secondary" href="${escapeHtml(getTruckShareUrl(record))}" target="_blank" rel="noreferrer">Open Public Site</a>
+          <button
+            class="button button--ghost"
+            type="button"
+            data-copy-truck-link="${escapeHtml(record.id)}"
+            data-share-url="${escapeHtml(getTruckShareUrl(record))}"
+          >
+            Copy Public Link
+          </button>
+        </div>
         ${images.length ? `<div class="truck-detail-media">${images.map((url) => `<img src="${escapeHtml(url)}" alt="">`).join('')}</div>` : ''}
       </div>
     `;
