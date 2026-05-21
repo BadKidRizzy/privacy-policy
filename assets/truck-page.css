@@ -214,32 +214,39 @@ h2 {
 
 .store-actions {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-top: 16px;
 }
 
 .app-download-panel {
-  background: var(--ink);
-  color: #fff;
-}
-
-.app-download-panel .eyebrow {
-  color: #ffbd9f;
-}
-
-.app-download-panel .panel-copy {
-  color: rgba(255, 255, 255, 0.74);
-}
-
-.app-download-panel .button--secondary {
-  background: #fff;
+  background: var(--surface-soft);
+  border-color: #b9d9d6;
   color: var(--ink);
 }
 
-.app-download-panel .button--ghost {
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.34);
+.app-download-panel .eyebrow {
+  color: var(--teal);
+}
+
+.app-download-panel .panel-copy {
+  color: var(--muted);
+}
+
+.app-download-panel .button--primary {
+  background: var(--teal);
   color: #fff;
+}
+
+.app-download-panel .button--primary:hover,
+.app-download-panel .button--primary:focus-visible {
+  background: #085e60;
+}
+
+.app-download-panel .button--ghost {
+  background: var(--surface);
+  border-color: #b9d9d6;
+  color: var(--teal);
 }
 
 .button {
@@ -393,13 +400,13 @@ h2 {
 .share-box {
   margin-top: 14px;
   padding: 12px;
-  border: 1px solid var(--line);
+  border: 1px solid #b9d9d6;
   border-radius: 8px;
-  background: #fbfaf8;
-  color: var(--muted);
+  background: var(--surface-soft);
+  color: var(--teal);
   font-size: 14px;
+  font-weight: 800;
   line-height: 1.4;
-  overflow-wrap: anywhere;
 }
 
 .toast {
@@ -474,6 +481,10 @@ h2 {
   .hero-actions,
   .share-actions {
     display: grid;
+  }
+
+  .store-actions {
+    grid-template-columns: 1fr;
   }
 
   .button {

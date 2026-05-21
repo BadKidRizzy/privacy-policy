@@ -7,8 +7,6 @@ const firebaseConfig = {
   appId: '1:862144269606:ios:87e34a7659daae408d05e7',
 };
 
-const APP_STORE_URL = 'https://apps.apple.com/us/app/ftf-food-truck-finder/id6742719545';
-const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.innoryzen.foodtruckfinder';
 const FALLBACK_IMAGE = '../assets/media/seed/food-truck-photo-pending.png';
 const MENU_PREVIEW_LIMIT = 8;
 
@@ -42,6 +40,7 @@ const selectors = {
 const state = {
   truck: null,
   truckId: '',
+  publicShareUrl: '',
   shareUrl: '',
   showFullMenu: false,
   pageWasHidden: false,
@@ -167,20 +166,46 @@ function buildShareUrl(truckId, truckName = '') {
   return url.toString();
 }
 
-function buildAppUrl(truckId) {
-  return `foodtruckfinder:///truck/${encodeURIComponent(truckId)}?launch=${Date.now()}`;
+function buildAppUrl(truckId, includeLaunch = true) {
+  const appUrl = `foodtruckfinder:///truck/${encodeURIComponent(truckId)}`;
+  return includeLaunch ? `${appUrl}?launch=${Date.now()}` : appUrl;
 }
 
-function getStoreUrl() {
+function isIosDevice() {
   const userAgent = navigator.userAgent || navigator.vendor || '';
-  const isAndroid = /android/i.test(userAgent);
-  const isIos =
-    /iPad|iPhone|iPod/.test(userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  return /iPad|iPhone|iPod/i.test(userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
 
-  if (isAndroid) return PLAY_STORE_URL;
-  if (isIos) return APP_STORE_URL;
-  return '';
+function isAppUrl(value) {
+  return /^foodtruckfinder:\/\//i.test(asText(value));
+}
+
+function setShareUrls(truckName = '') {
+  if (!state.truckId) {
+    state.publicShareUrl = window.location.href;
+    state.shareUrl = window.location.href;
+    return;
+  }
+
+  state.publicShareUrl = buildShareUrl(state.truckId, truckName);
+  state.shareUrl = isIosDevice() ? buildAppUrl(state.truckId, false) : state.publicShareUrl;
+}
+
+function formatShareSummary(url) {
+  if (isAppUrl(url)) {
+    return 'Opens in the app';
+  }
+
+  return 'Copy or share this profile';
+}
+
+function formatSharePanelText(url) {
+  if (isAppUrl(url)) {
+    return 'App link ready for iPhone and iPad.';
+  }
+
+  return 'Public profile link ready.';
 }
 
 function buildDirectionsUrl(truck) {
@@ -196,7 +221,7 @@ function buildDirectionsUrl(truck) {
 
 function buildClaimUrl(truck) {
   const subject = `Claim ${truck.name || 'my truck'} on Food Truck Finder`;
-  const body = `I want to claim or update this Food Truck Finder page:\n\n${state.shareUrl}`;
+  const body = `I want to claim or update this Food Truck Finder page:\n\n${state.publicShareUrl || state.shareUrl}`;
 
   return `mailto:Foodtruckfinderinfo@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
@@ -408,7 +433,7 @@ function socialLabel(url) {
 
 function renderTruck(truck) {
   state.truck = truck;
-  state.shareUrl = buildShareUrl(state.truckId, truck.name);
+  setShareUrls(truck.name);
 
   setDocumentMeta(truck);
 
@@ -420,8 +445,8 @@ function renderTruck(truck) {
   selectors.openApp.href = buildAppUrl(state.truckId);
   selectors.directions.href = buildDirectionsUrl(truck);
   selectors.truckAddress.textContent = truck.currentAddress || 'Address unavailable';
-  selectors.shareUrl.textContent = state.shareUrl.replace(/^https?:\/\//i, '');
-  selectors.shareText.textContent = state.shareUrl;
+  selectors.shareUrl.textContent = formatShareSummary(state.shareUrl);
+  selectors.shareText.textContent = formatSharePanelText(state.shareUrl);
   selectors.claimLink.href = buildClaimUrl(truck);
 
   const orderUrl = getOrderUrl(truck);
@@ -455,7 +480,7 @@ async function copyShareLink() {
 
   try {
     await navigator.clipboard.writeText(value);
-    showToast('Copied link');
+    showToast(isAppUrl(value) ? 'Copied app link' : 'Copied link');
   } catch {
     window.prompt('Truck link:', value);
   }
@@ -464,7 +489,6 @@ async function copyShareLink() {
 function handleOpenApp(event) {
   event.preventDefault();
   state.pageWasHidden = false;
-  const storeUrl = getStoreUrl();
 
   window.location.href = buildAppUrl(state.truckId);
 
@@ -473,12 +497,7 @@ function handleOpenApp(event) {
       return;
     }
 
-    if (storeUrl) {
-      window.location.href = storeUrl;
-      return;
-    }
-
-    showToast('Download Food Truck Finder on your phone');
+    showToast('App not opening? Use the store links below.');
   }, 1400);
 }
 
@@ -488,11 +507,25 @@ async function nativeShare() {
   }
 
   try {
-    await navigator.share({
+    const text = state.truck.description || 'View this food truck on Food Truck Finder.';
+    let shareData = {
       title: `${state.truck.name || 'Food Truck'} on Food Truck Finder`,
-      text: state.truck.description || 'View this food truck on Food Truck Finder.',
+      text,
       url: state.shareUrl,
-    });
+    };
+
+    if (navigator.canShare && !navigator.canShare(shareData)) {
+      shareData = {
+        title: shareData.title,
+        text: `${text}\n${state.shareUrl}`,
+      };
+    }
+
+    if (navigator.canShare && !navigator.canShare(shareData)) {
+      return;
+    }
+
+    await navigator.share(shareData);
   } catch {
     return;
   }
@@ -500,9 +533,9 @@ async function nativeShare() {
 
 async function loadTruck() {
   state.truckId = getTruckId();
-  state.shareUrl = state.truckId ? buildShareUrl(state.truckId) : window.location.href;
+  setShareUrls();
 
-  selectors.shareText.textContent = state.shareUrl;
+  selectors.shareText.textContent = formatSharePanelText(state.shareUrl);
   selectors.copyButtons.forEach((button) => button.addEventListener('click', copyShareLink));
   selectors.openApp?.addEventListener('click', handleOpenApp);
   selectors.nativeShare?.addEventListener('click', nativeShare);

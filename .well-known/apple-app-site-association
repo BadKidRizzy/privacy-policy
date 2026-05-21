@@ -7,7 +7,7 @@
         "paths": [
           "NOT /truck",
           "NOT /truck/",
-          "/truck/*"
+          "NOT /truck/*"
         ]
       }
     ]
