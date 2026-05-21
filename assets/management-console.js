@@ -111,6 +111,9 @@ const previewTruckImport = functions.httpsCallable('previewManagementConsoleTruc
 const importTrucks = functions.httpsCallable('importManagementConsoleTrucks');
 
 const MAX_ADMIN_UPLOAD_BYTES = 5 * 1024 * 1024;
+const SEED_IMAGE_MAX_BYTES = 1536 * 1024;
+const SEED_IMAGE_MAX_DIMENSION = 1800;
+const SEED_CALLABLE_MAX_PAYLOAD_BYTES = 8 * 1024 * 1024;
 const INITIAL_BULK_ROW_COUNT = 5;
 const PUBLIC_TRUCK_SHARE_BASE_URL = 'https://www.ftf-foodtruckfinder.com/truck/';
 
@@ -1247,6 +1250,105 @@ function readFileAsDataUrl(file) {
   });
 }
 
+function formatFileSize(bytes) {
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function estimateJsonPayloadBytes(value) {
+  return new Blob([JSON.stringify(value)]).size;
+}
+
+function loadImageFromDataUrl(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('Could not prepare image for upload.'));
+    image.src = dataUrl;
+  });
+}
+
+function canvasToBlob(canvas, contentType, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+        return;
+      }
+
+      reject(new Error('Could not compress image for upload.'));
+    }, contentType, quality);
+  });
+}
+
+async function compressSeedImage(file) {
+  const sourceDataUrl = await readFileAsDataUrl(file);
+
+  if (!window.HTMLCanvasElement) {
+    if (file.size <= SEED_IMAGE_MAX_BYTES) {
+      return {
+        blob: file,
+        contentType: file.type || 'image/jpeg',
+      };
+    }
+
+    throw new Error(`${file.name} is too large. Use an image smaller than ${formatFileSize(SEED_IMAGE_MAX_BYTES)}.`);
+  }
+
+  const image = await loadImageFromDataUrl(sourceDataUrl);
+  const sourceWidth = image.naturalWidth || image.width;
+  const sourceHeight = image.naturalHeight || image.height;
+  let maxDimension = SEED_IMAGE_MAX_DIMENSION;
+  let quality = 0.86;
+  let bestBlob = null;
+
+  for (let attempt = 0; attempt < 9; attempt += 1) {
+    const scale = Math.min(1, maxDimension / Math.max(sourceWidth, sourceHeight));
+    const width = Math.max(1, Math.round(sourceWidth * scale));
+    const height = Math.max(1, Math.round(sourceHeight * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+      throw new Error('Could not prepare image for upload.');
+    }
+
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, width, height);
+    context.drawImage(image, 0, 0, width, height);
+
+    bestBlob = await canvasToBlob(canvas, 'image/jpeg', quality);
+
+    if (bestBlob.size <= SEED_IMAGE_MAX_BYTES) {
+      break;
+    }
+
+    if (attempt < 4) {
+      quality = Math.max(0.58, quality - 0.08);
+    } else {
+      maxDimension = Math.max(1000, Math.round(maxDimension * 0.82));
+    }
+  }
+
+  if (!bestBlob || bestBlob.size > SEED_IMAGE_MAX_BYTES) {
+    throw new Error(`${file.name} is still too large after optimization. Try cropping it or selecting a smaller photo.`);
+  }
+
+  return {
+    blob: bestBlob,
+    contentType: 'image/jpeg',
+  };
+}
+
+function toSeedJpegFileName(fileName) {
+  const baseName = String(fileName || 'upload')
+    .replace(/\.[a-z0-9]+$/i, '')
+    .trim() || 'upload';
+
+  return `${baseName}.jpg`;
+}
+
 async function scanSelectedTruckMenu() {
   if (!state.selected || state.selected.collection !== 'foodTrucks' || state.selected.mode === 'create') {
     return;
@@ -1453,6 +1555,24 @@ async function buildImagePayload(file) {
   };
 }
 
+async function buildSeedImagePayload(file) {
+  if (!file) {
+    throw new Error('Image file is required.');
+  }
+
+  if (file.size > MAX_ADMIN_UPLOAD_BYTES) {
+    throw new Error(`${file.name} is larger than 5 MB.`);
+  }
+
+  const optimized = await compressSeedImage(file);
+
+  return {
+    dataUrl: await readFileAsDataUrl(optimized.blob),
+    fileName: toSeedJpegFileName(file.name),
+    contentType: optimized.contentType,
+  };
+}
+
 async function seedTruckFromForm() {
   if (!selectors.seedForm) return;
 
@@ -1496,17 +1616,16 @@ async function seedTruckFromForm() {
       submitButton.textContent = 'Seeding...';
     }
 
-    setMessage(selectors.seedMessage, 'Reading images...');
-    const truckImage = await buildImagePayload(truckFile);
+    setMessage(selectors.seedMessage, 'Optimizing truck image...');
+    const truckImage = await buildSeedImagePayload(truckFile);
     const menuImages = [];
 
     for (let index = 0; index < menuFiles.length; index += 1) {
-      setMessage(selectors.seedMessage, `Reading menu image ${index + 1} of ${menuFiles.length}...`);
-      menuImages.push(await buildImagePayload(menuFiles[index]));
+      setMessage(selectors.seedMessage, `Optimizing menu image ${index + 1} of ${menuFiles.length}...`);
+      menuImages.push(await buildSeedImagePayload(menuFiles[index]));
     }
 
-    setMessage(selectors.seedMessage, 'Uploading, scanning menu, writing description, and finding links...');
-    const result = await seedTruck({
+    const seedPayload = {
       address,
       ownerEmail: String(formData.get('ownerEmail') || '').trim(),
       name: truckName,
@@ -1515,7 +1634,15 @@ async function seedTruckFromForm() {
       tags: splitCommaList(formData.get('tags')),
       truckImage,
       menuImages,
-    });
+    };
+    const payloadBytes = estimateJsonPayloadBytes(seedPayload);
+
+    if (payloadBytes > SEED_CALLABLE_MAX_PAYLOAD_BYTES) {
+      throw new Error(`Selected photos are too large for one seed request (${formatFileSize(payloadBytes)}). Use fewer menu photos or crop the images.`);
+    }
+
+    setMessage(selectors.seedMessage, 'Uploading, scanning menu, writing description, and finding links...');
+    const result = await seedTruck(seedPayload);
     const seededTruckName = result.data?.name || truckName;
     const menuItemCount = Number(result.data?.menuItemCount || 0);
     const linkCount = [
