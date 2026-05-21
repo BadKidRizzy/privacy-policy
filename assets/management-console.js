@@ -781,8 +781,7 @@ function actionButton(collection, id) {
 }
 
 function getTruckShareUrl(record) {
-  const url = new URL(PUBLIC_TRUCK_SHARE_BASE_URL);
-  url.searchParams.set('id', record.id);
+  const url = new URL(`${PUBLIC_TRUCK_SHARE_BASE_URL}${encodeURIComponent(record.id)}`);
 
   if (record.name) {
     url.searchParams.set('name', record.name);

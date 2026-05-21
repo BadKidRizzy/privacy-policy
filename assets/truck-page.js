@@ -44,6 +44,7 @@ const state = {
   truckId: '',
   shareUrl: '',
   showFullMenu: false,
+  pageWasHidden: false,
 };
 
 function getTruckId() {
@@ -157,8 +158,7 @@ function getDate(value) {
 }
 
 function buildShareUrl(truckId, truckName = '') {
-  const url = new URL('/truck/', window.location.origin);
-  url.searchParams.set('id', truckId);
+  const url = new URL(`/truck/${encodeURIComponent(truckId)}`, window.location.origin);
 
   if (truckName) {
     url.searchParams.set('name', truckName);
@@ -168,7 +168,19 @@ function buildShareUrl(truckId, truckName = '') {
 }
 
 function buildAppUrl(truckId) {
-  return `foodtruckfinder://truck/${encodeURIComponent(truckId)}?launch=${Date.now()}`;
+  return `foodtruckfinder:///truck/${encodeURIComponent(truckId)}?launch=${Date.now()}`;
+}
+
+function getStoreUrl() {
+  const userAgent = navigator.userAgent || navigator.vendor || '';
+  const isAndroid = /android/i.test(userAgent);
+  const isIos =
+    /iPad|iPhone|iPod/.test(userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  if (isAndroid) return PLAY_STORE_URL;
+  if (isIos) return APP_STORE_URL;
+  return '';
 }
 
 function buildDirectionsUrl(truck) {
@@ -449,6 +461,27 @@ async function copyShareLink() {
   }
 }
 
+function handleOpenApp(event) {
+  event.preventDefault();
+  state.pageWasHidden = false;
+  const storeUrl = getStoreUrl();
+
+  window.location.href = buildAppUrl(state.truckId);
+
+  window.setTimeout(() => {
+    if (state.pageWasHidden) {
+      return;
+    }
+
+    if (storeUrl) {
+      window.location.href = storeUrl;
+      return;
+    }
+
+    showToast('Download Food Truck Finder on your phone');
+  }, 1400);
+}
+
 async function nativeShare() {
   if (!navigator.share || !state.truck) {
     return;
@@ -471,6 +504,7 @@ async function loadTruck() {
 
   selectors.shareText.textContent = state.shareUrl;
   selectors.copyButtons.forEach((button) => button.addEventListener('click', copyShareLink));
+  selectors.openApp?.addEventListener('click', handleOpenApp);
   selectors.nativeShare?.addEventListener('click', nativeShare);
   selectors.toggleMenu?.addEventListener('click', () => {
     state.showFullMenu = !state.showFullMenu;
@@ -497,5 +531,14 @@ async function loadTruck() {
     setError('This truck page could not load. Try again in a moment.');
   }
 }
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    state.pageWasHidden = true;
+  }
+});
+window.addEventListener('pagehide', () => {
+  state.pageWasHidden = true;
+});
 
 loadTruck();

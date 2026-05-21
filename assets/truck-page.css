@@ -212,6 +212,36 @@ h2 {
   margin-top: 24px;
 }
 
+.store-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.app-download-panel {
+  background: var(--ink);
+  color: #fff;
+}
+
+.app-download-panel .eyebrow {
+  color: #ffbd9f;
+}
+
+.app-download-panel .panel-copy {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.app-download-panel .button--secondary {
+  background: #fff;
+  color: var(--ink);
+}
+
+.app-download-panel .button--ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.34);
+  color: #fff;
+}
+
 .button {
   display: inline-flex;
   align-items: center;

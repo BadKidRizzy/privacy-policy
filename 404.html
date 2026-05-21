@@ -11,10 +11,9 @@
 
       if (parts[0] === 'truck' && parts[1]) {
         var truckId = decodeURIComponent(parts[1]);
-        var target =
-          window.location.origin +
-          '/truck/?id=' +
-          encodeURIComponent(truckId);
+        var params = new URLSearchParams(window.location.search);
+        params.set('id', truckId);
+        var target = window.location.origin + '/truck/?' + params.toString();
 
         window.location.replace(target);
         return;
