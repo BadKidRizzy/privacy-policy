@@ -5,7 +5,8 @@
       {
         "appID": "HB3M76EZS9.com.innoryzen.FoodTruckFinder",
         "paths": [
-          "/truck",
+          "NOT /truck",
+          "NOT /truck/",
           "/truck/*"
         ]
       }
