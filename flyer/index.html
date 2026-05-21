@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Food Truck Finder Flyer</title>
+  <meta name="description" content="Create a printable food truck flyer with a QR code for Food Truck Finder.">
+  <meta name="theme-color" content="#f7f4ef">
+  <link rel="icon" type="image/png" href="../assets/brand/favicon.png">
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link rel="stylesheet" href="../assets/flyer-page.css?v=1">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar no-print">
+      <a class="brand" href="../" aria-label="Food Truck Finder home">
+        <img src="../assets/brand/IconLogo.png" alt="" width="40" height="40">
+        <span>Food Truck Finder</span>
+      </a>
+      <div class="topbar-actions">
+        <button class="button button--ghost" type="button" data-copy-link>Copy Flyer Link</button>
+        <button class="button button--primary" type="button" data-print>Print Flyer</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="builder-panel no-print">
+        <div>
+          <p class="eyebrow">Owner Marketing</p>
+          <h1>Flyer Generator</h1>
+          <p class="panel-copy">Use your uploaded truck image and a QR code to send customers to your public profile or the app.</p>
+        </div>
+
+        <div class="target-control" role="group" aria-label="Flyer QR target">
+          <button class="target-button" type="button" data-target-option="truck">Truck Page</button>
+          <button class="target-button" type="button" data-target-option="app">Get The App</button>
+        </div>
+      </section>
+
+      <section class="status-panel" data-loading-view>
+        <div class="loader"></div>
+        <p>Loading flyer...</p>
+      </section>
+
+      <section class="status-panel" data-error-view hidden>
+        <h2>Flyer unavailable</h2>
+        <p data-error-message>This truck flyer could not load.</p>
+      </section>
+
+      <article class="flyer-sheet" data-flyer-view hidden>
+        <div class="flyer-photo">
+          <img data-truck-image src="../assets/media/seed/food-truck-photo-pending.png" alt="">
+          <div class="photo-badge" data-open-state>Food Truck</div>
+        </div>
+
+        <div class="flyer-content">
+          <p class="eyebrow">Food Truck Finder</p>
+          <h2 data-truck-name>Food Truck</h2>
+          <p class="flyer-description" data-truck-description></p>
+
+          <div class="pill-row" data-cuisine-list></div>
+
+          <div class="flyer-details">
+            <div>
+              <span>Current Stop</span>
+              <strong data-truck-address>Address unavailable</strong>
+            </div>
+            <div>
+              <span>Menu</span>
+              <strong data-menu-count>Menu pending</strong>
+            </div>
+          </div>
+
+          <div class="qr-block">
+            <div class="qr-frame">
+              <img data-qr-image src="" alt="QR code">
+            </div>
+            <div>
+              <p class="qr-label" data-qr-label>Scan to view this truck</p>
+              <p class="qr-url" data-qr-url>ftf-foodtruckfinder.com</p>
+            </div>
+          </div>
+
+          <div class="flyer-footer">
+            <img src="../assets/brand/IconLogo.png" alt="" width="34" height="34">
+            <span>Find trucks, menus, live locations, and updates.</span>
+          </div>
+        </div>
+      </article>
+    </main>
+  </div>
+
+  <div class="toast no-print" data-toast hidden>Copied</div>
+
+  <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script defer src="../assets/flyer-page.js?v=1"></script>
+</body>
+</html>
