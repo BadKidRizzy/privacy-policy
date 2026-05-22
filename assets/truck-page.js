@@ -223,41 +223,10 @@ function buildDirectionsUrl(truck) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(asText(truck.currentAddress))}`;
 }
 
-function formatClaimValue(value) {
-  if (Array.isArray(value)) {
-    return value.map(asText).filter(Boolean).slice(0, 8).join(', ');
-  }
-
-  return asText(value);
-}
-
 function formatClaimDetails(truck) {
-  const latitude = Number(truck.latitude);
-  const longitude = Number(truck.longitude);
-  const coordinates = Number.isFinite(latitude) && Number.isFinite(longitude)
-    ? `${latitude}, ${longitude}`
-    : '';
-  const menuCount = asArray(truck.menu).length;
-  const scheduleCount = asArray(truck.specialSchedule).length + asArray(truck.recurringSchedule).length;
-  const claimStatus = asText(truck.claimStatus) || (truck.claimed === true ? 'claimed' : 'unclaimed');
-  const listingUrl = state.publicShareUrl || state.shareUrl || window.location.href;
   const rows = [
     ['Truck name', truck.name || 'Food Truck'],
     ['Truck ID', state.truckId],
-    ['Public listing link', listingUrl],
-    ['Page opened from', window.location.href],
-    ['Current address/stop', truck.currentAddress],
-    ['Coordinates', coordinates],
-    ['Claim status in app', claimStatus],
-    ['Cuisines', formatClaimValue(truck.cuisines)],
-    ['Tags', formatClaimValue(truck.tags)],
-    ['Website', truck.websiteUrl],
-    ['DoorDash', truck.doordashUrl],
-    ['Uber Eats', truck.uberEatsUrl],
-    ['Social links', formatClaimValue(truck.socialLinks)],
-    ['Business phone on listing', truck.businessPhone],
-    ['Menu item count', menuCount > 0 ? String(menuCount) : ''],
-    ['Schedule entry count', scheduleCount > 0 ? String(scheduleCount) : ''],
   ];
 
   return rows
@@ -275,7 +244,7 @@ function buildClaimUrl(truck) {
     '',
     `I would like to claim this Food Truck Finder listing for ${truckName}.`,
     '',
-    'Truck info from the listing:',
+    'Truck identifiers:',
     formatClaimDetails(truck),
     '',
     'My info:',
