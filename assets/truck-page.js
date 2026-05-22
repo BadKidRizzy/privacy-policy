@@ -9,6 +9,7 @@ const firebaseConfig = {
 
 const FALLBACK_IMAGE = '../assets/media/seed/food-truck-photo-pending.png';
 const MENU_PREVIEW_LIMIT = 8;
+const SUPPORT_EMAIL = 'Foodtruckfinderinfo@gmail.com';
 
 const selectors = {
   loadingView: document.querySelector('[data-loading-view]'),
@@ -219,11 +220,72 @@ function buildDirectionsUrl(truck) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(asText(truck.currentAddress))}`;
 }
 
-function buildClaimUrl(truck) {
-  const subject = `Claim ${truck.name || 'my truck'} on Food Truck Finder`;
-  const body = `I want to claim or update this Food Truck Finder page:\n\n${state.publicShareUrl || state.shareUrl}`;
+function formatClaimValue(value) {
+  if (Array.isArray(value)) {
+    return value.map(asText).filter(Boolean).slice(0, 8).join(', ');
+  }
 
-  return `mailto:Foodtruckfinderinfo@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  return asText(value);
+}
+
+function formatClaimDetails(truck) {
+  const latitude = Number(truck.latitude);
+  const longitude = Number(truck.longitude);
+  const coordinates = Number.isFinite(latitude) && Number.isFinite(longitude)
+    ? `${latitude}, ${longitude}`
+    : '';
+  const menuCount = asArray(truck.menu).length;
+  const scheduleCount = asArray(truck.specialSchedule).length + asArray(truck.recurringSchedule).length;
+  const claimStatus = asText(truck.claimStatus) || (truck.claimed === true ? 'claimed' : 'unclaimed');
+  const listingUrl = state.publicShareUrl || state.shareUrl || window.location.href;
+  const rows = [
+    ['Truck name', truck.name || 'Food Truck'],
+    ['Truck ID', state.truckId],
+    ['Public listing link', listingUrl],
+    ['Page opened from', window.location.href],
+    ['Current address/stop', truck.currentAddress],
+    ['Coordinates', coordinates],
+    ['Claim status in app', claimStatus],
+    ['Cuisines', formatClaimValue(truck.cuisines)],
+    ['Tags', formatClaimValue(truck.tags)],
+    ['Website', truck.websiteUrl],
+    ['DoorDash', truck.doordashUrl],
+    ['Uber Eats', truck.uberEatsUrl],
+    ['Social links', formatClaimValue(truck.socialLinks)],
+    ['Business phone on listing', truck.businessPhone],
+    ['Menu item count', menuCount > 0 ? String(menuCount) : ''],
+    ['Schedule entry count', scheduleCount > 0 ? String(scheduleCount) : ''],
+  ];
+
+  return rows
+    .map(([label, value]) => [label, asText(value)])
+    .filter(([, value]) => Boolean(value))
+    .map(([label, value]) => `- ${label}: ${value}`)
+    .join('\n');
+}
+
+function buildClaimUrl(truck) {
+  const truckName = truck.name || 'my truck';
+  const subject = `Owner claim request: ${truckName}`;
+  const body = [
+    'Hi Food Truck Finder team,',
+    '',
+    `I would like to claim this Food Truck Finder listing for ${truckName}.`,
+    '',
+    'I understand I need to sign up in the Food Truck Finder app as an Owner using this same email address. After my account is created, please verify the request and attach this truck to my owner profile.',
+    '',
+    'Truck info from the listing:',
+    formatClaimDetails(truck),
+    '',
+    'My info:',
+    '- Owner/manager name:',
+    '- Best phone number:',
+    '- Owner account email used in the app:',
+    '- Proof of ownership or official link:',
+    '- Updates needed on this listing:',
+  ].join('\n');
+
+  return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 function setDocumentMeta(truck) {
