@@ -35,6 +35,9 @@ const selectors = {
   copyButtons: Array.from(document.querySelectorAll('[data-copy-link]')),
   nativeShare: document.querySelector('[data-native-share]'),
   claimLink: document.querySelector('[data-claim-link]'),
+  claimModal: document.querySelector('[data-claim-modal]'),
+  claimModalClose: document.querySelector('[data-claim-modal-close]'),
+  claimModalEmail: document.querySelector('[data-claim-modal-email]'),
   toast: document.querySelector('[data-toast]'),
 };
 
@@ -272,8 +275,6 @@ function buildClaimUrl(truck) {
     '',
     `I would like to claim this Food Truck Finder listing for ${truckName}.`,
     '',
-    'I understand I need to sign up in the Food Truck Finder app as an Owner using this same email address. After my account is created, please verify the request and attach this truck to my owner profile.',
-    '',
     'Truck info from the listing:',
     formatClaimDetails(truck),
     '',
@@ -286,6 +287,34 @@ function buildClaimUrl(truck) {
   ].join('\n');
 
   return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function openClaimModal(event) {
+  if (!selectors.claimModal || !selectors.claimModalEmail) {
+    return;
+  }
+
+  event.preventDefault();
+  selectors.claimModal.hidden = false;
+  selectors.claimModalEmail.focus();
+}
+
+function closeClaimModal() {
+  if (!selectors.claimModal) {
+    return;
+  }
+
+  selectors.claimModal.hidden = true;
+  selectors.claimLink?.focus();
+}
+
+function continueToClaimEmail() {
+  const claimUrl = selectors.claimLink?.href;
+  closeClaimModal();
+
+  if (claimUrl) {
+    window.location.href = claimUrl;
+  }
 }
 
 function setDocumentMeta(truck) {
@@ -601,6 +630,14 @@ async function loadTruck() {
   selectors.copyButtons.forEach((button) => button.addEventListener('click', copyShareLink));
   selectors.openApp?.addEventListener('click', handleOpenApp);
   selectors.nativeShare?.addEventListener('click', nativeShare);
+  selectors.claimLink?.addEventListener('click', openClaimModal);
+  selectors.claimModalClose?.addEventListener('click', closeClaimModal);
+  selectors.claimModalEmail?.addEventListener('click', continueToClaimEmail);
+  selectors.claimModal?.addEventListener('click', (event) => {
+    if (event.target === selectors.claimModal) {
+      closeClaimModal();
+    }
+  });
   selectors.toggleMenu?.addEventListener('click', () => {
     state.showFullMenu = !state.showFullMenu;
     renderMenu(state.truck);
@@ -630,6 +667,11 @@ async function loadTruck() {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     state.pageWasHidden = true;
+  }
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && selectors.claimModal && !selectors.claimModal.hidden) {
+    closeClaimModal();
   }
 });
 window.addEventListener('pagehide', () => {

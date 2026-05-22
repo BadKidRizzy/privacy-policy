@@ -155,8 +155,8 @@
                   <h2>Claim This Listing</h2>
                 </div>
               </div>
-              <p class="panel-copy">Email us from the same address you use to sign up in the app as an Owner. The email will include this truck's link and listing details so we can find it faster, verify ownership, and attach it to your account.</p>
-              <a class="button button--primary button--full" data-claim-link href="mailto:Foodtruckfinderinfo@gmail.com?subject=Owner%20Claim%20Request&body=Hi%20Food%20Truck%20Finder%20team%2C%0A%0AI%20would%20like%20to%20claim%20a%20truck%20listing.%20I%20will%20sign%20up%20in%20the%20app%20as%20an%20Owner%20using%20this%20same%20email%20address.%0A%0ATruck%20link%3A%0A%0AMy%20name%3A%0APhone%20number%3A%0AProof%20of%20ownership%20or%20official%20link%3A">Email Claim Request</a>
+              <p class="panel-copy">Start a pre-filled email with this truck's listing details so we can find it quickly and verify ownership.</p>
+              <a class="button button--primary button--full" data-claim-link href="mailto:Foodtruckfinderinfo@gmail.com?subject=Owner%20Claim%20Request&body=Hi%20Food%20Truck%20Finder%20team%2C%0A%0AI%20would%20like%20to%20claim%20a%20truck%20listing.%0A%0ATruck%20link%3A%0A%0AMy%20name%3A%0APhone%20number%3A%0AProof%20of%20ownership%20or%20official%20link%3A">Email Claim Request</a>
             </section>
           </aside>
         </section>
@@ -164,10 +164,32 @@
     </main>
   </div>
 
+  <div class="modal-backdrop" data-claim-modal role="dialog" aria-modal="true" aria-labelledby="claim-modal-title" hidden>
+    <div class="claim-modal">
+      <p class="eyebrow">Before You Claim</p>
+      <h2 id="claim-modal-title">Create an Owner account first</h2>
+      <p class="panel-copy">To connect this listing to you, sign up in the Food Truck Finder app as an Owner using the same email address you will send this request from.</p>
+      <ol class="claim-steps">
+        <li>
+          <strong>Sign up in the app as an Owner.</strong>
+          <span>Use the email address you want attached to this truck.</span>
+        </li>
+        <li>
+          <strong>Send the pre-filled claim email.</strong>
+          <span>The email includes this truck's details so our team can find and verify the listing.</span>
+        </li>
+      </ol>
+      <div class="modal-actions">
+        <button class="button button--ghost" type="button" data-claim-modal-close>Not Yet</button>
+        <button class="button button--primary" type="button" data-claim-modal-email>Continue to Email</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" data-toast hidden>Copied</div>
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-  <script defer src="../assets/truck-page.js?v=6"></script>
+  <script defer src="../assets/truck-page.js?v=7"></script>
 </body>
 </html>

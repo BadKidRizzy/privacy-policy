@@ -423,6 +423,64 @@ h2 {
   box-shadow: var(--shadow);
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(23, 20, 17, 0.48);
+}
+
+.claim-modal {
+  width: min(520px, 100%);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+
+.claim-modal h2 {
+  margin-bottom: 12px;
+}
+
+.claim-steps {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding-left: 20px;
+}
+
+.claim-steps li {
+  padding-left: 4px;
+}
+
+.claim-steps strong,
+.claim-steps span {
+  display: block;
+}
+
+.claim-steps strong {
+  line-height: 1.35;
+}
+
+.claim-steps span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
 [hidden] {
   display: none !important;
 }
@@ -485,6 +543,10 @@ h2 {
 
   .store-actions {
     grid-template-columns: 1fr;
+  }
+
+  .modal-actions {
+    display: grid;
   }
 
   .button {
