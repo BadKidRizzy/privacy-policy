@@ -272,6 +272,96 @@ const fieldSets = {
   ],
 };
 
+const fieldSections = {
+  users: [
+    {
+      title: 'Account',
+      description: 'Identity and account status.',
+      fields: ['name', 'profilePhotoUpload', 'userType', 'accountStatus', 'moderationStatus', 'authDisabled'],
+    },
+    {
+      title: 'Contact',
+      description: 'Phone numbers, address, and organization details.',
+      fields: ['businessPhone', 'personalNumber', 'businessAddress', 'organizationName', 'organizerPhone'],
+    },
+    {
+      title: 'Access',
+      description: 'Limits and admin-granted access.',
+      fields: ['unlimitedTrucks', 'unlimitedInvites', 'unlimitedEvents', 'invitesAllowed', 'invitesUsed'],
+    },
+  ],
+  foodTrucks: [
+    {
+      title: 'Overview',
+      description: 'Quick health check and the public truck details customers see first.',
+      fields: ['adminSummary', 'name', 'description', 'currentAddress', 'businessPhone', 'cuisines', 'tags'],
+    },
+    {
+      title: 'Photos & Menu',
+      description: 'Truck photo, menu photos, and AI menu scanning.',
+      fields: ['truckImageUpload', 'menuImageUpload', 'scanMenuAi'],
+    },
+    {
+      title: 'Owner & Claim',
+      description: 'Who owns this listing and whether it can be transferred.',
+      fields: ['ownerEmail', 'ownerId', 'claimStatus', 'claimed', 'transferEligible'],
+    },
+    {
+      title: 'Links',
+      description: 'Website, social profiles, and ordering links.',
+      fields: ['websiteUrl', 'socialLinks', 'doordashUrl', 'uberEatsUrl'],
+    },
+    {
+      title: 'Location & Visibility',
+      description: 'Map position, live status, and public visibility.',
+      fields: ['latitude', 'longitude', 'locationType', 'isOpen', 'isSharingLocation', 'isMapHidden', 'archived'],
+    },
+    {
+      title: 'Source & Admin',
+      description: 'Seed source, review notes, and internal status fields.',
+      collapsed: true,
+      fields: [
+        'seeded',
+        'seedSource',
+        'sourceName',
+        'sourceUrl',
+        'sourceId',
+        'eventId',
+        'eventName',
+        'verificationStatus',
+        'menuStatus',
+        'photoStatus',
+        'enrichmentStatus',
+        'seedConfidenceScore',
+        'seedWarnings',
+        'adminNotes',
+      ],
+    },
+  ],
+  events: [
+    {
+      title: 'Event Details',
+      description: 'The public event details customers and organizers see.',
+      fields: ['title', 'coverImageUpload', 'description', 'address', 'lineupPreview', 'whatToExpect'],
+    },
+    {
+      title: 'Organizer',
+      description: 'Owner of this event record.',
+      fields: ['organizerEmail', 'organizerId', 'organizerName', 'organizationName', 'organizerPhone'],
+    },
+    {
+      title: 'Schedule & Capacity',
+      description: 'Timing, status, and how many trucks are expected.',
+      fields: ['status', 'truckCapacity', 'expectedTruckCount', 'startAt', 'endAt'],
+    },
+    {
+      title: 'Map',
+      description: 'Coordinates used for the event location.',
+      fields: ['latitude', 'longitude'],
+    },
+  ],
+};
+
 function setMessage(element, message, isError = false) {
   if (!element) return;
   element.textContent = message || '';
@@ -904,10 +994,7 @@ function openRecordDialog(collection, id) {
   selectors.transferTruck.hidden = collection !== 'foodTrucks';
   selectors.markReviewed.hidden = collection !== 'foodTrucks';
   selectors.archiveTruck.hidden = collection !== 'foodTrucks' || record.archived === true;
-  const fieldsHtml = (fieldSets[collection] || [])
-    .map((field) => renderField(field, record))
-    .join('');
-  selectors.recordFields.innerHTML = fieldsHtml + getDatalistHtml(collection);
+  selectors.recordFields.innerHTML = renderRecordFields(collection, record) + getDatalistHtml(collection);
 
   if (typeof selectors.dialog.showModal === 'function') {
     selectors.dialog.showModal();
@@ -945,10 +1032,7 @@ function openCreateDialog() {
   selectors.markReviewed.hidden = true;
   selectors.archiveTruck.hidden = true;
 
-  const fieldsHtml = (fieldSets[collection] || [])
-    .map((field) => renderField(field, record))
-    .join('');
-  selectors.recordFields.innerHTML = fieldsHtml + getDatalistHtml(collection);
+  selectors.recordFields.innerHTML = renderRecordFields(collection, record) + getDatalistHtml(collection);
 
   if (typeof selectors.dialog.showModal === 'function') {
     selectors.dialog.showModal();
@@ -1051,11 +1135,83 @@ async function submitTransferTruck() {
   }
 }
 
+function renderRecordSection(section, record, fieldsByName, renderedFields) {
+  const fieldsHtml = section.fields
+    .map((fieldName) => {
+      const field = fieldsByName.get(fieldName);
+      if (!field) return '';
+      renderedFields.add(fieldName);
+      return renderField(field, record);
+    })
+    .filter(Boolean)
+    .join('');
+
+  if (!fieldsHtml) return '';
+  const containerTag = section.collapsed ? 'details' : 'section';
+  const headingTag = section.collapsed ? 'summary' : 'div';
+  const collapsedClass = section.collapsed ? ' record-section--collapsed' : '';
+
+  return `
+    <${containerTag} class="record-section${collapsedClass}">
+      <${headingTag} class="record-section__heading">
+        <div>
+          <h3>${escapeHtml(section.title)}</h3>
+          ${section.description ? `<p>${escapeHtml(section.description)}</p>` : ''}
+        </div>
+      </${headingTag}>
+      <div class="record-section__grid">
+        ${fieldsHtml}
+      </div>
+    </${containerTag}>
+  `;
+}
+
+function renderRecordFields(collection, record) {
+  const fields = fieldSets[collection] || [];
+  const sections = fieldSections[collection] || [];
+
+  if (!sections.length) {
+    return fields.map((field) => renderField(field, record)).join('');
+  }
+
+  const fieldsByName = new Map(fields.map((field) => [field.name, field]));
+  const renderedFields = new Set();
+  const sectionHtml = sections
+    .map((section) => renderRecordSection(section, record, fieldsByName, renderedFields))
+    .join('');
+  const remainingFields = fields
+    .filter((field) => !renderedFields.has(field.name))
+    .map((field) => renderField(field, record))
+    .join('');
+
+  if (!remainingFields) {
+    return sectionHtml;
+  }
+
+  return `${sectionHtml}
+    <details class="record-section record-section--collapsed">
+      <summary class="record-section__heading">
+        <div>
+          <h3>Other Fields</h3>
+          <p>Less common fields that do not belong to the main workflow.</p>
+        </div>
+      </summary>
+      <div class="record-section__grid">
+        ${remainingFields}
+      </div>
+    </details>
+  `;
+}
+
 function renderField(field, record) {
   const value = record[field.name];
   const wideClass = field.wide ? ' record-field--wide' : '';
 
   if (field.type === 'summary') {
+    if (state.selected?.mode === 'create') {
+      return '';
+    }
+
     const images = [
       record.truckImage,
       ...(Array.isArray(record.menuImages) ? record.menuImages : []),

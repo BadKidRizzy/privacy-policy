@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../assets/site.css?v=1">
-  <link rel="stylesheet" href="../assets/management-console.css?v=13">
+  <link rel="stylesheet" href="../assets/management-console.css?v=14">
 </head>
 <body class="console-body">
   <div class="console-shell">
@@ -219,84 +219,114 @@
       </div>
 
       <div class="record-grid">
-        <label class="record-field record-field--wide">
-          Address
-          <textarea name="address" required placeholder="5700 Rowanberry Dr, Elkridge, MD 21075"></textarea>
-        </label>
+        <section class="record-section">
+          <div class="record-section__heading">
+            <div>
+              <h3>Truck Basics</h3>
+              <p>Required details for the listing and map pin.</p>
+            </div>
+          </div>
+          <div class="record-section__grid">
+            <label class="record-field record-field--wide">
+              Address
+              <textarea name="address" required placeholder="5700 Rowanberry Dr, Elkridge, MD 21075"></textarea>
+            </label>
 
-        <label class="record-field">
-          Owner Email
-          <input name="ownerEmail" type="email" list="seed-owner-email-options" placeholder="foodtruckfinderinfo+owner@gmail.com">
-          <small class="field-help">Leave blank to use the FTF seed owner account.</small>
-        </label>
+            <label class="record-field">
+              Owner Email
+              <input name="ownerEmail" type="email" list="seed-owner-email-options" placeholder="foodtruckfinderinfo+owner@gmail.com">
+              <small class="field-help">Leave blank to use the FTF seed owner account.</small>
+            </label>
 
-        <label class="record-field">
-          Truck Name
-          <input name="name" type="text" maxlength="80" placeholder="Required" required>
-        </label>
+            <label class="record-field">
+              Truck Name
+              <input name="name" type="text" maxlength="80" placeholder="Required" required>
+            </label>
 
-        <label class="record-field record-field--wide">
-          Description Override
-          <textarea name="description" maxlength="280" placeholder="Optional. Leave blank to generate from photos."></textarea>
-        </label>
+            <label class="record-field record-field--wide">
+              Description Override
+              <textarea name="description" maxlength="280" placeholder="Optional. Leave blank to generate from photos."></textarea>
+            </label>
 
-        <label class="record-field">
-          Cuisine Override
-          <textarea name="cuisines" placeholder="Optional, comma separated"></textarea>
-        </label>
+            <label class="record-field">
+              Cuisine Override
+              <textarea name="cuisines" placeholder="Optional, comma separated"></textarea>
+            </label>
 
-        <label class="record-field">
-          Tags Override
-          <textarea name="tags" placeholder="Optional, comma separated"></textarea>
-        </label>
+            <label class="record-field">
+              Tags Override
+              <textarea name="tags" placeholder="Optional, comma separated"></textarea>
+            </label>
+          </div>
+        </section>
 
-        <label class="record-field record-field--wide">
-          Known Links
-          <textarea name="socialLinks" placeholder="Optional. Paste Instagram, TikTok, Yelp, Google Maps, Facebook, or Linktree. One per line is okay."></textarea>
-          <small class="field-help">Use this when AI misses a public profile. DoorDash and Uber Eats have their own boxes below.</small>
-        </label>
+        <section class="record-section">
+          <div class="record-section__heading">
+            <div>
+              <h3>Known Links</h3>
+              <p>Paste links here when AI might miss them.</p>
+            </div>
+          </div>
+          <div class="record-section__grid">
+            <label class="record-field record-field--wide">
+              Social Links
+              <textarea name="socialLinks" placeholder="Optional. Paste Instagram, TikTok, Yelp, Google Maps, Facebook, or Linktree. One per line is okay."></textarea>
+              <small class="field-help">Use this when AI misses a public profile. DoorDash and Uber Eats have their own boxes below.</small>
+            </label>
 
-        <label class="record-field">
-          Website URL
-          <input name="websiteUrl" type="url" placeholder="https://example.com">
-        </label>
+            <label class="record-field">
+              Website URL
+              <input name="websiteUrl" type="url" placeholder="https://example.com">
+            </label>
 
-        <label class="record-field">
-          Instagram URL
-          <input name="instagramUrl" type="url" placeholder="https://instagram.com/truck">
-        </label>
+            <label class="record-field">
+              Instagram URL
+              <input name="instagramUrl" type="url" placeholder="https://instagram.com/truck">
+            </label>
 
-        <label class="record-field">
-          TikTok URL
-          <input name="tiktokUrl" type="url" placeholder="https://tiktok.com/@truck">
-        </label>
+            <label class="record-field">
+              TikTok URL
+              <input name="tiktokUrl" type="url" placeholder="https://tiktok.com/@truck">
+            </label>
 
-        <label class="record-field">
-          Yelp URL
-          <input name="yelpUrl" type="url" placeholder="https://www.yelp.com/biz/truck">
-        </label>
+            <label class="record-field">
+              Yelp URL
+              <input name="yelpUrl" type="url" placeholder="https://www.yelp.com/biz/truck">
+            </label>
 
-        <label class="record-field">
-          DoorDash URL
-          <input name="doordashUrl" type="url" placeholder="https://www.doordash.com/store/...">
-        </label>
+            <label class="record-field">
+              DoorDash URL
+              <input name="doordashUrl" type="url" placeholder="https://www.doordash.com/store/...">
+            </label>
 
-        <label class="record-field">
-          Uber Eats URL
-          <input name="uberEatsUrl" type="url" placeholder="https://www.ubereats.com/store/...">
-        </label>
+            <label class="record-field">
+              Uber Eats URL
+              <input name="uberEatsUrl" type="url" placeholder="https://www.ubereats.com/store/...">
+            </label>
+          </div>
+        </section>
 
-        <label class="record-field record-field--file">
-          Truck Photo
-          <input name="truckImage" type="file" accept="image/jpeg,image/png,image/webp" required>
-          <small class="field-help">Photo of the actual truck. Max 5 MB.</small>
-        </label>
+        <section class="record-section">
+          <div class="record-section__heading">
+            <div>
+              <h3>Photos</h3>
+              <p>Upload the actual truck and menu photos for AI scanning.</p>
+            </div>
+          </div>
+          <div class="record-section__grid">
+            <label class="record-field record-field--file">
+              Truck Photo
+              <input name="truckImage" type="file" accept="image/jpeg,image/png,image/webp" required>
+              <small class="field-help">Photo of the actual truck. Max 5 MB.</small>
+            </label>
 
-        <label class="record-field record-field--file">
-          Menu Photos
-          <input name="menuImages" type="file" accept="image/jpeg,image/png,image/webp" multiple required>
-          <small class="field-help">Upload one to three menu photos. Max 5 MB each.</small>
-        </label>
+            <label class="record-field record-field--file">
+              Menu Photos
+              <input name="menuImages" type="file" accept="image/jpeg,image/png,image/webp" multiple required>
+              <small class="field-help">Upload one to three menu photos. Max 5 MB each.</small>
+            </label>
+          </div>
+        </section>
       </div>
 
       <datalist id="seed-owner-email-options" data-seed-owner-options></datalist>
@@ -450,6 +480,6 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
-  <script defer src="../assets/management-console.js?v=20"></script>
+  <script defer src="../assets/management-console.js?v=21"></script>
 </body>
 </html>

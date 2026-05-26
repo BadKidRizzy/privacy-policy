@@ -762,7 +762,7 @@
 }
 
 .record-dialog {
-  width: min(920px, calc(100% - 28px));
+  width: min(1040px, calc(100% - 28px));
   border: 0;
   border-radius: 26px;
   padding: 0;
@@ -839,8 +839,73 @@
 
 .record-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+  align-items: start;
+}
+
+.record-section {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.record-section__heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+summary.record-section__heading {
+  cursor: pointer;
+  list-style: none;
+}
+
+summary.record-section__heading::-webkit-details-marker {
+  display: none;
+}
+
+.record-section--collapsed .record-section__heading::after {
+  content: "Show";
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.record-section--collapsed[open] .record-section__heading::after {
+  content: "Hide";
+}
+
+.record-section__heading h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+
+.record-section__heading p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.record-section__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
   align-items: start;
 }
 
@@ -849,8 +914,15 @@
 }
 
 .record-dialog__actions {
+  position: sticky;
+  bottom: -24px;
+  z-index: 2;
   justify-content: flex-end;
-  padding-top: 4px;
+  margin: 0 -24px -24px;
+  padding: 14px 24px 18px;
+  border-top: 1px solid var(--line);
+  background: rgba(255, 251, 246, 0.96);
+  backdrop-filter: blur(10px);
 }
 
 .record-dialog__actions .button {
@@ -1089,7 +1161,7 @@
   }
 
   .metric-grid,
-  .record-grid,
+  .record-section__grid,
   .truck-controls,
   .bulk-event-grid,
   .truck-detail-grid {
@@ -1101,6 +1173,7 @@
   }
 
   .truck-controls__header,
+  .record-section__heading,
   .bulk-section__heading {
     align-items: flex-start;
     flex-direction: column;
