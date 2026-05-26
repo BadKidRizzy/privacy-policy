@@ -250,6 +250,42 @@
           <textarea name="tags" placeholder="Optional, comma separated"></textarea>
         </label>
 
+        <label class="record-field record-field--wide">
+          Known Links
+          <textarea name="socialLinks" placeholder="Optional. Paste Instagram, TikTok, Yelp, Google Maps, Facebook, or Linktree. One per line is okay."></textarea>
+          <small class="field-help">Use this when AI misses a public profile. DoorDash and Uber Eats have their own boxes below.</small>
+        </label>
+
+        <label class="record-field">
+          Website URL
+          <input name="websiteUrl" type="url" placeholder="https://example.com">
+        </label>
+
+        <label class="record-field">
+          Instagram URL
+          <input name="instagramUrl" type="url" placeholder="https://instagram.com/truck">
+        </label>
+
+        <label class="record-field">
+          TikTok URL
+          <input name="tiktokUrl" type="url" placeholder="https://tiktok.com/@truck">
+        </label>
+
+        <label class="record-field">
+          Yelp URL
+          <input name="yelpUrl" type="url" placeholder="https://www.yelp.com/biz/truck">
+        </label>
+
+        <label class="record-field">
+          DoorDash URL
+          <input name="doordashUrl" type="url" placeholder="https://www.doordash.com/store/...">
+        </label>
+
+        <label class="record-field">
+          Uber Eats URL
+          <input name="uberEatsUrl" type="url" placeholder="https://www.ubereats.com/store/...">
+        </label>
+
         <label class="record-field record-field--file">
           Truck Photo
           <input name="truckImage" type="file" accept="image/jpeg,image/png,image/webp" required>
@@ -414,6 +450,6 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
-  <script defer src="../assets/management-console.js?v=19"></script>
+  <script defer src="../assets/management-console.js?v=20"></script>
 </body>
 </html>

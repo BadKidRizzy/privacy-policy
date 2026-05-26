@@ -116,6 +116,7 @@ const SEED_IMAGE_MAX_DIMENSION = 1800;
 const SEED_CALLABLE_MAX_PAYLOAD_BYTES = 8 * 1024 * 1024;
 const INITIAL_BULK_ROW_COUNT = 5;
 const PUBLIC_TRUCK_SHARE_BASE_URL = 'https://www.ftf-foodtruckfinder.com/truck/';
+const LIST_FIELD_NAMES = new Set(['socialLinks', 'cuisines', 'tags', 'seedWarnings']);
 
 const tabConfig = {
   owners: {
@@ -207,7 +208,13 @@ const fieldSets = {
     {name: 'currentAddress', label: 'Current Address', type: 'textarea', wide: true},
     {name: 'businessPhone', label: 'Business Phone', type: 'text'},
     {name: 'websiteUrl', label: 'Website URL', type: 'text'},
-    {name: 'socialLinks', label: 'Social Links, comma separated', type: 'textarea', wide: true},
+    {
+      name: 'socialLinks',
+      label: 'Social Links',
+      type: 'textarea',
+      wide: true,
+      help: 'Instagram, TikTok, Yelp, Facebook, Google Maps, or Linktree. Paste one per line or separate with commas. Use the DoorDash and Uber Eats boxes below for ordering links.',
+    },
     {name: 'doordashUrl', label: 'DoorDash URL', type: 'text'},
     {name: 'uberEatsUrl', label: 'Uber Eats URL', type: 'text'},
     {name: 'cuisines', label: 'Cuisines, comma separated', type: 'textarea'},
@@ -1163,10 +1170,12 @@ function renderField(field, record) {
 
   if (field.type === 'textarea') {
     const textareaValue = Array.isArray(value) ? value.join(', ') : (value || '');
+    const helpText = field.help ? `<small class="field-help">${escapeHtml(field.help)}</small>` : '';
     return `
       <label class="record-field${wideClass}">
         ${escapeHtml(field.label)}
         <textarea data-field="${escapeHtml(field.name)}" data-type="textarea">${escapeHtml(textareaValue)}</textarea>
+        ${helpText}
       </label>
     `;
   }
@@ -1216,11 +1225,27 @@ function fieldValueMatches(type, nextValue, previousValue) {
     return !Number.isNaN(previousDate.getTime()) && previousDate.toISOString() === nextValue;
   }
 
+  if (Array.isArray(nextValue) || Array.isArray(previousValue)) {
+    const nextList = Array.isArray(nextValue) ? nextValue : splitList(nextValue);
+    const previousList = Array.isArray(previousValue) ? previousValue.map((item) => String(item || '').trim()).filter(Boolean) : splitList(previousValue);
+
+    return nextList.length === previousList.length
+      && nextList.every((item, index) => item === previousList[index]);
+  }
+
   const previousText = Array.isArray(previousValue)
     ? previousValue.join(', ')
     : String(previousValue ?? '').trim();
 
   return previousText === String(nextValue ?? '').trim();
+}
+
+function normalizeFieldValueForSubmit(field, value) {
+  if (LIST_FIELD_NAMES.has(field)) {
+    return splitList(value);
+  }
+
+  return value;
 }
 
 function readFormUpdates() {
@@ -1235,9 +1260,14 @@ function readFormUpdates() {
     if (type === 'file') return;
     if (!field) return;
 
-    const nextValue = readInputValue(input, type);
+    const nextValue = normalizeFieldValueForSubmit(field, readInputValue(input, type));
     if (isCreate) {
-      if (nextValue === '' || nextValue == null || (type === 'checkbox' && nextValue === false)) return;
+      if (
+        nextValue === ''
+        || nextValue == null
+        || (Array.isArray(nextValue) && nextValue.length === 0)
+        || (type === 'checkbox' && nextValue === false)
+      ) return;
       updates[field] = nextValue;
       return;
     }
@@ -1557,11 +1587,15 @@ async function saveSelectedRecord() {
   }
 }
 
-function splitCommaList(value) {
+function splitList(value) {
   return String(value || '')
-    .split(',')
+    .split(/[\n,]+/)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function splitCommaList(value) {
+  return splitList(value);
 }
 
 async function buildImagePayload(file) {
@@ -1660,6 +1694,21 @@ async function seedTruckFromForm() {
       truckImage,
       menuImages,
     };
+    const knownSocialLinks = [
+      ...splitList(formData.get('socialLinks')),
+      String(formData.get('instagramUrl') || '').trim(),
+      String(formData.get('tiktokUrl') || '').trim(),
+      String(formData.get('yelpUrl') || '').trim(),
+    ].filter(Boolean);
+    const websiteUrl = String(formData.get('websiteUrl') || '').trim();
+    const doordashUrl = String(formData.get('doordashUrl') || '').trim();
+    const uberEatsUrl = String(formData.get('uberEatsUrl') || '').trim();
+
+    if (knownSocialLinks.length) seedPayload.socialLinks = knownSocialLinks;
+    if (websiteUrl) seedPayload.websiteUrl = websiteUrl;
+    if (doordashUrl) seedPayload.doordashUrl = doordashUrl;
+    if (uberEatsUrl) seedPayload.uberEatsUrl = uberEatsUrl;
+
     const payloadBytes = estimateJsonPayloadBytes(seedPayload);
 
     if (payloadBytes > SEED_CALLABLE_MAX_PAYLOAD_BYTES) {
