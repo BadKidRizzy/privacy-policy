@@ -1,6 +1,6 @@
 const APP_STORE_URL = "https://apps.apple.com/us/app/ftf-food-truck-finder/id6742719545";
 const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.innoryzen.foodtruckfinder";
-const PRIVACY_POLICY_URL = "https://www.ftf-foodtruckfinder.com/index.html";
+const PRIVACY_POLICY_URL = "https://www.ftf-foodtruckfinder.com/privacy-policy/";
 const SUPPORT_EMAIL = "Foodtruckfinderinfo@gmail.com";
 const SUPPORT_SUBJECT = "Owner Referral Code Request";
 

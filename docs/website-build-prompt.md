@@ -17,7 +17,7 @@ Important context:
   - Avoid generic template design.
   - Use expressive typography, strong spacing, large headlines, and layered screenshot layouts.
 - Keep legal/support links visible:
-  - `privacy.html`
+  - `privacy-policy/index.html`
   - `delete-account.html`
   - support email: `Foodtruckfinderinfo@gmail.com`
 - App download links:

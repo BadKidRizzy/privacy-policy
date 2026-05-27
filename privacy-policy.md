@@ -5,7 +5,7 @@
 
 This is the source/reference copy for the public HTML privacy policy served at:
 
-https://www.ftf-foodtruckfinder.com/privacy.html
+https://www.ftf-foodtruckfinder.com/privacy-policy/
 
 Developer and privacy contact: Randy Trimble / Food Truck Finder, foodtruckfinderinfo@gmail.com.
 
