@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../assets/site.css?v=1">
-  <link rel="stylesheet" href="../assets/management-console.css?v=14">
+  <link rel="stylesheet" href="../assets/management-console.css?v=15">
 </head>
 <body class="console-body">
   <div class="console-shell">
@@ -104,11 +104,11 @@
 
           <div class="truck-controls" data-truck-controls hidden>
             <div class="truck-controls__header">
-              <strong>Truck filters</strong>
-              <span>Refine the truck table below.</span>
+              <strong>Find Trucks</strong>
+              <span>Use filters when the list is too long.</span>
             </div>
             <label>
-              Claim
+              Claim Status
               <select data-truck-filter="claim">
                 <option value="all">All claims</option>
                 <option value="claimed">Claimed</option>
@@ -116,38 +116,38 @@
               </select>
             </label>
             <label>
-              Activity
+              Location Status
               <select data-truck-filter="movement">
-                <option value="all">All movement</option>
-                <option value="active">Active</option>
-                <option value="needs_review">Needs Review</option>
+                <option value="all">Any location status</option>
+                <option value="active">Recently updated</option>
+                <option value="needs_review">Needs review</option>
                 <option value="stale">Stale</option>
                 <option value="inactive">Inactive</option>
-                <option value="no_location_data">No Location Data</option>
+                <option value="no_location_data">No location data</option>
               </select>
             </label>
             <label>
-              Source
+              Added By
               <select data-truck-filter="source">
-                <option value="all">All sources</option>
+                <option value="all">Any source</option>
                 <option value="seeded">Seeded</option>
                 <option value="owner-created">Owner-created</option>
                 <option value="event_seed">Event seed</option>
               </select>
             </label>
             <label>
-              Visibility
+              Public Listing
               <select data-truck-filter="visibility">
-                <option value="all">All visibility</option>
+                <option value="all">Any public status</option>
                 <option value="visible">Visible on map</option>
                 <option value="hidden">Hidden from map</option>
                 <option value="archived">Archived</option>
               </select>
             </label>
             <label>
-              Missing
+              Needs
               <select data-truck-filter="missing">
-                <option value="all">No missing filter</option>
+                <option value="all">Anything</option>
                 <option value="missing_photo">Missing photos</option>
                 <option value="missing_menu">Missing menu</option>
                 <option value="missing_address">Missing address</option>
@@ -155,7 +155,7 @@
               </select>
             </label>
             <label>
-              Sort
+              Sort By
               <select data-truck-sort>
                 <option value="recently_updated">Recently updated</option>
                 <option value="last_location_update">Last location update</option>
@@ -480,6 +480,6 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
-  <script defer src="../assets/management-console.js?v=21"></script>
+  <script defer src="../assets/management-console.js?v=22"></script>
 </body>
 </html>

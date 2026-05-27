@@ -12,6 +12,9 @@ const state = {
   loading: false,
   loadedAt: '',
   admin: null,
+  counts: {},
+  loadedCounts: {},
+  hasMore: {},
   users: [],
   trucks: [],
   events: [],
@@ -131,10 +134,10 @@ const tabConfig = {
   },
   trucks: {
     title: 'Trucks',
-    description: 'Truck profiles, transfer ownership, claim status, and visibility.',
+    description: 'Review truck profiles, public visibility, missing details, and owner access.',
     collection: 'foodTrucks',
     filter: () => true,
-    columns: ['Truck', 'Owner', 'Location', 'Source', 'Visibility', 'Movement', 'Health', 'Updated', 'Action'],
+    columns: ['Truck', 'Owner', 'Location', 'Public Status', 'Profile Health', 'Updated', 'Actions'],
     searchLabel: 'Search Trucks',
     searchPlaceholder: 'Search truck, owner email, location, cuisine, tag...',
     createLabel: 'Create Truck',
@@ -396,6 +399,10 @@ function formatShortDate(value) {
   return parsed.toLocaleDateString([], {month: 'short', day: 'numeric', year: 'numeric'});
 }
 
+function formatCount(value) {
+  return new Intl.NumberFormat().format(Number(value) || 0);
+}
+
 function toDateTimeLocal(value) {
   if (!value) return '';
   const parsed = new Date(value);
@@ -572,6 +579,39 @@ function sortTruckRecords(records) {
   return sorted;
 }
 
+function getCollectionTotal(collection, records) {
+  const value = Number(state.counts?.[collection]);
+  return Number.isFinite(value) && value >= 0 ? value : records.length;
+}
+
+function getLoadedCount(collection, records) {
+  const value = Number(state.loadedCounts?.[collection]);
+  return Number.isFinite(value) && value >= 0 ? value : records.length;
+}
+
+function getTruckSubtitle(record) {
+  const cuisines = Array.isArray(record.cuisines)
+    ? record.cuisines.map((item) => String(item || '').trim()).filter(Boolean)
+    : [];
+
+  if (cuisines.length) {
+    return cuisines.slice(0, 2).join(', ');
+  }
+
+  if (record.locationType) {
+    return `${record.locationType}`.replace(/_/g, ' ');
+  }
+
+  return record.claimed ? 'Claimed profile' : 'Unclaimed profile';
+}
+
+function getOwnerDetail(record, owner) {
+  if (owner?.email) return owner.email;
+  if (record.ownerEmail) return record.ownerEmail;
+  if (record.claimed || record.claimStatus === 'claimed') return 'Claimed owner';
+  return 'Needs owner';
+}
+
 function getProfileImage(record) {
   return record.photoURL || record.profileImage || '';
 }
@@ -678,32 +718,102 @@ function getActiveRecords() {
 
 function renderMetrics() {
   const ownerCount = state.users.filter((user) => user.userType === 'Owner').length;
+  const foodieCount = state.users.filter((user) => user.userType === 'Foodie').length;
+  const organizerCount = state.users.filter((user) => user.userType === 'Organizer').length;
+  const totalUserCount = getCollectionTotal('users', state.users);
+  const totalTruckCount = getCollectionTotal('trucks', state.trucks);
+  const loadedTruckCount = getLoadedCount('trucks', state.trucks);
+  const totalEventCount = getCollectionTotal('events', state.events);
   const activeTruckCount = state.trucks.filter((truck) => truck.movementStatus === 'active').length;
   const needsReviewCount = state.trucks.filter((truck) => truck.movementStatus === 'needs_review').length;
   const staleTruckCount = state.trucks.filter((truck) => truck.movementStatus === 'stale').length;
   const inactiveTruckCount = state.trucks.filter((truck) => truck.movementStatus === 'inactive').length;
   const hiddenTruckCount = state.trucks.filter((truck) => truck.isMapHidden === true && truck.archived !== true).length;
+  const incompleteTruckCount = state.trucks.filter((truck) => getTruckValidationWarnings(truck).length > 0).length;
   const unclaimedSeededCount = state.trucks.filter((truck) => {
     const seeded = truck.seeded === true || truck.seedSource || truck.seededBy || truck.managementCreatedBy;
     const claimed = truck.claimed === true || truck.claimStatus === 'claimed';
     return seeded && !claimed;
   }).length;
+  const loadedTruckText = loadedTruckCount < totalTruckCount
+    ? `${formatCount(loadedTruckCount)} loaded`
+    : 'All loaded';
+  const summaryByTab = {
+    owners: {
+      label: 'Owner Accounts',
+      value: ownerCount,
+      note: 'People who can manage trucks.',
+    },
+    trucks: {
+      label: 'Truck Profiles',
+      value: totalTruckCount,
+      note: `${loadedTruckText} in this table.`,
+    },
+    foodies: {
+      label: 'Foodie Accounts',
+      value: foodieCount,
+      note: 'Customer accounts loaded in this view.',
+    },
+    organizers: {
+      label: 'Event Organizers',
+      value: organizerCount,
+      note: 'Organizer accounts loaded in this view.',
+    },
+    events: {
+      label: 'Events',
+      value: totalEventCount,
+      note: 'Public event records in the database.',
+    },
+  };
+  const quickStatsByTab = {
+    owners: [
+      ['All user accounts', totalUserCount, totalUserCount !== ownerCount],
+      ['Foodies', foodieCount],
+      ['Event organizers', organizerCount],
+      ['Truck profiles', totalTruckCount],
+    ],
+    trucks: [
+      ['Loaded profiles', loadedTruckCount, loadedTruckCount < totalTruckCount],
+      ['Unclaimed seeded', unclaimedSeededCount],
+      ['Need review', needsReviewCount],
+      ['Stale', staleTruckCount],
+      ['Inactive', inactiveTruckCount],
+      ['Hidden', hiddenTruckCount],
+      ['Incomplete', incompleteTruckCount],
+      ['Active', activeTruckCount],
+    ],
+    foodies: [
+      ['Foodies', foodieCount],
+    ],
+    organizers: [
+      ['Organizers', organizerCount],
+    ],
+    events: [
+      ['Events loaded', state.events.length, state.events.length < totalEventCount],
+    ],
+  };
+  const summary = summaryByTab[state.activeTab] || summaryByTab.owners;
+  const quickStats = (quickStatsByTab[state.activeTab] || [])
+    .filter(([, value, showWhenZero]) => showWhenZero || Number(value) > 0)
+    .slice(0, 5);
 
-  selectors.metrics.innerHTML = [
-    ['Total trucks', state.trucks.length],
-    ['Active trucks', activeTruckCount],
-    ['Needs review', needsReviewCount],
-    ['Stale trucks', staleTruckCount],
-    ['Inactive trucks', inactiveTruckCount],
-    ['Hidden trucks', hiddenTruckCount],
-    ['Unclaimed seeded', unclaimedSeededCount],
-    ['Owners', ownerCount],
-  ].map(([label, value]) => `
-    <article class="metric-card">
-      <strong>${value}</strong>
-      <span>${label}</span>
+  selectors.metrics.innerHTML = `
+    <article class="metric-summary">
+      <span>${escapeHtml(summary.label)}</span>
+      <strong>${formatCount(summary.value)}</strong>
+      <small>${escapeHtml(summary.note)}</small>
     </article>
-  `).join('');
+    ${quickStats.length ? `
+      <div class="metric-strip" aria-label="Quick stats">
+        ${quickStats.map(([label, value]) => `
+          <article class="metric-card">
+            <strong>${formatCount(value)}</strong>
+            <span>${escapeHtml(label)}</span>
+          </article>
+        `).join('')}
+      </div>
+    ` : ''}
+  `;
 }
 
 function renderTable() {
@@ -806,7 +916,6 @@ function renderOrganizerRow(record) {
 function renderTruckRow(record) {
   const owner = getUserById(record.ownerUid || record.ownerId);
   const status = record.archived ? 'archived' : record.isMapHidden ? 'hidden' : record.isOpen ? 'open' : 'closed';
-  const sourceLabel = record.eventName || record.sourceName || record.seedSource || (record.seeded ? 'Seeded' : 'Owner-created');
   const rowClass = [
     'truck-row',
     record.isMapHidden ? 'truck-row--hidden' : '',
@@ -814,18 +923,13 @@ function renderTruckRow(record) {
   ].filter(Boolean).join(' ');
   return `
     <tr class="${escapeHtml(rowClass)}">
-      <td>${titleCell(record.name || 'Truck', record.id, record.truckImage)}</td>
+      <td>${titleCell(record.name || 'Truck', getTruckSubtitle(record), record.truckImage)}</td>
       <td class="truck-owner-cell">
         <strong>${escapeHtml(owner?.name || record.ownerEmail || 'Unknown owner')}</strong>
-        <span class="muted-cell">${escapeHtml(record.ownerUid || record.ownerId || 'No owner id')}</span>
+        <span class="muted-cell">${escapeHtml(getOwnerDetail(record, owner))}</span>
       </td>
       <td class="truck-address-cell">${escapeHtml(record.currentAddress || 'No address')}</td>
-      <td class="truck-source-cell">
-        <strong>${escapeHtml(sourceLabel)}</strong>
-        <span class="muted-cell">${escapeHtml(record.sourceUrl || record.sourceId || '')}</span>
-      </td>
       <td>${renderTruckVisibility(record)}</td>
-      <td>${movementPill(record)}</td>
       <td>${renderTruckHealth(record)}</td>
       <td class="truck-updated-cell">
         ${formatShortDate(record.updatedAt)}
@@ -952,17 +1056,25 @@ async function loadSnapshot() {
   selectors.refresh.textContent = 'Loading...';
 
   try {
-    const result = await getSnapshot({limit: 500});
+    const result = await getSnapshot({limit: 1000});
     const data = result.data || {};
     state.admin = data.admin || null;
     state.loadedAt = data.loadedAt || new Date().toISOString();
+    state.counts = data.counts || {};
+    state.loadedCounts = data.loadedCounts || {};
+    state.hasMore = data.hasMore || {};
     state.users = data.users || [];
     state.trucks = data.trucks || [];
     state.events = data.events || [];
     state.seedEvents = data.seedEvents || [];
     selectors.app.hidden = false;
     setAuthenticatedView(true);
-    selectors.sessionSummary.textContent = `Signed in as ${auth.currentUser?.email || state.admin?.email || 'admin'}. Showing up to ${data.limit || 500} records per collection.`;
+    const loadedTrucks = getLoadedCount('trucks', state.trucks);
+    const totalTrucks = getCollectionTotal('trucks', state.trucks);
+    const truckLoadSummary = loadedTrucks < totalTrucks
+      ? `Showing ${formatCount(loadedTrucks)} of ${formatCount(totalTrucks)} truck profiles.`
+      : `Loaded ${formatCount(totalTrucks)} truck profiles.`;
+    selectors.sessionSummary.textContent = `Signed in as ${auth.currentUser?.email || state.admin?.email || 'admin'}. ${truckLoadSummary}`;
     renderAll();
   } catch (error) {
     selectors.app.hidden = true;
@@ -2260,7 +2372,7 @@ selectors.search?.addEventListener('input', (event) => {
 selectors.tabs.forEach((tab) => {
   tab.addEventListener('click', () => {
     state.activeTab = tab.dataset.tab || 'owners';
-    renderTable();
+    renderAll();
   });
 });
 

@@ -68,6 +68,7 @@
 .console-app,
 .console-panel,
 .record-dialog__content,
+.metric-summary,
 .metric-card {
   border: 1px solid var(--line);
   background: var(--paper-strong);
@@ -377,16 +378,52 @@
 
 .metric-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
   gap: 12px;
   margin: 18px 0;
+}
+
+.metric-summary {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-height: 112px;
+  padding: 18px;
+  border-radius: 18px;
+}
+
+.metric-summary span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metric-summary strong {
+  color: var(--ink);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.metric-summary small {
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.metric-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
+  gap: 12px;
 }
 
 .metric-card {
   display: grid;
   gap: 8px;
   align-content: center;
-  min-height: 92px;
+  min-height: 86px;
   padding: 14px 16px;
   border-radius: 18px;
 }
@@ -471,7 +508,7 @@
 }
 
 .management-table--trucks {
-  min-width: 1480px;
+  min-width: 1180px;
   table-layout: fixed;
 }
 
@@ -514,44 +551,37 @@
 
 .management-table--trucks th:nth-child(1),
 .management-table--trucks td:nth-child(1) {
-  width: 260px;
+  width: 270px;
 }
 
 .management-table--trucks th:nth-child(2),
 .management-table--trucks td:nth-child(2) {
-  width: 250px;
+  width: 220px;
 }
 
 .management-table--trucks th:nth-child(3),
 .management-table--trucks td:nth-child(3) {
-  width: 210px;
+  width: 260px;
 }
 
 .management-table--trucks th:nth-child(4),
 .management-table--trucks td:nth-child(4) {
-  width: 140px;
+  width: 160px;
 }
 
 .management-table--trucks th:nth-child(5),
-.management-table--trucks td:nth-child(5),
+.management-table--trucks td:nth-child(5) {
+  width: 180px;
+}
+
 .management-table--trucks th:nth-child(6),
 .management-table--trucks td:nth-child(6) {
-  width: 132px;
+  width: 120px;
 }
 
 .management-table--trucks th:nth-child(7),
 .management-table--trucks td:nth-child(7) {
-  width: 160px;
-}
-
-.management-table--trucks th:nth-child(8),
-.management-table--trucks td:nth-child(8) {
-  width: 118px;
-}
-
-.management-table--trucks th:nth-child(9),
-.management-table--trucks td:nth-child(9) {
-  width: 156px;
+  width: 170px;
 }
 
 .record-title {
@@ -1138,6 +1168,10 @@ summary.record-section__heading::-webkit-details-marker {
   }
 
   .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1161,6 +1195,7 @@ summary.record-section__heading::-webkit-details-marker {
   }
 
   .metric-grid,
+  .metric-strip,
   .record-section__grid,
   .truck-controls,
   .bulk-event-grid,
