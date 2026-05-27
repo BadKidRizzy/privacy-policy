@@ -366,6 +366,31 @@ h2 {
   gap: 12px;
 }
 
+.menu-photo {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfaf8;
+  padding: 10px;
+  color: var(--ink);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.menu-photo img {
+  width: 100%;
+  max-height: 520px;
+  border-radius: 6px;
+  object-fit: contain;
+  background: #fff;
+}
+
+.menu-photo span {
+  color: var(--teal);
+  font-size: 14px;
+}
+
 .menu-item strong,
 .schedule-item strong,
 .link-item strong {
@@ -555,5 +580,9 @@ h2 {
 
   .menu-item {
     grid-template-columns: 1fr;
+  }
+
+  .menu-photo img {
+    max-height: 420px;
   }
 }

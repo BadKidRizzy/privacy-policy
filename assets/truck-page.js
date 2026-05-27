@@ -340,16 +340,54 @@ function createMenuItem(item) {
   return row;
 }
 
+function getMenuPhotoUrls(truck) {
+  return Array.from(new Set([
+    ...asArray(truck.menuImages),
+    ...asArray(truck.menuImage ? [truck.menuImage] : []),
+    ...asArray(truck.researchMenuImageUrls),
+  ].map(asText).filter(isHttpUrl)));
+}
+
+function createMenuPhoto(url, index, truckName) {
+  const link = document.createElement('a');
+  link.className = 'menu-photo';
+  link.href = url;
+  link.target = '_blank';
+  link.rel = 'noreferrer';
+
+  const image = document.createElement('img');
+  image.src = url;
+  image.alt = `${truckName || 'Food truck'} menu photo ${index + 1}`;
+  image.loading = 'lazy';
+
+  const label = document.createElement('span');
+  label.textContent = 'Open full menu photo';
+
+  link.append(image, label);
+  return link;
+}
+
 function renderMenu(truck) {
   const menu = asArray(truck.menu).filter((item) => item && typeof item === 'object');
+  const menuPhotos = getMenuPhotoUrls(truck);
   const visibleMenu = state.showFullMenu ? menu : menu.slice(0, MENU_PREVIEW_LIMIT);
 
   selectors.menuList.textContent = '';
   selectors.menuCount.textContent = menu.length > 0
     ? `${menu.length} item${menu.length === 1 ? '' : 's'}`
-    : 'Menu pending';
+    : menuPhotos.length > 0
+      ? `${menuPhotos.length} photo${menuPhotos.length === 1 ? '' : 's'}`
+      : 'Menu pending';
 
   if (menu.length === 0) {
+    if (menuPhotos.length > 0) {
+      menuPhotos.forEach((url, index) => {
+        selectors.menuList.appendChild(createMenuPhoto(url, index, truck.name));
+      });
+      selectors.toggleMenu.hidden = true;
+      return;
+    }
+
     const empty = document.createElement('p');
     empty.className = 'empty-note';
     empty.textContent = 'Menu details are not available yet.';
