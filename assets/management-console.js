@@ -49,6 +49,8 @@ const selectors = {
   refresh: document.querySelector('[data-refresh]'),
   searchLabel: document.querySelector('[data-search-label]'),
   search: document.querySelector('[data-search]'),
+  clearSearch: document.querySelector('[data-clear-search]'),
+  filterSummary: document.querySelector('[data-filter-summary]'),
   tabs: Array.from(document.querySelectorAll('[data-tab]')),
   panelTitle: document.querySelector('[data-panel-title]'),
   panelDescription: document.querySelector('[data-panel-description]'),
@@ -85,6 +87,8 @@ const selectors = {
   transferTitle: document.querySelector('[data-transfer-title]'),
   transferMessage: document.querySelector('[data-transfer-message]'),
   transferOwnerOptions: document.querySelector('[data-transfer-owner-options]'),
+  transferEmailSelect: document.querySelector('[data-transfer-email-select]'),
+  transferEmailInput: document.querySelector('[data-transfer-email-input]'),
   closeTransferDialog: Array.from(document.querySelectorAll('[data-close-transfer-dialog]')),
   bulkDialog: document.querySelector('[data-bulk-dialog]'),
   bulkForm: document.querySelector('[data-bulk-form]'),
@@ -203,8 +207,8 @@ const fieldSets = {
       name: 'ownerEmail',
       label: 'Owner Email (transfer)',
       type: 'email',
-      list: 'owner-email-options',
-      help: 'Start typing and choose an owner email to transfer this truck.',
+      list: 'truck-owner-email-options',
+      help: 'Start typing and choose from loaded system emails. Truck transfer still requires an Owner account.',
     },
     {name: 'ownerId', label: 'Owner UID (advanced)', type: 'text'},
     {name: 'description', label: 'Description', type: 'textarea', wide: true},
@@ -634,6 +638,29 @@ function getCurrentSearch() {
   return state.searchByTab[state.activeTab] || '';
 }
 
+function getTabSourceRecords(config = tabConfig[state.activeTab]) {
+  return config.collection === 'users'
+    ? state.users
+    : config.collection === 'foodTrucks'
+      ? state.trucks
+      : state.events;
+}
+
+function getBaseRecords(config = tabConfig[state.activeTab]) {
+  return getTabSourceRecords(config).filter(config.filter);
+}
+
+function getActiveTruckFilterCount() {
+  return Object.values(state.truckFilters).filter((value) => value && value !== 'all').length;
+}
+
+function hasActiveSearchOrFilters() {
+  const hasSearch = Boolean(getCurrentSearch().trim());
+  const hasTruckFilters = state.activeTab === 'trucks' && getActiveTruckFilterCount() > 0;
+  const hasTruckSort = state.activeTab === 'trucks' && state.truckSort !== 'recently_updated';
+  return hasSearch || hasTruckFilters || hasTruckSort;
+}
+
 function getOwnerEmailOptions() {
   return state.users
     .filter((user) => user.userType === 'Owner' && user.email)
@@ -642,6 +669,49 @@ function getOwnerEmailOptions() {
       label: [user.name, user.id].filter(Boolean).join(' - '),
     }))
     .sort((a, b) => a.email.localeCompare(b.email));
+}
+
+function getAllUserEmailOptions() {
+  const emailsByValue = new Map();
+
+  state.users.forEach((user) => {
+    const email = String(user.email || '').trim();
+    if (!email) return;
+
+    const key = email.toLowerCase();
+    const label = [
+      user.userType || 'User',
+      user.organizationName || user.name,
+      user.uid || user.id,
+    ].filter(Boolean).join(' - ');
+
+    if (!emailsByValue.has(key)) {
+      emailsByValue.set(key, {
+        email,
+        label,
+        userType: user.userType || '',
+      });
+      return;
+    }
+
+    const existing = emailsByValue.get(key);
+    if (!existing.label && label) {
+      existing.label = label;
+    }
+    if (!existing.userType && user.userType) {
+      existing.userType = user.userType;
+    }
+  });
+
+  return Array.from(emailsByValue.values())
+    .sort((a, b) => a.email.localeCompare(b.email));
+}
+
+function findLoadedUserByEmail(email) {
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  if (!normalizedEmail) return null;
+
+  return state.users.find((user) => String(user.email || '').trim().toLowerCase() === normalizedEmail) || null;
 }
 
 function getOrganizerEmailOptions() {
@@ -673,6 +743,14 @@ function renderOwnerEmailDatalist() {
   return renderEmailDatalist('owner-email-options', getOwnerEmailOptions());
 }
 
+function renderTruckOwnerEmailDatalist() {
+  return renderEmailDatalist('truck-owner-email-options', getAllUserEmailOptions());
+}
+
+function renderTransferUserEmailDatalist(options) {
+  return renderEmailDatalist('transfer-user-email-options', options);
+}
+
 function renderOrganizerEmailDatalist() {
   return renderEmailDatalist('organizer-email-options', getOrganizerEmailOptions());
 }
@@ -701,19 +779,28 @@ function renderEventIdDatalist() {
 
 function getActiveRecords() {
   const config = tabConfig[state.activeTab];
-  const source = config.collection === 'users'
-    ? state.users
-    : config.collection === 'foodTrucks'
-      ? state.trucks
-      : state.events;
+  const source = getBaseRecords(config);
   const query = getCurrentSearch().trim().toLowerCase();
 
   const records = source
-    .filter(config.filter)
     .filter((record) => !query || recordText(record).includes(query))
     .filter((record) => state.activeTab !== 'trucks' || matchesTruckFilters(record));
 
   return state.activeTab === 'trucks' ? sortTruckRecords(records) : records;
+}
+
+function syncTruckFilterInputs() {
+  selectors.truckFilterInputs.forEach((input) => {
+    const filterName = input.dataset.truckFilter;
+    const value = state.truckFilters[filterName] || 'all';
+    if (input.value !== value) {
+      input.value = value;
+    }
+  });
+
+  if (selectors.truckSort && selectors.truckSort.value !== state.truckSort) {
+    selectors.truckSort.value = state.truckSort;
+  }
 }
 
 function renderMetrics() {
@@ -818,7 +905,10 @@ function renderMetrics() {
 
 function renderTable() {
   const config = tabConfig[state.activeTab];
+  const baseRecords = getBaseRecords(config);
   const records = getActiveRecords();
+  const currentSearch = getCurrentSearch();
+  const activeTruckFilterCount = state.activeTab === 'trucks' ? getActiveTruckFilterCount() : 0;
 
   selectors.panelTitle.textContent = config.title;
   selectors.panelDescription.textContent = config.description;
@@ -839,15 +929,26 @@ function renderTable() {
   if (selectors.truckControls) {
     selectors.truckControls.hidden = state.activeTab !== 'trucks';
   }
+  syncTruckFilterInputs();
   if (selectors.searchLabel) {
     selectors.searchLabel.textContent = config.searchLabel || 'Search';
   }
   if (selectors.search) {
     selectors.search.placeholder = config.searchPlaceholder || 'Search records...';
-    const currentSearch = getCurrentSearch();
     if (selectors.search.value !== currentSearch) {
       selectors.search.value = currentSearch;
     }
+  }
+  if (selectors.clearSearch) {
+    selectors.clearSearch.textContent = state.activeTab === 'trucks' ? 'Reset Search & Filters' : 'Clear Search';
+    selectors.clearSearch.disabled = !hasActiveSearchOrFilters();
+  }
+  if (selectors.filterSummary) {
+    const filterLabel = activeTruckFilterCount === 1 ? '1 filter' : `${activeTruckFilterCount} filters`;
+    const detail = state.activeTab === 'trucks' && activeTruckFilterCount > 0
+      ? ` with ${filterLabel}`
+      : '';
+    selectors.filterSummary.textContent = `Showing ${formatCount(records.length)} of ${formatCount(baseRecords.length)}${detail}`;
   }
 
   selectors.tabs.forEach((tab) => {
@@ -1040,7 +1141,7 @@ function truckMapVisibilityButton(record) {
 }
 
 function getDatalistHtml(collection) {
-  if (collection === 'foodTrucks') return renderOwnerEmailDatalist();
+  if (collection === 'foodTrucks') return renderTruckOwnerEmailDatalist();
   if (collection === 'events') return renderOrganizerEmailDatalist();
   return '';
 }
@@ -1048,6 +1149,20 @@ function getDatalistHtml(collection) {
 function renderAll() {
   renderMetrics();
   renderTable();
+}
+
+function clearCurrentSearchAndFilters() {
+  state.searchByTab[state.activeTab] = '';
+
+  if (state.activeTab === 'trucks') {
+    Object.keys(state.truckFilters).forEach((key) => {
+      state.truckFilters[key] = 'all';
+    });
+    state.truckSort = 'recently_updated';
+  }
+
+  renderTable();
+  selectors.search?.focus();
 }
 
 async function loadSnapshot() {
@@ -1161,6 +1276,29 @@ function renderSeedOwnerOptions() {
     .join('');
 }
 
+function renderTransferEmailOptions() {
+  const options = getAllUserEmailOptions();
+
+  if (selectors.transferEmailSelect) {
+    const placeholder = options.length
+      ? `Choose from ${options.length} loaded emails`
+      : 'No user emails loaded';
+
+    selectors.transferEmailSelect.innerHTML = `
+      <option value="">${escapeHtml(placeholder)}</option>
+      ${options.map((option) => `
+        <option value="${escapeHtml(option.email)}">
+          ${escapeHtml(`${option.email}${option.label ? ` (${option.label})` : ''}`)}
+        </option>
+      `).join('')}
+    `;
+  }
+
+  if (selectors.transferOwnerOptions) {
+    selectors.transferOwnerOptions.innerHTML = renderTransferUserEmailDatalist(options);
+  }
+}
+
 function openSeedTruckDialog() {
   renderSeedOwnerOptions();
   if (selectors.seedForm) {
@@ -1188,7 +1326,7 @@ function openTransferDialog() {
   const truck = state.selected.record;
   selectors.transferForm?.reset();
   selectors.transferTitle.textContent = `Transfer ${truck.name || 'Truck'}`;
-  selectors.transferOwnerOptions.innerHTML = renderOwnerEmailDatalist();
+  renderTransferEmailOptions();
   setMessage(selectors.transferMessage, '');
 
   if (typeof selectors.transferDialog?.showModal === 'function') {
@@ -1216,6 +1354,16 @@ async function submitTransferTruck() {
 
   if (!newOwnerEmail && !newOwnerUid) {
     setMessage(selectors.transferMessage, 'Enter the new owner email or UID.', true);
+    return;
+  }
+
+  const loadedUser = findLoadedUserByEmail(newOwnerEmail);
+  if (loadedUser?.userType && loadedUser.userType !== 'Owner') {
+    setMessage(
+      selectors.transferMessage,
+      `Selected email belongs to a ${loadedUser.userType} account. Change that user to Owner before transferring a truck.`,
+      true
+    );
     return;
   }
 
@@ -1956,9 +2104,13 @@ async function seedTruckFromForm() {
       address,
       ownerEmail: String(formData.get('ownerEmail') || '').trim(),
       name: truckName,
+      businessPhone: String(formData.get('businessPhone') || '').trim(),
       description: String(formData.get('description') || '').trim(),
       cuisines: splitCommaList(formData.get('cuisines')),
       tags: splitCommaList(formData.get('tags')),
+      sourceName: String(formData.get('sourceName') || '').trim(),
+      sourceUrl: String(formData.get('sourceUrl') || '').trim(),
+      adminNotes: String(formData.get('adminNotes') || '').trim(),
       truckImage,
       menuImages,
     };
@@ -1967,6 +2119,8 @@ async function seedTruckFromForm() {
       String(formData.get('instagramUrl') || '').trim(),
       String(formData.get('tiktokUrl') || '').trim(),
       String(formData.get('yelpUrl') || '').trim(),
+      String(formData.get('googleMapsUrl') || '').trim(),
+      String(formData.get('facebookUrl') || '').trim(),
     ].filter(Boolean);
     const websiteUrl = String(formData.get('websiteUrl') || '').trim();
     const doordashUrl = String(formData.get('doordashUrl') || '').trim();
@@ -1988,6 +2142,7 @@ async function seedTruckFromForm() {
     const seededTruckName = result.data?.name || truckName;
     const menuItemCount = Number(result.data?.menuItemCount || 0);
     const linkCount = [
+      result.data?.businessPhone,
       result.data?.websiteUrl,
       result.data?.doordashUrl,
       result.data?.uberEatsUrl,
@@ -2369,6 +2524,8 @@ selectors.search?.addEventListener('input', (event) => {
   renderTable();
 });
 
+selectors.clearSearch?.addEventListener('click', clearCurrentSearchAndFilters);
+
 selectors.tabs.forEach((tab) => {
   tab.addEventListener('click', () => {
     state.activeTab = tab.dataset.tab || 'owners';
@@ -2419,6 +2576,26 @@ selectors.seedForm?.addEventListener('submit', async (event) => {
 selectors.transferForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   await submitTransferTruck();
+});
+
+selectors.transferEmailSelect?.addEventListener('change', (event) => {
+  const email = String(event.target.value || '').trim();
+
+  if (selectors.transferEmailInput) {
+    selectors.transferEmailInput.value = email;
+  }
+
+  const loadedUser = findLoadedUserByEmail(email);
+  if (email && loadedUser?.userType && loadedUser.userType !== 'Owner') {
+    setMessage(
+      selectors.transferMessage,
+      `Selected email belongs to a ${loadedUser.userType} account. Change that user to Owner before transferring a truck.`,
+      true
+    );
+    return;
+  }
+
+  setMessage(selectors.transferMessage, '');
 });
 
 selectors.addBulkRow?.addEventListener('click', addBulkRow);

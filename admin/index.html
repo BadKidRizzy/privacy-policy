@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../assets/site.css?v=1">
-  <link rel="stylesheet" href="../assets/management-console.css?v=15">
+  <link rel="stylesheet" href="../assets/management-console.css?v=17">
 </head>
 <body class="console-body">
   <div class="console-shell">
@@ -70,10 +70,6 @@
           </div>
 
           <div class="console-toolbar__actions">
-            <label class="search-box">
-              <span data-search-label>Search Owners</span>
-              <input type="search" placeholder="Search owner name, email, phone, address..." data-search>
-            </label>
             <button class="button button--secondary" type="button" data-refresh>Refresh</button>
           </div>
         </div>
@@ -102,10 +98,19 @@
             </div>
           </div>
 
+          <div class="console-findbar">
+            <label class="search-box search-box--panel">
+              <span data-search-label>Search Owners</span>
+              <input type="search" placeholder="Search owner name, email, phone, address..." data-search>
+            </label>
+            <button class="button button--ghost" type="button" data-clear-search>Clear Search</button>
+            <span class="filter-summary" data-filter-summary>Showing records</span>
+          </div>
+
           <div class="truck-controls" data-truck-controls hidden>
             <div class="truck-controls__header">
-              <strong>Find Trucks</strong>
-              <span>Use filters when the list is too long.</span>
+              <strong>Truck Filters</strong>
+              <span>Search by name first, then narrow the list here.</span>
             </div>
             <label>
               Claim Status
@@ -213,25 +218,61 @@
         <div>
           <p class="eyebrow">Truck Seed</p>
           <h2>Seed Truck From Photos</h2>
-          <p>Upload the truck photo, menu photo, and address. The console will create the listing, menu, description, links, and map pin.</p>
+          <p>AI always scans the truck and menu photos, then enriches the listing with menu items, profile text, links, and map details. Required: truck name, address, one truck photo, and at least one menu photo.</p>
         </div>
         <button type="button" class="icon-button" data-close-seed-dialog aria-label="Close seed dialog">X</button>
       </div>
 
       <div class="record-grid">
-        <section class="record-section">
+        <div class="seed-required-summary" aria-label="Required seed fields">
+          <span>Truck name</span>
+          <span>Address</span>
+          <span>Truck photo</span>
+          <span>Menu photo</span>
+        </div>
+
+        <section class="record-section record-section--required">
           <div class="record-section__heading">
             <div>
-              <h3>Truck Basics</h3>
-              <p>Required details for the listing and map pin.</p>
+              <h3>Required To Seed</h3>
+              <p>Start here. AI uses these four items to create and enrich the truck listing.</p>
             </div>
           </div>
           <div class="record-section__grid">
-            <label class="record-field record-field--wide">
-              Address
-              <textarea name="address" required placeholder="5700 Rowanberry Dr, Elkridge, MD 21075"></textarea>
+            <label class="record-field">
+              <span class="record-field__label">Truck Name <span class="required-pill">Required</span></span>
+              <input name="name" type="text" maxlength="80" placeholder="Required" required>
+              <small class="field-help">Use the exact name shown on the truck when possible.</small>
             </label>
 
+            <label class="record-field">
+              <span class="record-field__label">Address <span class="required-pill">Required</span></span>
+              <textarea name="address" required placeholder="5700 Rowanberry Dr, Elkridge, MD 21075"></textarea>
+              <small class="field-help">Street address, event address, or closest public location for the map pin.</small>
+            </label>
+
+            <label class="record-field record-field--file">
+              <span class="record-field__label">Truck Photo <span class="required-pill">Required</span></span>
+              <input name="truckImage" type="file" accept="image/jpeg,image/png,image/webp" required>
+              <small class="field-help">Photo of the actual truck. Max 5 MB.</small>
+            </label>
+
+            <label class="record-field record-field--file">
+              <span class="record-field__label">Menu Photos <span class="required-pill">Required</span></span>
+              <input name="menuImages" type="file" accept="image/jpeg,image/png,image/webp" multiple required>
+              <small class="field-help">Upload one to three menu photos. Max 5 MB each.</small>
+            </label>
+          </div>
+        </section>
+
+        <section class="record-section">
+          <div class="record-section__heading">
+            <div>
+              <h3>AI Profile Overrides</h3>
+              <p>AI fills these automatically. Add values only when you already know the answer.</p>
+            </div>
+          </div>
+          <div class="record-section__grid">
             <label class="record-field">
               Owner Email
               <input name="ownerEmail" type="email" list="seed-owner-email-options" placeholder="foodtruckfinderinfo+owner@gmail.com">
@@ -239,8 +280,9 @@
             </label>
 
             <label class="record-field">
-              Truck Name
-              <input name="name" type="text" maxlength="80" placeholder="Required" required>
+              Business Phone
+              <input name="businessPhone" type="tel" placeholder="Optional public phone">
+              <small class="field-help">Helps AI match the exact truck and fills the profile if found.</small>
             </label>
 
             <label class="record-field record-field--wide">
@@ -263,8 +305,8 @@
         <section class="record-section">
           <div class="record-section__heading">
             <div>
-              <h3>Known Links</h3>
-              <p>Paste links here when AI might miss them.</p>
+              <h3>AI Lookup Help</h3>
+              <p>AI always searches for public profiles. Paste known links or notes here to guide the search.</p>
             </div>
           </div>
           <div class="record-section__grid">
@@ -295,6 +337,16 @@
             </label>
 
             <label class="record-field">
+              Google Maps URL
+              <input name="googleMapsUrl" type="url" placeholder="https://maps.google.com/...">
+            </label>
+
+            <label class="record-field">
+              Facebook URL
+              <input name="facebookUrl" type="url" placeholder="https://facebook.com/truck">
+            </label>
+
+            <label class="record-field">
               DoorDash URL
               <input name="doordashUrl" type="url" placeholder="https://www.doordash.com/store/...">
             </label>
@@ -303,27 +355,22 @@
               Uber Eats URL
               <input name="uberEatsUrl" type="url" placeholder="https://www.ubereats.com/store/...">
             </label>
-          </div>
-        </section>
 
-        <section class="record-section">
-          <div class="record-section__heading">
-            <div>
-              <h3>Photos</h3>
-              <p>Upload the actual truck and menu photos for AI scanning.</p>
-            </div>
-          </div>
-          <div class="record-section__grid">
-            <label class="record-field record-field--file">
-              Truck Photo
-              <input name="truckImage" type="file" accept="image/jpeg,image/png,image/webp" required>
-              <small class="field-help">Photo of the actual truck. Max 5 MB.</small>
+            <label class="record-field">
+              Source Name
+              <input name="sourceName" type="text" maxlength="120" placeholder="Event, flyer, website, or public source">
             </label>
 
-            <label class="record-field record-field--file">
-              Menu Photos
-              <input name="menuImages" type="file" accept="image/jpeg,image/png,image/webp" multiple required>
-              <small class="field-help">Upload one to three menu photos. Max 5 MB each.</small>
+            <label class="record-field">
+              Source URL
+              <input name="sourceUrl" type="url" placeholder="https://event-site.com/vendor-list">
+              <small class="field-help">AI checks this first before broad web search.</small>
+            </label>
+
+            <label class="record-field record-field--wide">
+              Search Notes
+              <textarea name="adminNotes" maxlength="1200" placeholder="Optional. Paste useful public context, alternate names, handles, phone numbers, source text, or links the AI should verify."></textarea>
+              <small class="field-help">Use this when the truck name is common or the source has multiple vendors.</small>
             </label>
           </div>
         </section>
@@ -352,9 +399,17 @@
       </div>
 
       <div class="record-grid">
+        <label class="record-field record-field--wide">
+          Choose From Loaded User Emails
+          <select name="newOwnerEmailSelect" data-transfer-email-select>
+            <option value="">Loading emails...</option>
+          </select>
+          <small class="field-help">Shows emails loaded in the management console. Truck transfer still requires an Owner account.</small>
+        </label>
         <label class="record-field">
           New Owner Email
-          <input name="newOwnerEmail" type="email" list="owner-email-options" placeholder="owner@example.com">
+          <input name="newOwnerEmail" type="email" list="transfer-user-email-options" data-transfer-email-input placeholder="owner@example.com">
+          <small class="field-help">Pick from the dropdown above or type an owner email manually.</small>
         </label>
         <label class="record-field">
           New Owner UID
@@ -480,6 +535,6 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
-  <script defer src="../assets/management-console.js?v=22"></script>
+  <script defer src="../assets/management-console.js?v=25"></script>
 </body>
 </html>

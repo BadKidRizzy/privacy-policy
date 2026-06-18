@@ -141,6 +141,28 @@
   line-height: 1.5;
 }
 
+.record-field__label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.required-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(238, 108, 63, 0.16);
+  color: #9b341c;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .record-field--checkbox {
   display: flex;
   align-items: center;
@@ -267,7 +289,7 @@
 
 .console-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 18px;
   align-items: start;
   padding-bottom: 14px;
@@ -279,18 +301,11 @@
 }
 
 .console-toolbar__actions {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.68);
+  justify-content: flex-end;
 }
 
 .console-toolbar__actions .button {
   align-self: end;
-  justify-self: start;
 }
 
 .panel-heading {
@@ -324,11 +339,40 @@
   min-width: 0;
 }
 
+.console-findbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto auto;
+  gap: 12px;
+  align-items: end;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid rgba(15, 124, 130, 0.18);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(15, 124, 130, 0.09), rgba(255, 255, 255, 0.82)),
+    rgba(255, 255, 255, 0.76);
+}
+
+.search-box--panel span {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.filter-summary {
+  align-self: center;
+  justify-self: end;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.4;
+  text-align: right;
+}
+
 .truck-controls {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
   gap: 10px;
-  margin-top: 14px;
+  margin-top: 10px;
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -873,6 +917,27 @@
   align-items: start;
 }
 
+.seed-required-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.seed-required-summary span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid rgba(15, 124, 130, 0.22);
+  border-radius: 999px;
+  background: rgba(15, 124, 130, 0.08);
+  color: var(--accent-deep);
+  font-size: 0.84rem;
+  font-weight: 900;
+  text-align: center;
+}
+
 .record-section {
   display: grid;
   gap: 14px;
@@ -880,6 +945,13 @@
   border: 1px solid var(--line);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.72);
+}
+
+.record-section--required {
+  border-color: rgba(238, 108, 63, 0.32);
+  background:
+    linear-gradient(135deg, rgba(238, 108, 63, 0.12), rgba(255, 255, 255, 0.78) 42%),
+    rgba(255, 255, 255, 0.76);
 }
 
 .record-section__heading {
@@ -1149,6 +1221,7 @@ summary.record-section__heading::-webkit-details-marker {
   }
 
   .console-toolbar,
+  .console-findbar,
   .panel-heading,
   .console-header {
     flex-direction: column;
@@ -1165,6 +1238,15 @@ summary.record-section__heading::-webkit-details-marker {
 
   .console-toolbar__actions {
     grid-template-columns: 1fr;
+  }
+
+  .console-findbar {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-summary {
+    justify-self: start;
+    text-align: left;
   }
 
   .metric-grid {
@@ -1197,6 +1279,7 @@ summary.record-section__heading::-webkit-details-marker {
   .metric-grid,
   .metric-strip,
   .record-section__grid,
+  .seed-required-summary,
   .truck-controls,
   .bulk-event-grid,
   .truck-detail-grid {
