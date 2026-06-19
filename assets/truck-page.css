@@ -180,10 +180,10 @@ select {
 
 .truck-hero--banner {
   position: relative;
-  grid-template-columns: 1fr;
-  gap: 0;
-  overflow: hidden;
-  padding: clamp(10px, 1.5vw, 18px);
+  grid-template-columns: minmax(0, 1.18fr) minmax(380px, 0.82fr);
+  gap: clamp(16px, 2vw, 28px);
+  overflow: visible;
+  padding: clamp(14px, 1.8vw, 22px);
   background:
     radial-gradient(circle at 14% 12%, rgba(229, 95, 50, 0.2), transparent 28rem),
     radial-gradient(circle at 86% 8%, rgba(11, 115, 117, 0.14), transparent 30rem),
@@ -193,24 +193,25 @@ select {
 .truck-hero--banner .hero-media {
   display: grid;
   place-items: center;
-  height: clamp(430px, 52vw, 720px);
+  height: clamp(390px, 37vw, 560px);
   min-height: 0;
   padding: clamp(8px, 1.2vw, 16px);
-  border-radius: 30px;
+  border-radius: 28px;
 }
 
 .truck-hero--banner .hero-media img {
+  max-height: 100%;
   border-radius: 22px;
 }
 
 .truck-hero--banner .hero-copy {
   position: relative;
   z-index: 2;
-  width: min(1040px, calc(100% - 40px));
+  width: auto;
   min-height: 0;
-  margin: -86px auto 0;
-  padding: clamp(30px, 4vw, 52px);
-  border-radius: 30px;
+  margin: 0;
+  padding: clamp(28px, 3.4vw, 46px);
+  border-radius: 28px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 242, 0.9)),
     var(--surface);
@@ -228,17 +229,27 @@ select {
 }
 
 .truck-hero--banner h1 {
-  max-width: 100%;
-  font-size: clamp(2.8rem, 6vw, 5.6rem);
-  line-height: 0.94;
+  max-width: 11ch;
+  font-size: clamp(2.45rem, 4.4vw, 4.25rem);
+  line-height: 0.98;
 }
 
 .truck-hero--banner .lede {
-  max-width: 68ch;
+  max-width: 48ch;
 }
 
 .truck-hero--banner .quick-facts {
-  margin-top: 24px;
+  grid-template-columns: 1fr;
+  margin-top: 22px;
+}
+
+.truck-hero--banner .hero-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.truck-hero--banner .hero-actions .button {
+  min-width: 0;
 }
 
 .eyebrow {
@@ -854,6 +865,10 @@ h2 {
   .truck-hero--banner h1 {
     font-size: 34px;
     letter-spacing: -0.055em;
+  }
+
+  .truck-hero--banner .hero-actions {
+    grid-template-columns: 1fr;
   }
 
   h2 {
