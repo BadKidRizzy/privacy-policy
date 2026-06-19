@@ -182,12 +182,10 @@ select {
 
 .truck-hero--banner {
   position: relative;
-  grid-template-columns: minmax(0, 1.08fr) minmax(380px, 0.86fr);
-  gap: clamp(16px, 2vw, 24px);
-  align-items: start;
-  overflow: visible;
+  display: block;
+  overflow: hidden;
   margin-bottom: 24px;
-  padding: clamp(12px, 1.8vw, 20px);
+  padding: clamp(10px, 1.6vw, 18px);
   border-color: rgba(49, 35, 24, 0.12);
   border-radius: 34px;
   background:
@@ -197,11 +195,10 @@ select {
 }
 
 .truck-hero--banner .hero-media {
-  display: grid;
-  place-items: center;
+  display: block;
   height: auto;
   min-height: 0;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: auto;
   padding: 0;
   border: 1px solid rgba(49, 35, 24, 0.1);
   border-radius: 26px;
@@ -211,7 +208,7 @@ select {
 
 .truck-hero--banner .hero-media img {
   width: 100%;
-  height: 100%;
+  height: auto;
   border-radius: 0;
   object-fit: contain;
 }
@@ -219,9 +216,9 @@ select {
 .truck-hero--banner .hero-copy {
   position: relative;
   z-index: 2;
-  width: auto;
+  width: min(980px, calc(100% - 32px));
   min-height: 0;
-  margin: 0;
+  margin: clamp(-42px, -4vw, -28px) auto 0;
   padding: clamp(26px, 3.2vw, 42px);
   border: 1px solid rgba(49, 35, 24, 0.12);
   border-radius: 26px;
@@ -243,7 +240,7 @@ select {
 }
 
 .truck-hero--banner h1 {
-  max-width: 14ch;
+  max-width: 16ch;
   font-size: clamp(2rem, 3vw, 3.15rem);
   line-height: 1.03;
   letter-spacing: -0.035em;
@@ -257,7 +254,7 @@ select {
 }
 
 .truck-hero--banner .quick-facts {
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-top: 20px;
 }
@@ -467,18 +464,31 @@ h2 {
 
 .quick-facts {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-top: 28px;
 }
 
-.quick-facts div {
+.quick-fact {
   min-width: 0;
   border: 1px solid rgba(45, 34, 26, 0.1);
   border-radius: 16px;
   padding: 13px 14px;
   background:
     linear-gradient(180deg, rgba(255, 250, 244, 0.96), rgba(255, 255, 255, 0.84));
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 8px 18px rgba(24, 17, 13, 0.05);
+  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.quick-fact:hover,
+.quick-fact:focus-visible {
+  border-color: rgba(10, 115, 112, 0.35);
+  outline: none;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(24, 17, 13, 0.1);
 }
 
 .quick-facts span {
@@ -808,21 +818,9 @@ h2 {
 }
 
 @media (max-width: 1120px) {
-  .truck-hero--banner {
-    grid-template-columns: 1fr;
-  }
-
-  .truck-hero--banner .hero-media {
-    aspect-ratio: 16 / 10;
-  }
-
   .truck-hero--banner h1 {
     max-width: 100%;
     font-size: clamp(2.35rem, 8vw, 3.6rem);
-  }
-
-  .truck-hero--banner .quick-facts {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -841,14 +839,9 @@ h2 {
     aspect-ratio: 4 / 3;
   }
 
-  .truck-hero--banner .hero-media {
-    height: auto;
-    aspect-ratio: 16 / 10;
-  }
-
   .truck-hero--banner .hero-copy {
-    width: auto;
-    margin-top: 0;
+    width: min(100% - 18px, 980px);
+    margin-top: -24px;
   }
 
   .truck-hero--banner h1 {
@@ -888,13 +881,11 @@ h2 {
   }
 
   .truck-hero--banner {
-    gap: 10px;
     padding: 9px;
     border-radius: 24px;
   }
 
   .truck-hero--banner .hero-media {
-    aspect-ratio: 16 / 10;
     padding: 0;
     border-radius: 18px;
   }
@@ -905,7 +896,7 @@ h2 {
 
   .truck-hero--banner .hero-copy {
     width: 100%;
-    margin: 10px 0 0;
+    margin: 8px 0 0;
     padding: 18px;
     border-radius: 18px;
   }

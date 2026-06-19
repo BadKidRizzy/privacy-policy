@@ -25,8 +25,10 @@ const selectors = {
   directions: document.querySelector('[data-directions]'),
   orderLink: document.querySelector('[data-order-link]'),
   truckAddress: document.querySelector('[data-truck-address]'),
+  copyAddress: document.querySelector('[data-copy-address]'),
   menuCount: document.querySelector('[data-menu-count]'),
-  shareUrl: document.querySelector('[data-share-url]'),
+  jumpMenu: document.querySelector('[data-jump-menu]'),
+  menuSection: document.querySelector('[data-menu-section]'),
   menuList: document.querySelector('[data-menu-list]'),
   toggleMenu: document.querySelector('[data-toggle-menu]'),
   scheduleList: document.querySelector('[data-schedule-list]'),
@@ -195,14 +197,6 @@ function setShareUrls(truckName = '') {
 
   state.publicShareUrl = buildShareUrl(state.truckId, truckName);
   state.shareUrl = isIosDevice() ? buildAppUrl(state.truckId, false) : state.publicShareUrl;
-}
-
-function formatShareSummary(url) {
-  if (isAppUrl(url)) {
-    return 'Opens in the app';
-  }
-
-  return 'Copy or share this profile';
 }
 
 function formatSharePanelText(url) {
@@ -562,7 +556,6 @@ function renderTruck(truck) {
   selectors.openApp.href = buildAppUrl(state.truckId);
   selectors.directions.href = buildDirectionsUrl(truck);
   selectors.truckAddress.textContent = truck.currentAddress || 'Address unavailable';
-  selectors.shareUrl.textContent = formatShareSummary(state.shareUrl);
   selectors.shareText.textContent = formatSharePanelText(state.shareUrl);
   selectors.claimLink.href = buildClaimUrl(truck);
   if (selectors.claimSummary) {
@@ -604,6 +597,29 @@ async function copyShareLink() {
   } catch {
     window.prompt('Truck link:', value);
   }
+}
+
+async function copyTruckAddress() {
+  const value = asText(state.truck?.currentAddress);
+
+  if (!value) {
+    showToast('Address unavailable');
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(value);
+    showToast('Copied address');
+  } catch {
+    window.prompt('Truck address:', value);
+  }
+}
+
+function jumpToMenu() {
+  selectors.menuSection?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+  });
 }
 
 function handleOpenApp(event) {
@@ -657,6 +673,8 @@ async function loadTruck() {
 
   selectors.shareText.textContent = formatSharePanelText(state.shareUrl);
   selectors.copyButtons.forEach((button) => button.addEventListener('click', copyShareLink));
+  selectors.copyAddress?.addEventListener('click', copyTruckAddress);
+  selectors.jumpMenu?.addEventListener('click', jumpToMenu);
   selectors.openApp?.addEventListener('click', handleOpenApp);
   selectors.nativeShare?.addEventListener('click', nativeShare);
   selectors.claimLink?.addEventListener('click', openClaimModal);

@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;650;750;850&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/truck-page.css?v=13">
+  <link rel="stylesheet" href="../assets/truck-page.css?v=15">
 </head>
 <body>
   <div class="truck-shell" data-page-shell>
@@ -75,18 +75,14 @@
             </div>
 
             <div class="quick-facts">
-              <div>
+              <button class="quick-fact" type="button" data-copy-address>
                 <span>Where To Go</span>
                 <strong data-truck-address>Address unavailable</strong>
-              </div>
-              <div>
+              </button>
+              <button class="quick-fact" type="button" data-jump-menu>
                 <span>Menu Ready</span>
                 <strong data-menu-count>Menu pending</strong>
-              </div>
-              <div>
-                <span>Save Or Share</span>
-                <strong data-share-url>Copy or share this profile</strong>
-              </div>
+              </button>
             </div>
           </div>
         </section>
@@ -205,6 +201,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-  <script defer src="../assets/truck-page.js?v=11"></script>
+  <script defer src="../assets/truck-page.js?v=12"></script>
 </body>
 </html>
