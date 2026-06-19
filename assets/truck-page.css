@@ -182,8 +182,9 @@ select {
 
 .truck-hero--banner {
   position: relative;
-  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(380px, 0.86fr);
   gap: clamp(16px, 2vw, 24px);
+  align-items: start;
   overflow: visible;
   margin-bottom: 24px;
   padding: clamp(12px, 1.8vw, 20px);
@@ -200,7 +201,7 @@ select {
   place-items: center;
   height: auto;
   min-height: 0;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 10;
   padding: 0;
   border: 1px solid rgba(49, 35, 24, 0.1);
   border-radius: 26px;
@@ -242,9 +243,12 @@ select {
 }
 
 .truck-hero--banner h1 {
-  max-width: 12.5ch;
-  font-size: clamp(2.1rem, 3.4vw, 3.45rem);
-  line-height: 1;
+  max-width: 14ch;
+  font-size: clamp(2rem, 3vw, 3.15rem);
+  line-height: 1.03;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  word-spacing: 0.04em;
 }
 
 .truck-hero--banner .lede {
@@ -803,6 +807,25 @@ h2 {
   display: none !important;
 }
 
+@media (max-width: 1120px) {
+  .truck-hero--banner {
+    grid-template-columns: 1fr;
+  }
+
+  .truck-hero--banner .hero-media {
+    aspect-ratio: 16 / 10;
+  }
+
+  .truck-hero--banner h1 {
+    max-width: 100%;
+    font-size: clamp(2.35rem, 8vw, 3.6rem);
+  }
+
+  .truck-hero--banner .quick-facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 920px) {
   .truck-hero,
   .content-grid {
@@ -820,7 +843,7 @@ h2 {
 
   .truck-hero--banner .hero-media {
     height: auto;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 10;
   }
 
   .truck-hero--banner .hero-copy {
@@ -834,6 +857,10 @@ h2 {
   }
 
   .quick-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .truck-hero--banner .quick-facts {
     grid-template-columns: 1fr;
   }
 }
@@ -867,7 +894,7 @@ h2 {
   }
 
   .truck-hero--banner .hero-media {
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 10;
     padding: 0;
     border-radius: 18px;
   }
@@ -893,7 +920,7 @@ h2 {
 
   .truck-hero--banner h1 {
     font-size: 34px;
-    letter-spacing: -0.055em;
+    letter-spacing: -0.025em;
   }
 
   .truck-hero--banner .hero-actions {
