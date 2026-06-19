@@ -38,6 +38,7 @@ const selectors = {
   claimModal: document.querySelector('[data-claim-modal]'),
   claimModalClose: document.querySelector('[data-claim-modal-close]'),
   claimModalEmail: document.querySelector('[data-claim-modal-email]'),
+  claimSummary: document.querySelector('[data-claim-summary]'),
   toast: document.querySelector('[data-toast]'),
 };
 
@@ -227,6 +228,8 @@ function formatClaimDetails(truck) {
   const rows = [
     ['Truck name', truck.name || 'Food Truck'],
     ['Truck ID', state.truckId],
+    ['Public listing', state.publicShareUrl],
+    ['Current address', truck.currentAddress],
   ];
 
   return rows
@@ -242,20 +245,35 @@ function buildClaimUrl(truck) {
   const body = [
     'Hi Food Truck Finder team,',
     '',
-    `I would like to claim this Food Truck Finder listing for ${truckName}.`,
+    `I would like to claim and manage this Food Truck Finder listing for ${truckName}.`,
     '',
-    'Truck identifiers:',
+    'Listing details:',
     formatClaimDetails(truck),
     '',
     'My info:',
     '- Owner/manager name:',
     '- Best phone number:',
     '- Owner account email used in the app:',
-    '- Proof of ownership or official link:',
-    '- Updates needed on this listing:',
+    '- Proof of ownership or official link, such as website, Instagram, Facebook, license, or event booking:',
+    '',
+    'First updates I need made:',
+    '- Menu:',
+    '- Photos:',
+    '- Address/location:',
+    '- Other:',
   ].join('\n');
 
   return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function formatClaimSummary(truck) {
+  const parts = [
+    truck.name || 'This truck',
+    truck.currentAddress,
+    state.truckId ? `ID ${state.truckId}` : '',
+  ].filter(Boolean);
+
+  return `You are claiming: ${parts.join(' - ')}`;
 }
 
 function openClaimModal(event) {
@@ -547,6 +565,9 @@ function renderTruck(truck) {
   selectors.shareUrl.textContent = formatShareSummary(state.shareUrl);
   selectors.shareText.textContent = formatSharePanelText(state.shareUrl);
   selectors.claimLink.href = buildClaimUrl(truck);
+  if (selectors.claimSummary) {
+    selectors.claimSummary.textContent = formatClaimSummary(truck);
+  }
 
   const orderUrl = getOrderUrl(truck);
   if (isHttpUrl(orderUrl)) {

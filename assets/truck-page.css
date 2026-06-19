@@ -514,6 +514,69 @@ h2 {
   border-color: var(--teal);
 }
 
+.claim-panel {
+  border-color: rgba(229, 95, 50, 0.24);
+  background:
+    linear-gradient(160deg, rgba(255, 247, 236, 0.96), rgba(255, 255, 255, 0.88)),
+    var(--surface);
+}
+
+.claim-panel .section-heading {
+  margin-bottom: 12px;
+}
+
+.claim-time {
+  flex: 0 0 auto;
+  border: 1px solid rgba(229, 95, 50, 0.22);
+  border-radius: 999px;
+  background: rgba(229, 95, 50, 0.12);
+  color: var(--accent-dark);
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.claim-checklist {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.claim-checklist li {
+  position: relative;
+  border: 1px solid rgba(45, 34, 26, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 10px 12px 10px 34px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.claim-checklist li::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 13px;
+  width: 10px;
+  height: 6px;
+  border-bottom: 2px solid var(--green);
+  border-left: 2px solid var(--green);
+  transform: rotate(-45deg);
+}
+
+.claim-note {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .share-box {
   margin-top: 14px;
   padding: 14px;
@@ -551,7 +614,7 @@ h2 {
 }
 
 .claim-modal {
-  width: min(520px, 100%);
+  width: min(560px, 100%);
   border: 1px solid var(--line);
   border-radius: 24px;
   background: var(--surface);
@@ -563,15 +626,52 @@ h2 {
   margin-bottom: 12px;
 }
 
+.claim-summary {
+  margin-top: 16px;
+  border: 1px solid rgba(11, 115, 117, 0.18);
+  border-radius: 16px;
+  background: var(--surface-soft);
+  color: var(--teal);
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
 .claim-steps {
   display: grid;
   gap: 10px;
   margin: 18px 0 0;
-  padding-left: 20px;
+  padding: 0;
+  list-style: none;
+  counter-reset: claim-step;
 }
 
 .claim-steps li {
-  padding-left: 4px;
+  position: relative;
+  min-height: 56px;
+  border: 1px solid rgba(45, 34, 26, 0.1);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 244, 0.96), rgba(255, 255, 255, 0.86));
+  padding: 13px 14px 13px 58px;
+  counter-increment: claim-step;
+}
+
+.claim-steps li::before {
+  content: counter(claim-step);
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 850;
 }
 
 .claim-steps strong,
