@@ -1,15 +1,18 @@
 :root {
-  --bg: #f7f4ef;
+  --bg: #f8f1e6;
   --surface: #ffffff;
-  --surface-soft: #f0f7f6;
+  --surface-soft: #eef8f6;
   --ink: #171411;
-  --muted: #645f58;
-  --line: #ded8cf;
+  --muted: #6b6258;
+  --line: rgba(45, 34, 26, 0.13);
   --accent: #e55f32;
   --accent-dark: #bb431d;
   --teal: #0b7375;
   --green: #317345;
-  --shadow: 0 18px 42px rgba(23, 20, 17, 0.12);
+  --gold: #f3b44c;
+  --cream: #fffaf1;
+  --shadow: 0 24px 70px rgba(23, 20, 17, 0.14);
+  --soft-shadow: 0 14px 36px rgba(23, 20, 17, 0.09);
 }
 
 * {
@@ -19,9 +22,12 @@
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: ui-rounded, "Avenir Next", "Nunito Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--ink);
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 10% 4%, rgba(229, 95, 50, 0.18), transparent 28rem),
+    radial-gradient(circle at 92% 12%, rgba(11, 115, 117, 0.14), transparent 30rem),
+    linear-gradient(180deg, #fffaf2 0%, var(--bg) 48%, #efe5d7 100%);
 }
 
 img {
@@ -41,42 +47,54 @@ select {
 }
 
 .truck-shell {
-  width: min(1180px, calc(100% - 32px));
+  width: min(1220px, calc(100% - 32px));
   margin: 0 auto;
   padding: 18px 0 40px;
 }
 
 .truck-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 22px;
-  padding: 10px 0;
+  padding: 10px 0 14px;
+  background: linear-gradient(180deg, rgba(255, 250, 242, 0.94), rgba(255, 250, 242, 0));
+  backdrop-filter: blur(14px);
 }
 
 .truck-brand {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  min-height: 50px;
+  padding: 6px 14px 6px 8px;
+  border: 1px solid rgba(45, 34, 26, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--soft-shadow);
   text-decoration: none;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .truck-brand img {
-  border-radius: 8px;
+  border-radius: 14px;
 }
 
 .topbar-button,
 .text-button {
-  border: 1px solid var(--line);
+  border: 1px solid rgba(45, 34, 26, 0.12);
   border-radius: 999px;
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.8);
   color: var(--ink);
   min-height: 40px;
   padding: 0 14px;
-  font-weight: 800;
+  font-weight: 900;
   cursor: pointer;
+  box-shadow: 0 8px 22px rgba(23, 20, 17, 0.08);
 }
 
 .text-button {
@@ -86,18 +104,26 @@ select {
 
 .truck-hero {
   display: grid;
-  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
-  gap: 28px;
+  grid-template-columns: minmax(340px, 0.95fr) minmax(0, 1.05fr);
+  gap: 22px;
   align-items: stretch;
-  margin-bottom: 26px;
+  margin-bottom: 22px;
+  padding: 14px;
+  border: 1px solid rgba(45, 34, 26, 0.1);
+  border-radius: 34px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(255, 244, 229, 0.68)),
+    rgba(255, 255, 255, 0.6);
+  box-shadow: var(--shadow);
 }
 
 .hero-media {
-  min-height: 430px;
-  border-radius: 8px;
+  min-height: 520px;
+  border: 1px solid rgba(45, 34, 26, 0.1);
+  border-radius: 26px;
   overflow: hidden;
   background: #e3ded5;
-  box-shadow: var(--shadow);
+  box-shadow: 0 22px 56px rgba(23, 20, 17, 0.16);
 }
 
 .hero-media img {
@@ -134,18 +160,19 @@ select {
 
 .hero-copy,
 .section-panel {
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.84);
   border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 12px 32px rgba(23, 20, 17, 0.08);
+  border-radius: 24px;
+  box-shadow: var(--soft-shadow);
+  backdrop-filter: blur(14px);
 }
 
 .hero-copy {
   display: flex;
-  min-height: 430px;
+  min-height: 520px;
   flex-direction: column;
   justify-content: center;
-  padding: 34px;
+  padding: clamp(24px, 4vw, 44px);
 }
 
 .eyebrow {
@@ -153,6 +180,7 @@ select {
   color: var(--accent-dark);
   font-size: 12px;
   font-weight: 900;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -164,15 +192,16 @@ p {
 }
 
 h1 {
-  font-size: 48px;
-  line-height: 1.02;
-  letter-spacing: 0;
+  max-width: 11ch;
+  font-size: clamp(3rem, 7vw, 5.85rem);
+  line-height: 0.88;
+  letter-spacing: -0.07em;
 }
 
 h2 {
-  font-size: 24px;
+  font-size: 26px;
   line-height: 1.15;
-  letter-spacing: 0;
+  letter-spacing: -0.04em;
 }
 
 .lede,
@@ -184,7 +213,37 @@ h2 {
 
 .lede {
   margin-top: 16px;
+  max-width: 62ch;
   font-size: 18px;
+}
+
+.status-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(229, 95, 50, 0.14);
+  color: var(--accent-dark);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.status-badge--open {
+  background: rgba(49, 115, 69, 0.15);
+  color: var(--green);
+}
+
+.status-badge--muted {
+  background: rgba(11, 115, 117, 0.1);
+  color: var(--teal);
 }
 
 .pill-row {
@@ -195,13 +254,13 @@ h2 {
 }
 
 .pill {
-  border: 1px solid #b9d9d6;
+  border: 1px solid rgba(11, 115, 117, 0.2);
   border-radius: 999px;
   background: var(--surface-soft);
   color: var(--teal);
-  padding: 7px 10px;
+  padding: 8px 12px;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .hero-actions,
@@ -253,17 +312,19 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
+  min-height: 50px;
   border: 1px solid transparent;
   border-radius: 999px;
-  padding: 0 18px;
+  padding: 0 20px;
   text-decoration: none;
   font-weight: 900;
   cursor: pointer;
+  box-shadow: 0 10px 22px rgba(23, 20, 17, 0.08);
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease, border-color 150ms ease;
 }
 
 .button--primary {
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), #f07a3d);
   color: #fff;
 }
 
@@ -273,7 +334,7 @@ h2 {
 }
 
 .button--secondary {
-  background: var(--ink);
+  background: linear-gradient(135deg, #221812, var(--ink));
   color: #fff;
 }
 
@@ -281,6 +342,17 @@ h2 {
   background: var(--surface);
   border-color: var(--line);
   color: var(--ink);
+}
+
+.button:hover,
+.button:focus-visible,
+.topbar-button:hover,
+.topbar-button:focus-visible,
+.text-button:hover,
+.text-button:focus-visible {
+  transform: translateY(-1px);
+  outline: none;
+  box-shadow: 0 14px 28px rgba(23, 20, 17, 0.12);
 }
 
 .button--full {
@@ -292,15 +364,16 @@ h2 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  margin-top: 26px;
+  margin-top: 28px;
 }
 
 .quick-facts div {
   min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 12px;
-  background: #fbfaf8;
+  border: 1px solid rgba(45, 34, 26, 0.1);
+  border-radius: 18px;
+  padding: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 244, 0.96), rgba(255, 255, 255, 0.84));
 }
 
 .quick-facts span {
@@ -316,12 +389,13 @@ h2 {
   display: block;
   overflow-wrap: anywhere;
   font-size: 14px;
+  font-weight: 900;
   line-height: 1.35;
 }
 
 .content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
   gap: 18px;
 }
 
@@ -333,7 +407,7 @@ h2 {
 }
 
 .section-panel {
-  padding: 22px;
+  padding: 24px;
 }
 
 .section-heading {
@@ -354,10 +428,11 @@ h2 {
 .menu-item,
 .schedule-item,
 .link-item {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fbfaf8;
-  padding: 14px;
+  border: 1px solid rgba(45, 34, 26, 0.1);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 244, 0.96), rgba(255, 255, 255, 0.86));
+  padding: 16px;
 }
 
 .menu-item {
@@ -369,10 +444,11 @@ h2 {
 .menu-photo {
   display: grid;
   gap: 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fbfaf8;
-  padding: 10px;
+  border: 1px solid rgba(45, 34, 26, 0.1);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 244, 0.96), rgba(255, 255, 255, 0.86));
+  padding: 12px;
   color: var(--ink);
   font-weight: 900;
   text-decoration: none;
@@ -381,7 +457,7 @@ h2 {
 .menu-photo img {
   width: 100%;
   max-height: 520px;
-  border-radius: 6px;
+  border-radius: 16px;
   object-fit: contain;
   background: #fff;
 }
@@ -401,6 +477,7 @@ h2 {
 .menu-price {
   color: var(--green);
   font-weight: 900;
+  font-size: 18px;
 }
 
 .menu-desc,
@@ -414,7 +491,18 @@ h2 {
 }
 
 .link-item {
+  position: relative;
   text-decoration: none;
+}
+
+.link-item::after {
+  content: "Open";
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  color: var(--teal);
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .link-item:hover,
@@ -424,9 +512,9 @@ h2 {
 
 .share-box {
   margin-top: 14px;
-  padding: 12px;
-  border: 1px solid #b9d9d6;
-  border-radius: 8px;
+  padding: 14px;
+  border: 1px solid rgba(11, 115, 117, 0.2);
+  border-radius: 18px;
   background: var(--surface-soft);
   color: var(--teal);
   font-size: 14px;
@@ -461,7 +549,7 @@ h2 {
 .claim-modal {
   width: min(520px, 100%);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 24px;
   background: var(--surface);
   box-shadow: var(--shadow);
   padding: 24px;

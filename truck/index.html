@@ -12,7 +12,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="../assets/brand/favicon.png">
   <link rel="preconnect" href="https://www.gstatic.com">
-  <link rel="stylesheet" href="../assets/truck-page.css?v=4">
+  <link rel="stylesheet" href="../assets/truck-page.css?v=5">
 </head>
 <body>
   <div class="truck-shell" data-page-shell>
@@ -48,14 +48,18 @@
         </div>
       </section>
 
-      <article data-truck-view hidden>
+      <article class="truck-profile" data-truck-view hidden>
         <section class="truck-hero">
           <div class="hero-media">
             <img data-truck-image src="../assets/media/seed/food-truck-photo-pending.png" alt="">
           </div>
 
           <div class="hero-copy">
-            <p class="eyebrow" data-open-state>Food Truck</p>
+            <p class="eyebrow">Featured Truck</p>
+            <div class="status-line">
+              <span class="status-badge" data-open-state>Food Truck</span>
+              <span class="status-badge status-badge--muted">Public Profile</span>
+            </div>
             <h1 data-truck-name>Food Truck</h1>
             <p class="lede" data-truck-description></p>
 
@@ -190,6 +194,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-  <script defer src="../assets/truck-page.js?v=9"></script>
+  <script defer src="../assets/truck-page.js?v=10"></script>
 </body>
 </html>

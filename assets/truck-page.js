@@ -538,6 +538,7 @@ function renderTruck(truck) {
   selectors.truckImage.src = firstHttpUrl([truck.truckImage, truck.photoSourceUrl]) || FALLBACK_IMAGE;
   selectors.truckImage.alt = `${truck.name || 'Food truck'} photo`;
   selectors.openState.textContent = truck.isOpen === true ? 'Open Now' : 'Food Truck';
+  selectors.openState.classList.toggle('status-badge--open', truck.isOpen === true);
   selectors.truckName.textContent = truck.name || 'Food Truck';
   selectors.truckDescription.textContent = truck.description || 'Menu, location, and updates from Food Truck Finder.';
   selectors.openApp.href = buildAppUrl(state.truckId);
