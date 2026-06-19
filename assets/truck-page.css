@@ -122,14 +122,17 @@ select {
   border: 1px solid rgba(45, 34, 26, 0.1);
   border-radius: 26px;
   overflow: hidden;
-  background: #e3ded5;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(229, 95, 50, 0.12), transparent 18rem),
+    linear-gradient(135deg, #fffaf2, #eadfce);
   box-shadow: 0 22px 56px rgba(23, 20, 17, 0.16);
 }
 
 .hero-media img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: transparent;
 }
 
 .hero-media--fallback,
@@ -173,6 +176,69 @@ select {
   flex-direction: column;
   justify-content: center;
   padding: clamp(26px, 4vw, 48px);
+}
+
+.truck-hero--banner {
+  position: relative;
+  grid-template-columns: 1fr;
+  gap: 0;
+  overflow: hidden;
+  padding: clamp(10px, 1.5vw, 18px);
+  background:
+    radial-gradient(circle at 14% 12%, rgba(229, 95, 50, 0.2), transparent 28rem),
+    radial-gradient(circle at 86% 8%, rgba(11, 115, 117, 0.14), transparent 30rem),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 243, 226, 0.72));
+}
+
+.truck-hero--banner .hero-media {
+  display: grid;
+  place-items: center;
+  height: clamp(430px, 52vw, 720px);
+  min-height: 0;
+  padding: clamp(8px, 1.2vw, 16px);
+  border-radius: 30px;
+}
+
+.truck-hero--banner .hero-media img {
+  border-radius: 22px;
+}
+
+.truck-hero--banner .hero-copy {
+  position: relative;
+  z-index: 2;
+  width: min(1040px, calc(100% - 40px));
+  min-height: 0;
+  margin: -86px auto 0;
+  padding: clamp(30px, 4vw, 52px);
+  border-radius: 30px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 242, 0.9)),
+    var(--surface);
+}
+
+.truck-hero--banner .hero-copy::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  left: clamp(30px, 4vw, 52px);
+  width: min(220px, 38%);
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--gold), var(--teal));
+}
+
+.truck-hero--banner h1 {
+  max-width: 100%;
+  font-size: clamp(2.8rem, 6vw, 5.6rem);
+  line-height: 0.94;
+}
+
+.truck-hero--banner .lede {
+  max-width: 68ch;
+}
+
+.truck-hero--banner .quick-facts {
+  margin-top: 24px;
 }
 
 .eyebrow {
@@ -717,6 +783,20 @@ h2 {
     aspect-ratio: 4 / 3;
   }
 
+  .truck-hero--banner .hero-media {
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+
+  .truck-hero--banner .hero-copy {
+    width: calc(100% - 18px);
+    margin-top: -36px;
+  }
+
+  .truck-hero--banner h1 {
+    font-size: clamp(2.4rem, 10vw, 4.4rem);
+  }
+
   .quick-facts {
     grid-template-columns: 1fr;
   }
@@ -741,8 +821,39 @@ h2 {
     padding: 18px;
   }
 
+  .truck-hero--banner {
+    padding: 8px;
+    border-radius: 24px;
+  }
+
+  .truck-hero--banner .hero-media {
+    aspect-ratio: 1 / 1;
+    padding: 6px;
+    border-radius: 18px;
+  }
+
+  .truck-hero--banner .hero-media img {
+    border-radius: 14px;
+  }
+
+  .truck-hero--banner .hero-copy {
+    width: 100%;
+    margin: 10px 0 0;
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .truck-hero--banner .hero-copy::before {
+    display: none;
+  }
+
   h1 {
     font-size: 34px;
+  }
+
+  .truck-hero--banner h1 {
+    font-size: 34px;
+    letter-spacing: -0.055em;
   }
 
   h2 {
