@@ -1,18 +1,19 @@
 :root {
-  --bg: #f8f1e6;
-  --surface: #ffffff;
-  --surface-soft: #eef8f6;
-  --ink: #171411;
-  --muted: #6b6258;
-  --line: rgba(45, 34, 26, 0.13);
-  --accent: #e55f32;
-  --accent-dark: #bb431d;
-  --teal: #0b7375;
+  --bg: #f4eadb;
+  --surface: #fffaf2;
+  --surface-soft: #edf7f3;
+  --ink: #18110d;
+  --muted: #6d6258;
+  --line: rgba(49, 35, 24, 0.13);
+  --accent: #ef6532;
+  --accent-dark: #b9441d;
+  --teal: #0a7370;
   --green: #317345;
-  --gold: #f3b44c;
-  --cream: #fffaf1;
-  --shadow: 0 24px 70px rgba(23, 20, 17, 0.14);
-  --soft-shadow: 0 14px 36px rgba(23, 20, 17, 0.09);
+  --gold: #f1b64c;
+  --night: #15100c;
+  --cream: #fff4df;
+  --shadow: 0 28px 80px rgba(24, 17, 13, 0.2);
+  --soft-shadow: 0 16px 38px rgba(24, 17, 13, 0.1);
 }
 
 * {
@@ -25,9 +26,9 @@ body {
   font-family: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(circle at 10% 4%, rgba(229, 95, 50, 0.18), transparent 28rem),
-    radial-gradient(circle at 92% 12%, rgba(11, 115, 117, 0.14), transparent 30rem),
-    linear-gradient(180deg, #fffaf2 0%, var(--bg) 48%, #efe5d7 100%);
+    radial-gradient(circle at 14% -4%, rgba(239, 101, 50, 0.26), transparent 28rem),
+    radial-gradient(circle at 88% 2%, rgba(10, 115, 112, 0.24), transparent 30rem),
+    linear-gradient(180deg, #17110d 0, #21160f 260px, var(--bg) 261px, #efe2cf 100%);
 }
 
 img {
@@ -47,23 +48,26 @@ select {
 }
 
 .truck-shell {
-  width: min(1220px, calc(100% - 32px));
+  width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 18px 0 40px;
+  padding: 22px 0 48px;
 }
 
 .truck-topbar {
   position: sticky;
-  top: 0;
-  z-index: 5;
+  top: 12px;
+  z-index: 8;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 22px;
-  padding: 10px 0 14px;
-  background: linear-gradient(180deg, rgba(255, 250, 242, 0.94), rgba(255, 250, 242, 0));
-  backdrop-filter: blur(14px);
+  margin-bottom: 24px;
+  padding: 10px;
+  border: 1px solid rgba(255, 244, 223, 0.16);
+  border-radius: 999px;
+  background: rgba(22, 16, 12, 0.76);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(18px);
 }
 
 .truck-brand {
@@ -72,10 +76,11 @@ select {
   gap: 10px;
   min-height: 50px;
   padding: 6px 14px 6px 8px;
-  border: 1px solid rgba(45, 34, 26, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: var(--soft-shadow);
+  background: rgba(255, 250, 242, 0.1);
+  color: #fffaf2;
+  box-shadow: none;
   text-decoration: none;
   font-weight: 850;
 }
@@ -86,9 +91,9 @@ select {
 
 .topbar-button,
 .text-button {
-  border: 1px solid rgba(45, 34, 26, 0.12);
+  border: 1px solid rgba(24, 17, 13, 0.1);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--surface);
   color: var(--ink);
   min-height: 40px;
   padding: 0 14px;
@@ -180,28 +185,40 @@ select {
 
 .truck-hero--banner {
   position: relative;
-  grid-template-columns: minmax(0, 1.18fr) minmax(380px, 0.82fr);
-  gap: clamp(16px, 2vw, 28px);
+  grid-template-columns: minmax(0, 1.02fr) minmax(360px, 0.82fr);
+  gap: clamp(14px, 1.8vw, 22px);
   overflow: visible;
-  padding: clamp(14px, 1.8vw, 22px);
+  margin-bottom: 24px;
+  padding: clamp(12px, 1.5vw, 18px);
+  border-color: rgba(255, 244, 223, 0.16);
+  border-radius: 36px;
   background:
-    radial-gradient(circle at 14% 12%, rgba(229, 95, 50, 0.2), transparent 28rem),
-    radial-gradient(circle at 86% 8%, rgba(11, 115, 117, 0.14), transparent 30rem),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 243, 226, 0.72));
+    radial-gradient(circle at 16% 12%, rgba(239, 101, 50, 0.36), transparent 24rem),
+    radial-gradient(circle at 94% 0%, rgba(10, 115, 112, 0.3), transparent 26rem),
+    linear-gradient(135deg, #241710, #120d0a 62%, #0f1514);
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.28);
 }
 
 .truck-hero--banner .hero-media {
   display: grid;
   place-items: center;
-  height: clamp(390px, 37vw, 560px);
+  height: auto;
   min-height: 0;
-  padding: clamp(8px, 1.2vw, 16px);
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border: 1px solid rgba(255, 244, 223, 0.14);
   border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(255, 244, 223, 0.08), rgba(255, 244, 223, 0.02)),
+    #0b0908;
+  box-shadow: none;
 }
 
 .truck-hero--banner .hero-media img {
-  max-height: 100%;
-  border-radius: 22px;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  object-fit: contain;
 }
 
 .truck-hero--banner .hero-copy {
@@ -210,46 +227,56 @@ select {
   width: auto;
   min-height: 0;
   margin: 0;
-  padding: clamp(28px, 3.4vw, 46px);
+  padding: clamp(24px, 3vw, 36px);
+  border: 1px solid rgba(255, 244, 223, 0.2);
   border-radius: 28px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 242, 0.9)),
-    var(--surface);
+    linear-gradient(180deg, rgba(255, 250, 242, 0.97), rgba(255, 246, 232, 0.92)),
+    #fffaf2;
+  box-shadow: none;
 }
 
 .truck-hero--banner .hero-copy::before {
   content: "";
   position: absolute;
-  top: 16px;
-  left: clamp(30px, 4vw, 52px);
-  width: min(220px, 38%);
+  top: 14px;
+  left: clamp(24px, 3vw, 36px);
+  width: min(190px, 42%);
   height: 4px;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--accent), var(--gold), var(--teal));
 }
 
 .truck-hero--banner h1 {
-  max-width: 11ch;
-  font-size: clamp(2.45rem, 4.4vw, 4.25rem);
-  line-height: 0.98;
+  max-width: 10.5ch;
+  font-size: clamp(2.2rem, 3.7vw, 3.8rem);
+  line-height: 0.96;
 }
 
 .truck-hero--banner .lede {
-  max-width: 48ch;
+  max-width: 44ch;
+  font-size: 17px;
 }
 
 .truck-hero--banner .quick-facts {
   grid-template-columns: 1fr;
-  margin-top: 22px;
+  gap: 8px;
+  margin-top: 20px;
 }
 
 .truck-hero--banner .hero-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 22px;
 }
 
 .truck-hero--banner .hero-actions .button {
   min-width: 0;
+}
+
+.truck-hero--banner .hero-actions .button--ghost {
+  grid-column: 1 / -1;
 }
 
 .eyebrow {
@@ -270,17 +297,19 @@ p {
 
 h1 {
   max-width: 14ch;
+  font-family: "Bricolage Grotesque", "Manrope", sans-serif;
   font-size: clamp(2.55rem, 4.7vw, 4.55rem);
-  font-weight: 850;
+  font-weight: 800;
   line-height: 0.98;
-  letter-spacing: -0.065em;
+  letter-spacing: -0.055em;
 }
 
 h2 {
+  font-family: "Bricolage Grotesque", "Manrope", sans-serif;
   font-size: 26px;
-  font-weight: 850;
+  font-weight: 800;
   line-height: 1.15;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.035em;
 }
 
 .lede,
@@ -450,8 +479,8 @@ h2 {
 .quick-facts div {
   min-width: 0;
   border: 1px solid rgba(45, 34, 26, 0.1);
-  border-radius: 18px;
-  padding: 14px;
+  border-radius: 16px;
+  padding: 13px 14px;
   background:
     linear-gradient(180deg, rgba(255, 250, 244, 0.96), rgba(255, 255, 255, 0.84));
 }
@@ -469,7 +498,7 @@ h2 {
 .quick-facts strong {
   display: block;
   overflow-wrap: anywhere;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 850;
   line-height: 1.35;
 }
@@ -477,7 +506,7 @@ h2 {
 .content-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
-  gap: 18px;
+  gap: 20px;
 }
 
 .main-column,
@@ -489,6 +518,9 @@ h2 {
 
 .section-panel {
   padding: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 242, 0.95), rgba(255, 255, 255, 0.9)),
+    var(--surface);
 }
 
 .section-heading {
@@ -800,12 +832,13 @@ h2 {
   }
 
   .truck-hero--banner .hero-copy {
-    width: calc(100% - 18px);
-    margin-top: -36px;
+    width: auto;
+    margin-top: 0;
   }
 
   .truck-hero--banner h1 {
-    font-size: clamp(2.4rem, 10vw, 4.4rem);
+    max-width: 100%;
+    font-size: clamp(2.35rem, 8vw, 3.6rem);
   }
 
   .quick-facts {
@@ -815,12 +848,15 @@ h2 {
 
 @media (max-width: 560px) {
   .truck-shell {
-    width: min(100% - 20px, 1180px);
+    width: min(100% - 18px, 1180px);
+    padding-top: 12px;
     padding-bottom: 24px;
   }
 
   .truck-topbar {
+    top: 8px;
     margin-bottom: 12px;
+    padding: 8px;
   }
 
   .truck-brand span {
@@ -833,18 +869,19 @@ h2 {
   }
 
   .truck-hero--banner {
-    padding: 8px;
+    gap: 10px;
+    padding: 9px;
     border-radius: 24px;
   }
 
   .truck-hero--banner .hero-media {
-    aspect-ratio: 1 / 1;
-    padding: 6px;
+    aspect-ratio: 4 / 3;
+    padding: 0;
     border-radius: 18px;
   }
 
   .truck-hero--banner .hero-media img {
-    border-radius: 14px;
+    border-radius: 0;
   }
 
   .truck-hero--banner .hero-copy {
