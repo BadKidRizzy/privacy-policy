@@ -1,0 +1,183 @@
+{
+  "cities": [
+    {
+      "slug": "baltimore",
+      "name": "Baltimore",
+      "region": "Maryland",
+      "headline": "Find Baltimore-area food truck profiles as owners claim and update them.",
+      "summary": "Food Truck Finder is building a cleaner place to discover Baltimore-area food truck profiles, save favorites, and help owners keep menus, schedules, photos, and links current.",
+      "truck_slugs": [
+        "taqueria-los-primos-ellicott-city",
+        "antojitos-la-esperanza-laurel",
+        "taqueria-y-pupuseria-pimpina-silver-spring"
+      ]
+    },
+    {
+      "slug": "washington-dc",
+      "name": "Washington DC",
+      "region": "District of Columbia",
+      "headline": "Discover DC-area food truck profiles and owner-updated details.",
+      "summary": "Food Truck Finder helps foodies, owners, and organizers keep DMV food truck discovery less scattered as more truck profiles are claimed.",
+      "truck_slugs": [
+        "taco-cinco-de-mayo-arlington",
+        "burrito-bros-arlington",
+        "tacos-el-torito-mclean",
+        "chandis-food-truck-rockville"
+      ]
+    },
+    {
+      "slug": "arlington",
+      "name": "Arlington",
+      "region": "Virginia",
+      "headline": "Browse Arlington food truck profiles awaiting owner claim.",
+      "summary": "Use Food Truck Finder to discover Arlington-area truck profiles, download the app, and help owners claim listings so profile details can stay accurate.",
+      "truck_slugs": [
+        "burrito-bros-arlington",
+        "taco-cinco-de-mayo-arlington",
+        "tacos-el-torito-mclean"
+      ]
+    },
+    {
+      "slug": "alexandria",
+      "name": "Alexandria",
+      "region": "Virginia",
+      "headline": "Find Northern Virginia food truck profiles near Alexandria.",
+      "summary": "Food Truck Finder is expanding food truck discovery around Alexandria and nearby Northern Virginia markets with claimable truck profiles and app download links.",
+      "truck_slugs": [
+        "taco-cinco-de-mayo-arlington",
+        "burrito-bros-arlington",
+        "la-gringa-manassas"
+      ]
+    },
+    {
+      "slug": "gaithersburg",
+      "name": "Gaithersburg",
+      "region": "Maryland",
+      "headline": "Find Gaithersburg food truck profiles and claimable listings.",
+      "summary": "Food Truck Finder gives Gaithersburg-area foodies and truck owners a place to connect around profiles, menus, photos, schedules, and app discovery.",
+      "truck_slugs": [
+        "holy-crepes-gaithersburg",
+        "mos-pit-barbeque-gaithersburg",
+        "chandis-food-truck-rockville"
+      ]
+    },
+    {
+      "slug": "germantown",
+      "name": "Germantown",
+      "region": "Maryland",
+      "headline": "Discover Germantown food truck profiles as owners claim them.",
+      "summary": "Food Truck Finder helps surface Germantown-area truck profiles while keeping unclaimed listings honest until owners verify details.",
+      "truck_slugs": [
+        "la-tropicana-germantown",
+        "tacos-el-pariente-germantown",
+        "holy-crepes-gaithersburg"
+      ]
+    }
+  ],
+  "trucks": [
+    {
+      "slug": "antojitos-la-esperanza-laurel",
+      "name": "Antojitos La Esperanza",
+      "city": "Laurel",
+      "region": "Maryland",
+      "cuisine": "Mexican food",
+      "image": "assets/media/seed/trucks/seed-dmv-antojitos-la-esperanza-laurel.jpg"
+    },
+    {
+      "slug": "burrito-bros-arlington",
+      "name": "Burrito Bros",
+      "city": "Arlington",
+      "region": "Virginia",
+      "cuisine": "Burritos and Mexican food",
+      "image": "assets/media/seed/trucks/seed-dmv-burrito-bros-arlington.jpg"
+    },
+    {
+      "slug": "chandis-food-truck-rockville",
+      "name": "Chandi's Food Truck",
+      "city": "Rockville",
+      "region": "Maryland",
+      "cuisine": "Food truck menu",
+      "image": "assets/media/seed/trucks/seed-dmv-chandis-food-truck-rockville.jpg"
+    },
+    {
+      "slug": "grubbers-leesburg",
+      "name": "Grubbers",
+      "city": "Leesburg",
+      "region": "Virginia",
+      "cuisine": "Food truck menu",
+      "image": "assets/media/seed/trucks/seed-dmv-grubbers-leesburg.jpg"
+    },
+    {
+      "slug": "holy-crepes-gaithersburg",
+      "name": "Holy Crepes",
+      "city": "Gaithersburg",
+      "region": "Maryland",
+      "cuisine": "Crepes",
+      "image": "assets/media/seed/trucks/seed-dmv-holy-crepes-gaithersburg.jpg"
+    },
+    {
+      "slug": "la-gringa-manassas",
+      "name": "La Gringa",
+      "city": "Manassas",
+      "region": "Virginia",
+      "cuisine": "Mexican food",
+      "image": "assets/media/seed/trucks/seed-dmv-la-gringa-manassas.jpg"
+    },
+    {
+      "slug": "la-tropicana-germantown",
+      "name": "La Tropicana",
+      "city": "Germantown",
+      "region": "Maryland",
+      "cuisine": "Latin food",
+      "image": "assets/media/seed/trucks/seed-dmv-la-tropicana-germantown.jpg"
+    },
+    {
+      "slug": "mos-pit-barbeque-gaithersburg",
+      "name": "Mo's Pit Barbeque",
+      "city": "Gaithersburg",
+      "region": "Maryland",
+      "cuisine": "Barbecue",
+      "image": "assets/media/seed/trucks/seed-dmv-mos-pit-barbeque-gaithersburg.jpg"
+    },
+    {
+      "slug": "taco-cinco-de-mayo-arlington",
+      "name": "Taco Cinco de Mayo",
+      "city": "Arlington",
+      "region": "Virginia",
+      "cuisine": "Tacos",
+      "image": "assets/media/seed/trucks/seed-dmv-taco-cinco-de-mayo-arlington.jpg"
+    },
+    {
+      "slug": "tacos-el-pariente-germantown",
+      "name": "Tacos El Pariente",
+      "city": "Germantown",
+      "region": "Maryland",
+      "cuisine": "Tacos",
+      "image": "assets/media/seed/trucks/seed-dmv-tacos-el-pariente-germantown.jpg"
+    },
+    {
+      "slug": "tacos-el-torito-mclean",
+      "name": "Tacos El Torito",
+      "city": "McLean",
+      "region": "Virginia",
+      "cuisine": "Tacos",
+      "image": "assets/media/seed/trucks/seed-dmv-tacos-el-torito-mclean.jpg"
+    },
+    {
+      "slug": "taqueria-los-primos-ellicott-city",
+      "name": "Taqueria Los Primos",
+      "city": "Ellicott City",
+      "region": "Maryland",
+      "cuisine": "Taqueria",
+      "image": "assets/media/seed/trucks/seed-dmv-taqueria-los-primos-ellicott-city.jpg"
+    },
+    {
+      "slug": "taqueria-y-pupuseria-pimpina-silver-spring",
+      "name": "Taqueria y Pupuseria Pimpina",
+      "city": "Silver Spring",
+      "region": "Maryland",
+      "cuisine": "Taqueria and pupuseria",
+      "image": "assets/media/seed/trucks/seed-dmv-taqueria-y-pupuseria-pimpina-silver-spring.jpg"
+    }
+  ]
+}

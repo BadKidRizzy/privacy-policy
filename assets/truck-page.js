@@ -9,7 +9,6 @@ const firebaseConfig = {
 
 const FALLBACK_IMAGE = '../assets/media/seed/food-truck-photo-pending.png';
 const MENU_PREVIEW_LIMIT = 8;
-const SUPPORT_EMAIL = 'Foodtruckfinderinfo@gmail.com';
 
 const selectors = {
   loadingView: document.querySelector('[data-loading-view]'),
@@ -218,46 +217,14 @@ function buildDirectionsUrl(truck) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(asText(truck.currentAddress))}`;
 }
 
-function formatClaimDetails(truck) {
-  const rows = [
-    ['Truck name', truck.name || 'Food Truck'],
-    ['Truck ID', state.truckId],
-    ['Public listing', state.publicShareUrl],
-    ['Current address', truck.currentAddress],
-  ];
-
-  return rows
-    .map(([label, value]) => [label, asText(value)])
-    .filter(([, value]) => Boolean(value))
-    .map(([label, value]) => `- ${label}: ${value}`)
-    .join('\n');
-}
-
 function buildClaimUrl(truck) {
   const truckName = truck.name || 'my truck';
-  const subject = `Owner claim request: ${truckName}`;
-  const body = [
-    'Hi Food Truck Finder team,',
-    '',
-    `I would like to claim and manage this Food Truck Finder listing for ${truckName}.`,
-    '',
-    'Listing details:',
-    formatClaimDetails(truck),
-    '',
-    'My info:',
-    '- Owner/manager name:',
-    '- Best phone number:',
-    '- Owner account email used in the app:',
-    '- Proof of ownership or official link, such as website, Instagram, Facebook, license, or event booking:',
-    '',
-    'First updates I need made:',
-    '- Menu:',
-    '- Photos:',
-    '- Address/location:',
-    '- Other:',
-  ].join('\n');
-
-  return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const city = truck.city || truck.currentAddress || '';
+  const url = new URL('/claim-your-food-truck/', window.location.origin);
+  url.searchParams.set('truck', truckName);
+  if (city) url.searchParams.set('city', city);
+  if (state.publicShareUrl) url.searchParams.set('profile', state.publicShareUrl);
+  return url.toString();
 }
 
 function formatClaimSummary(truck) {

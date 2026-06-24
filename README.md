@@ -14,6 +14,10 @@ This repo hosts the public static pages for Food Truck Finder.
   Baltimore city SEO landing page served at `/food-trucks/baltimore/`.
 - `food-trucks/washington-dc/index.html`
   Washington DC city SEO landing page served at `/food-trucks/washington-dc/`.
+- `data/public-growth-pages.json`
+  Source data for generated city and truck preview pages.
+- `scripts/generate_public_growth_pages.py`
+  Regenerates `/food-trucks/{city}/`, `/truck/{slug}/`, and `sitemap.xml`.
 - `robots.txt`
   Search crawler rules and sitemap pointer.
 - `sitemap.xml`
@@ -51,6 +55,9 @@ This repo hosts the public static pages for Food Truck Finder.
 - Keep `docs/index.html` as a redirect unless the public docs route changes again.
 - Add the real Google Search Console verification meta tag only after it is generated in Search Console.
 - When adding seeded truck or city pages, avoid live/open-now/verified/partner claims unless the app has evidence.
+- Add generated public truck/city pages by editing `data/public-growth-pages.json`, then running `python3 scripts/generate_public_growth_pages.py`.
+- Generated truck pages must use "profile awaiting owner claim" style wording for seeded trucks.
+- Generated claim links prefill `/claim-your-food-truck/?truck=TruckName&city=City&profile=/truck/slug/`.
 - The claim form posts to the Firebase HTTPS function `submitOwnerClaimRequest`.
 - The backend records `claim_started`, `claim_submitted`, and later management updates for `claim_verified`, `rejected`, or `needs_more_info`.
 - Claim auto-response email drafts are created by the backend, but real email sending remains disabled until a provider is intentionally connected.
@@ -69,6 +76,16 @@ This repo hosts the public static pages for Food Truck Finder.
   Baltimore food truck SEO page
 - `/food-trucks/washington-dc/`
   Washington DC food truck SEO page
+- `/food-trucks/arlington/`
+  Arlington food truck SEO page
+- `/food-trucks/alexandria/`
+  Alexandria / Northern Virginia food truck SEO page
+- `/food-trucks/gaithersburg/`
+  Gaithersburg food truck SEO page
+- `/food-trucks/germantown/`
+  Germantown food truck SEO page
+- `/truck/{slug}/`
+  Crawlable/shareable seeded truck preview pages
 - `/sitemap.xml`
   Search sitemap
 - `/robots.txt`

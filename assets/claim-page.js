@@ -32,6 +32,40 @@
     }
   }
 
+  function absoluteProfileUrl(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+
+    try {
+      return new URL(raw, window.location.origin).toString();
+    } catch {
+      return raw;
+    }
+  }
+
+  function applyPrefillFromParams() {
+    const params = new URLSearchParams(window.location.search);
+    const truck = params.get('truck') || '';
+    const city = params.get('city') || '';
+    const profile = params.get('profile') || '';
+
+    if (truck) {
+      setFormValue('truckName', truck);
+      setFormValue('truckSearch', truck);
+    }
+    if (city) {
+      setFormValue('city', city);
+      setFormValue('truckSearchCity', city);
+    }
+    if (profile) {
+      setFormValue('truckProfileUrl', absoluteProfileUrl(profile));
+    }
+
+    if (truck || city || profile) {
+      setStatus(searchStatus, 'We prefilled the claim form from the truck profile link.', 'success');
+    }
+  }
+
   function updateEmailFallback() {
     if (!emailFallback) return;
 
@@ -228,5 +262,6 @@
   searchButton?.addEventListener('click', searchTrucks);
   form.addEventListener('input', updateEmailFallback);
   form.addEventListener('submit', submitClaim);
+  applyPrefillFromParams();
   updateEmailFallback();
 })();
