@@ -6,6 +6,18 @@ This repo hosts the public static pages for Food Truck Finder.
 
 - `index.html`
   Main public marketing site served at the site root.
+- `claim-your-food-truck/index.html`
+  Public owner claim landing page served at `/claim-your-food-truck/`.
+- `food-trucks/baltimore/index.html`
+  Baltimore city SEO landing page served at `/food-trucks/baltimore/`.
+- `food-trucks/washington-dc/index.html`
+  Washington DC city SEO landing page served at `/food-trucks/washington-dc/`.
+- `robots.txt`
+  Search crawler rules and sitemap pointer.
+- `sitemap.xml`
+  Static sitemap for root, claim, city, truck, flyer, privacy, and delete-account pages.
+- `site.webmanifest`
+  App/site manifest for installable metadata and icons.
 - `privacy-policy/index.html`
   Canonical public privacy policy page served at `/privacy-policy/`.
 - `privacy.html`
@@ -35,6 +47,8 @@ This repo hosts the public static pages for Food Truck Finder.
 - Update owner page styles in `docs/ftfowners/assets/styles.css`.
 - Update owner page behavior and store/support links in `docs/ftfowners/assets/script.js`.
 - Keep `docs/index.html` as a redirect unless the public docs route changes again.
+- Add the real Google Search Console verification meta tag only after it is generated in Search Console.
+- When adding seeded truck or city pages, avoid live/open-now/verified/partner claims unless the app has evidence.
 
 ## Published Paths
 
@@ -42,6 +56,16 @@ This repo hosts the public static pages for Food Truck Finder.
   Public marketing site
 - `/privacy-policy/`
   Privacy policy
+- `/claim-your-food-truck/`
+  Owner claim landing page
+- `/food-trucks/baltimore/`
+  Baltimore food truck SEO page
+- `/food-trucks/washington-dc/`
+  Washington DC food truck SEO page
+- `/sitemap.xml`
+  Search sitemap
+- `/robots.txt`
+  Search crawler rules
 - `/privacy.html`
   Legacy redirect to `/privacy-policy/`
 - `/delete-account.html`

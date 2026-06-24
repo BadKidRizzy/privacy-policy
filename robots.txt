@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.ftf-foodtruckfinder.com/sitemap.xml

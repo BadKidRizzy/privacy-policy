@@ -1,0 +1,23 @@
+{
+  "name": "Food Truck Finder",
+  "short_name": "FTF",
+  "description": "Find food trucks, follow profiles, and help owners keep location, schedule, and menu details current.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fbf6f0",
+  "theme_color": "#ee6c3f",
+  "icons": [
+    {
+      "src": "/assets/brand/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/brand/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
