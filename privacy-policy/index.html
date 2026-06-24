@@ -290,6 +290,12 @@
             <td data-label="Required or optional">Required for truck listings; owners choose what optional details to add.</td>
           </tr>
           <tr>
+            <td data-label="Data category"><strong>Owner claim request data</strong></td>
+            <td data-label="Examples">Truck name, city, owner name, email, phone, business email, website or social proof, claim message, optional profile URL, and optional proof uploads such as truck, menu, license, or business document images.</td>
+            <td data-label="Why we use it">Review truck ownership claims, prevent incorrect profile takeovers, contact owners about verification, and connect approved owners to the right truck profile.</td>
+            <td data-label="Required or optional">Required for claim review when submitted; proof uploads are optional but can speed up verification.</td>
+          </tr>
+          <tr>
             <td data-label="Data category"><strong>Event data</strong></td>
             <td data-label="Examples">Event title, description, location, date/time, event links, vendor count, organizer details, event images, invited and confirmed trucks.</td>
             <td data-label="Why we use it">Publish food truck events, invite vendors, manage event attendance, and help users discover events.</td>
@@ -341,6 +347,12 @@
         truck photos, menu photos, event images, profile images, or other listing images. Uploaded images
         may be displayed publicly if they are part of a public truck or event listing.
       </p>
+      <p>
+        If you submit a truck ownership claim from the website, you may optionally upload proof such
+        as a truck photo, menu photo, license image, or business document. Claim proof is used for
+        verification and is not intended to be published publicly unless you separately add it to a
+        public truck profile.
+      </p>
 
       <h3>Notifications permission</h3>
       <p>
@@ -362,6 +374,7 @@
         <li>Provide nearby food truck and event discovery, maps, search, distance estimates, and directions.</li>
         <li>Create, authenticate, and secure user accounts.</li>
         <li>Support food truck owner tools, including truck profiles, menus, photos, schedules, deals, operating status, and Live Location.</li>
+        <li>Review owner claim requests, contact owners about verification, and prevent unauthorized truck profile takeovers.</li>
         <li>Support organizer tools, including event creation, event editing, event images, vendor invites, and confirmed vendor tracking.</li>
         <li>Support foodie features, including favorites, alerts, reviews, truck details, event details, and app personalization.</li>
         <li>Send push notifications and in-app alerts when enabled or when needed for account or operational purposes.</li>
@@ -470,6 +483,10 @@
           <tr>
             <td data-label="Data type"><strong>Truck and event listing data</strong></td>
             <td data-label="Typical retention">Kept while listings are active or needed for owner/organizer operations. Owners and organizers can update or delete supported listings.</td>
+          </tr>
+          <tr>
+            <td data-label="Data type"><strong>Owner claim requests and proof uploads</strong></td>
+            <td data-label="Typical retention">Kept while needed to review, verify, audit, or resolve truck ownership claims, then deleted or archived when no longer needed.</td>
           </tr>
           <tr>
             <td data-label="Data type"><strong>Live location data</strong></td>

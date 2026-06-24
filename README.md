@@ -8,6 +8,8 @@ This repo hosts the public static pages for Food Truck Finder.
   Main public marketing site served at the site root.
 - `claim-your-food-truck/index.html`
   Public owner claim landing page served at `/claim-your-food-truck/`.
+- `claim-success/index.html`
+  Owner claim success page served at `/claim-success/`.
 - `food-trucks/baltimore/index.html`
   Baltimore city SEO landing page served at `/food-trucks/baltimore/`.
 - `food-trucks/washington-dc/index.html`
@@ -49,6 +51,9 @@ This repo hosts the public static pages for Food Truck Finder.
 - Keep `docs/index.html` as a redirect unless the public docs route changes again.
 - Add the real Google Search Console verification meta tag only after it is generated in Search Console.
 - When adding seeded truck or city pages, avoid live/open-now/verified/partner claims unless the app has evidence.
+- The claim form posts to the Firebase HTTPS function `submitOwnerClaimRequest`.
+- The backend records `claim_started`, `claim_submitted`, and later management updates for `claim_verified`, `rejected`, or `needs_more_info`.
+- Claim auto-response email drafts are created by the backend, but real email sending remains disabled until a provider is intentionally connected.
 
 ## Published Paths
 
@@ -58,6 +63,8 @@ This repo hosts the public static pages for Food Truck Finder.
   Privacy policy
 - `/claim-your-food-truck/`
   Owner claim landing page
+- `/claim-success/`
+  Owner claim success page
 - `/food-trucks/baltimore/`
   Baltimore food truck SEO page
 - `/food-trucks/washington-dc/`
