@@ -30,6 +30,9 @@ const state = {
   draftReviewQueue: null,
   claimFunnelReport: null,
   weeklyReport: null,
+  agentBriefing: null,
+  agentTasks: [],
+  agentMemories: [],
   socialDrafts: [],
   autopilotReport: null,
   lastAutopilotPlan: null,
@@ -37,6 +40,7 @@ const state = {
   lastQueue: null,
   lastSocialBatch: null,
   lastCityDigestBatch: null,
+  lastAgentRun: null,
 };
 
 const selectors = {
@@ -55,6 +59,12 @@ const selectors = {
   sync: document.querySelector('[data-growth-agent-sync]'),
   queue: document.querySelector('[data-growth-agent-queue]'),
   dailyAutomationRun: document.querySelector('[data-daily-automation-run]'),
+  agentRun: document.querySelector('[data-agent-run]'),
+  agentBriefing: document.querySelector('[data-agent-briefing]'),
+  agentTasks: document.querySelector('[data-agent-tasks]'),
+  agentMemories: document.querySelector('[data-agent-memories]'),
+  agentInstructionForm: document.querySelector('[data-agent-instruction-form]'),
+  agentInstruction: document.querySelector('[data-agent-instruction]'),
   draftReviewRefresh: document.querySelector('[data-draft-review-refresh]'),
   draftReviewStatus: document.querySelector('[data-draft-review-status]'),
   draftReviewLoadedAt: document.querySelector('[data-draft-review-loaded-at]'),
@@ -126,6 +136,9 @@ function setLoading(isLoading) {
     selectors.sync,
     selectors.queue,
     selectors.dailyAutomationRun,
+    selectors.agentRun,
+    selectors.agentInstruction,
+    selectors.agentInstructionForm?.querySelector('button'),
     selectors.draftReviewRefresh,
     selectors.draftReviewStatus,
     selectors.weeklyReportGenerate,
@@ -148,6 +161,7 @@ function setLoading(isLoading) {
     ...selectors.socialPlatforms,
     ...selectors.autopilotPlatforms,
     ...document.querySelectorAll('[data-draft-action]'),
+    ...document.querySelectorAll('[data-agent-task-status]'),
   ].forEach((control) => {
     if (control) control.disabled = isLoading;
   });
@@ -290,6 +304,9 @@ function renderMetrics() {
   const digestCopy = state.lastCityDigestBatch
     ? `Last city digest batch created ${formatCount(state.lastCityDigestBatch.packs || 0)} city pack${Number(state.lastCityDigestBatch.packs || 0) === 1 ? '' : 's'}.`
     : 'Weekly city digests create social, email, push, and SEO drafts.';
+  const agentCopy = state.lastAgentRun
+    ? `Last agent run created ${formatCount(state.lastAgentRun.tasks || 0)} task${Number(state.lastAgentRun.tasks || 0) === 1 ? '' : 's'}.`
+    : 'The autonomous agent creates briefings, tasks, and memories.';
 
   selectors.metrics.innerHTML = `
     ${metricRows.map(([label, value]) => `
@@ -300,9 +317,102 @@ function renderMetrics() {
     `).join('')}
     <div class="growth-agent-card growth-agent-card--wide">
       <strong>Automation</strong>
-      <span>${escapeHtml(syncCopy)} ${escapeHtml(queueCopy)} ${escapeHtml(socialCopy)} ${escapeHtml(autopilotCopy)} ${escapeHtml(digestCopy)}</span>
+      <span>${escapeHtml(syncCopy)} ${escapeHtml(queueCopy)} ${escapeHtml(socialCopy)} ${escapeHtml(autopilotCopy)} ${escapeHtml(digestCopy)} ${escapeHtml(agentCopy)}</span>
     </div>
   `;
+}
+
+function agentSuggestedActionLabel(value) {
+  const text = String(value || '');
+  if (text.includes('campaign-draft-review-queue')) return 'Review draft queue';
+  if (text.includes('daily-owner-outreach-queue')) return 'Generate owner outreach';
+  if (text.includes('weekly-city-digests')) return 'Create city digest';
+  if (text.includes('claim-funnel-report')) return 'Review claim funnel';
+  if (text.includes('public-seo-pages')) return 'Create SEO pages';
+  if (text.includes('app-store-experiment-briefs')) return 'Create store experiment briefs';
+  if (text.includes('weekly-growth-reports')) return 'Review weekly report';
+  return text || 'No action attached';
+}
+
+function memoryPreview(memory) {
+  const value = String(memory?.value || '');
+  if (!value) return '';
+  try {
+    const parsed = JSON.parse(value);
+    if (typeof parsed === 'object' && parsed !== null) {
+      return Object.entries(parsed)
+        .slice(0, 4)
+        .map(([key, item]) => `${key}: ${item}`)
+        .join(' · ');
+    }
+  } catch {
+    return value;
+  }
+  return value;
+}
+
+function renderAgentPanel() {
+  if (selectors.agentBriefing) {
+    const briefing = state.agentBriefing;
+    if (!briefing) {
+      selectors.agentBriefing.innerHTML = `
+        <strong>No briefing yet</strong>
+        <span>Run the agent brain to create the first briefing and task list.</span>
+      `;
+    } else {
+      const metrics = briefing.metrics || {};
+      const recommendations = briefing.recommendations || [];
+      const recommendationRows = recommendations.length
+        ? recommendations.slice(0, 4).map((item) => `
+          <li>${escapeHtml(item.action || item.detail || 'Review growth opportunity')}</li>
+        `).join('')
+        : '<li>No urgent recommendation recorded.</li>';
+      selectors.agentBriefing.innerHTML = `
+        <strong>Latest Briefing</strong>
+        <p>${escapeHtml(briefing.summary || '')}</p>
+        <div class="agent-briefing-metrics">
+          <span>${escapeHtml(formatCount(metrics.needs_approval_drafts || 0))} drafts need approval</span>
+          <span>${escapeHtml(formatCount(metrics.owner_outreach_queue_candidates || 0))} outreach candidates</span>
+          <span>${escapeHtml(metrics.top_city || 'No top city yet')}</span>
+        </div>
+        <ul>${recommendationRows}</ul>
+      `;
+    }
+  }
+
+  if (selectors.agentTasks) {
+    if (!state.agentTasks.length) {
+      selectors.agentTasks.innerHTML = '<p class="growth-agent-empty">No open agent tasks.</p>';
+    } else {
+      selectors.agentTasks.innerHTML = state.agentTasks.map((task) => `
+        <article class="agent-task-card">
+          <div>
+            <span class="${escapeHtml(statusPillClass(task.priority === 'high' ? 'needs_review' : task.status))}">${escapeHtml(growthStatusLabel(task.priority || 'medium'))}</span>
+            <strong>${escapeHtml(task.title || 'Agent task')}</strong>
+            <p>${escapeHtml(task.description || '')}</p>
+            <small>${escapeHtml(agentSuggestedActionLabel(task.suggested_action))}</small>
+          </div>
+          <div class="growth-agent-actions">
+            <button class="row-action row-action--button" type="button" data-agent-task-status="done" data-agent-task-id="${escapeHtml(task.id)}">Done</button>
+            <button class="row-action row-action--ghost" type="button" data-agent-task-status="dismissed" data-agent-task-id="${escapeHtml(task.id)}">Dismiss</button>
+          </div>
+        </article>
+      `).join('');
+    }
+  }
+
+  if (selectors.agentMemories) {
+    const memories = state.agentMemories || [];
+    selectors.agentMemories.innerHTML = memories.length
+      ? memories.slice(0, 12).map((memory) => `
+        <article class="agent-memory-card">
+          <span>${escapeHtml(growthStatusLabel(memory.memory_type || 'memory'))}</span>
+          <strong>${escapeHtml(memory.key || 'memory')}</strong>
+          <p>${escapeHtml(memoryPreview(memory))}</p>
+        </article>
+      `).join('')
+      : '<p class="growth-agent-empty">No agent memories saved yet.</p>';
+  }
 }
 
 function renderLeads() {
@@ -740,6 +850,7 @@ function renderAutopilot() {
 
 function renderAll() {
   renderMetrics();
+  renderAgentPanel();
   renderDraftReviewQueue();
   renderClaimFunnel();
   renderWeeklyReport();
@@ -773,6 +884,9 @@ async function loadGrowthAgent() {
       draftPayload,
       reviewQueuePayload,
       claimFunnelPayload,
+      agentBriefingsPayload,
+      agentTasksPayload,
+      agentMemoriesPayload,
       autopilotPayload,
       weeklyReportsPayload,
     ] = await Promise.all([
@@ -780,6 +894,9 @@ async function loadGrowthAgent() {
       callGrowthAgent('/admin/campaign-drafts?status=needs_approval&limit=100'),
       callGrowthAgent(`/admin/campaign-draft-review-queue?status=${encodeURIComponent(draftStatus)}&limit=50`),
       callGrowthAgent('/admin/claim-funnel-report?limit=25'),
+      callGrowthAgent('/admin/agent-briefings?limit=1'),
+      callGrowthAgent('/admin/agent-tasks?status=open&limit=20'),
+      callGrowthAgent('/admin/agent-memories?limit=20'),
       callGrowthAgent('/admin/growth-autopilot-report?days=14'),
       callGrowthAgent('/admin/weekly-growth-reports?limit=1'),
     ]);
@@ -788,6 +905,9 @@ async function loadGrowthAgent() {
     state.leads = leadsPayload.leads || [];
     state.draftReviewQueue = reviewQueuePayload.queue || null;
     state.claimFunnelReport = claimFunnelPayload.report || null;
+    state.agentBriefing = agentBriefingsPayload.briefings?.[0] || null;
+    state.agentTasks = agentTasksPayload.tasks || [];
+    state.agentMemories = agentMemoriesPayload.memories || [];
     state.weeklyReport = weeklyReportsPayload.reports?.[0] || null;
     state.socialDrafts = (draftPayload.drafts || [])
       .filter((draft) => draft.channel === 'social_draft')
@@ -883,9 +1003,14 @@ async function runDailyAutomation() {
       seoPages: summary.city_digest_seo_pages || 0,
       skipped: 0,
     };
+    state.lastAgentRun = {
+      tasks: summary.agent_tasks || 0,
+      memories: summary.agent_memories || 0,
+      briefings: summary.agent_briefings || 0,
+    };
     setMessage(
       selectors.message,
-      `Daily automation complete: ${summary.owner_outreach_drafts || 0} outreach drafts, ${summary.social_drafts || 0} social drafts, ${summary.autopilot_drafts || 0} scheduled drafts, ${summary.city_digest_packs || 0} city digest packs.`
+      `Daily automation complete: ${summary.owner_outreach_drafts || 0} outreach drafts, ${summary.social_drafts || 0} social drafts, ${summary.autopilot_drafts || 0} scheduled drafts, ${summary.city_digest_packs || 0} city digest packs, ${summary.agent_tasks || 0} agent tasks.`
     );
     await loadGrowthAgent();
   } catch (error) {
@@ -1045,6 +1170,88 @@ async function generateWeeklyCityDigests() {
   }
 }
 
+async function runAgentBrain() {
+  setLoading(true);
+  setMessage(selectors.message, 'Running autonomous Growth Agent briefing...');
+
+  try {
+    const payload = await callGrowthAgent('/admin/autonomous-agent-run', {
+      method: 'POST',
+      body: {
+        actor: auth.currentUser?.email || 'growth-agent-console',
+      },
+    });
+    const run = payload.run || {};
+    state.lastAgentRun = {
+      tasks: run.tasks?.length || 0,
+      memories: run.memories?.length || 0,
+      briefings: run.briefing ? 1 : 0,
+    };
+    setMessage(selectors.message, `Agent briefing complete: ${state.lastAgentRun.tasks} new task${state.lastAgentRun.tasks === 1 ? '' : 's'} and ${state.lastAgentRun.memories} updated memor${state.lastAgentRun.memories === 1 ? 'y' : 'ies'}.`);
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Autonomous agent run failed.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function saveAgentInstruction(event) {
+  event.preventDefault();
+  const value = String(selectors.agentInstruction?.value || '').trim();
+  if (!value) {
+    setMessage(selectors.message, 'Add an instruction before saving.', true);
+    return;
+  }
+
+  setLoading(true);
+  setMessage(selectors.message, 'Saving agent instruction...');
+
+  try {
+    await callGrowthAgent('/admin/agent-memories', {
+      method: 'POST',
+      body: {
+        memory_type: 'instruction',
+        key: `instruction:${Date.now()}`,
+        value,
+        actor: auth.currentUser?.email || 'growth-agent-console',
+        metadata: {
+          source_surface: 'growth-agent-console',
+        },
+      },
+    });
+    if (selectors.agentInstruction) selectors.agentInstruction.value = '';
+    setMessage(selectors.message, 'Instruction saved to agent memory.');
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Unable to save instruction.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function updateAgentTaskStatus(taskId, status) {
+  if (!taskId || !status) return;
+  setLoading(true);
+  setMessage(selectors.message, `${growthStatusLabel(status)} agent task...`);
+
+  try {
+    await callGrowthAgent(`/admin/agent-tasks/${encodeURIComponent(taskId)}`, {
+      method: 'PATCH',
+      body: {
+        status,
+        actor: auth.currentUser?.email || 'growth-agent-console',
+      },
+    });
+    setMessage(selectors.message, `Agent task marked ${growthStatusLabel(status).toLowerCase()}.`);
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Unable to update agent task.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
 async function runDraftAction(draftId, action) {
   if (!draftId || !action) return;
 
@@ -1133,6 +1340,14 @@ selectors.dailyAutomationRun?.addEventListener('click', () => {
   void runDailyAutomation();
 });
 
+selectors.agentRun?.addEventListener('click', () => {
+  void runAgentBrain();
+});
+
+selectors.agentInstructionForm?.addEventListener('submit', (event) => {
+  void saveAgentInstruction(event);
+});
+
 selectors.draftReviewRefresh?.addEventListener('click', () => {
   void loadGrowthAgent();
 });
@@ -1168,6 +1383,12 @@ document.addEventListener('click', (event) => {
     return;
   }
 
+  const taskButton = event.target.closest('[data-agent-task-status]');
+  if (taskButton) {
+    void updateAgentTaskStatus(taskButton.dataset.agentTaskId || '', taskButton.dataset.agentTaskStatus || '');
+    return;
+  }
+
   const button = event.target.closest('[data-draft-action]');
   if (!button) return;
   void runDraftAction(button.dataset.draftId || '', button.dataset.draftAction || '');
@@ -1195,7 +1416,12 @@ auth.onAuthStateChanged(async (user) => {
     state.claimFunnelReport = null;
     state.weeklyReport = null;
     state.autopilotReport = null;
+    state.agentBriefing = null;
+    state.agentTasks = [];
+    state.agentMemories = [];
+    state.lastAgentRun = null;
     state.lastCityDigestBatch = null;
+    renderAgentPanel();
     renderDraftReviewQueue();
     renderClaimFunnel();
     renderWeeklyReport();

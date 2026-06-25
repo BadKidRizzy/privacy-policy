@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../../assets/site.css?v=1">
-  <link rel="stylesheet" href="../../assets/management-console.css?v=22">
+  <link rel="stylesheet" href="../../assets/management-console.css?v=23">
 </head>
 <body class="console-body growth-agent-page">
   <div class="console-shell">
@@ -78,6 +78,40 @@
         </div>
 
         <div class="growth-agent-grid growth-agent-grid--dashboard" data-growth-agent-metrics></div>
+
+        <section class="growth-agent-panel growth-agent-agent-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Autonomous Agent</p>
+              <h3>Briefing, Tasks, and Memory</h3>
+              <p>Review what the agent thinks needs attention, save standing instructions, and close tasks as work gets handled.</p>
+            </div>
+            <div class="panel-heading__actions">
+              <button class="button button--primary" type="button" data-agent-run>Run Agent Brain</button>
+            </div>
+          </div>
+
+          <div class="agent-briefing-layout">
+            <article class="agent-briefing-card" data-agent-briefing></article>
+
+            <section class="agent-task-panel">
+              <h4>Open Tasks</h4>
+              <div class="agent-task-list" data-agent-tasks></div>
+            </section>
+
+            <section class="agent-memory-panel">
+              <h4>Memory and Instructions</h4>
+              <form class="agent-instruction-form" data-agent-instruction-form>
+                <label>
+                  Standing instruction
+                  <textarea data-agent-instruction rows="3" placeholder="Example: Prioritize Baltimore owner outreach before national posts."></textarea>
+                </label>
+                <button class="button button--secondary" type="submit">Add Instruction</button>
+              </form>
+              <div class="agent-memory-list" data-agent-memories></div>
+            </section>
+          </div>
+        </section>
 
         <section class="growth-agent-panel growth-agent-review-panel">
           <div class="panel-heading">
@@ -320,6 +354,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script defer src="../../assets/growth-agent-console.js?v=6"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=7"></script>
 </body>
 </html>

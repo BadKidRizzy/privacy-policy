@@ -726,6 +726,150 @@
   line-height: 1.48;
 }
 
+.agent-briefing-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.1fr) minmax(260px, 1fr) minmax(260px, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.agent-briefing-card,
+.agent-task-panel,
+.agent-memory-panel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(31, 23, 19, 0.09);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.agent-briefing-card strong,
+.agent-task-panel h4,
+.agent-memory-panel h4,
+.agent-task-card strong,
+.agent-memory-card strong {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.agent-briefing-card p,
+.agent-task-card p,
+.agent-memory-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.agent-briefing-card ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.agent-briefing-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.agent-briefing-metrics span,
+.agent-memory-card span {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 24px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(15, 124, 130, 0.1);
+  color: var(--cool);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.agent-task-list,
+.agent-memory-list {
+  display: grid;
+  gap: 10px;
+}
+
+.agent-task-card,
+.agent-memory-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(31, 23, 19, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 253, 249, 0.8);
+}
+
+.agent-task-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.agent-task-card > div:first-child {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.agent-task-card small {
+  color: var(--accent-deep);
+  font-size: 0.76rem;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.agent-instruction-form {
+  display: grid;
+  gap: 10px;
+}
+
+.agent-instruction-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.agent-instruction-form textarea {
+  width: 100%;
+  min-height: 86px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.45;
+  padding: 10px 12px;
+  text-transform: none;
+}
+
+.agent-instruction-form textarea:focus {
+  border-color: rgba(15, 124, 130, 0.48);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(15, 124, 130, 0.1);
+  background: #fff;
+}
+
 .growth-agent-filterbar [data-growth-agent-loaded-at] {
   color: var(--muted);
   font-size: 0.84rem;
@@ -1775,6 +1919,10 @@ summary.record-section__heading::-webkit-details-marker {
     grid-column: auto;
   }
 
+  .agent-briefing-layout {
+    grid-template-columns: 1fr;
+  }
+
   .growth-agent-filterbar {
     align-items: stretch;
   }
@@ -1808,6 +1956,10 @@ summary.record-section__heading::-webkit-details-marker {
   }
 
   .file-upload-card {
+    grid-template-columns: 1fr;
+  }
+
+  .agent-task-card {
     grid-template-columns: 1fr;
   }
 
