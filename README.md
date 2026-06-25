@@ -10,6 +10,8 @@ This repo hosts the public static pages for Food Truck Finder.
   Public owner claim landing page served at `/claim-your-food-truck/`.
 - `claim-success/index.html`
   Owner claim success page served at `/claim-success/`.
+- `get-app/index.html`
+  Public app download landing page served at `/get-app/`.
 - `food-trucks/baltimore/index.html`
   Baltimore city SEO landing page served at `/food-trucks/baltimore/`.
 - `food-trucks/washington-dc/index.html`
@@ -76,6 +78,8 @@ This repo hosts the public static pages for Food Truck Finder.
   Owner claim landing page
 - `/claim-success/`
   Owner claim success page
+- `/get-app/`
+  Public app download page for clean social links
 - `/food-trucks/baltimore/`
   Baltimore food truck SEO page
 - `/food-trucks/washington-dc/`

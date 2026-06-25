@@ -407,6 +407,7 @@ def write_sitemap(cities: list[dict], trucks: list[dict]) -> None:
     entries = [
         ("", "weekly", "1.0"),
         ("claim-your-food-truck/", "weekly", "0.9"),
+        ("get-app/", "weekly", "0.9"),
         ("truck/", "weekly", "0.7"),
         ("flyer/", "monthly", "0.6"),
         ("privacy-policy/", "yearly", "0.4"),
