@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../../assets/site.css?v=1">
-  <link rel="stylesheet" href="../../assets/management-console.css?v=21">
+  <link rel="stylesheet" href="../../assets/management-console.css?v=22">
 </head>
 <body class="console-body growth-agent-page">
   <div class="console-shell">
@@ -201,6 +201,36 @@
           <div class="weekly-growth-lists" data-weekly-report-lists></div>
         </section>
 
+        <section class="growth-agent-panel growth-agent-city-digest-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Weekly Content</p>
+              <h3>Weekly City Digests</h3>
+              <p>Generate review-only city digest packs for social posts, email newsletters, push notifications, and SEO page drafts.</p>
+            </div>
+            <div class="panel-heading__actions">
+              <button class="button button--primary" type="button" data-city-digest-generate>Generate City Digests</button>
+            </div>
+          </div>
+
+          <div class="growth-agent-filterbar growth-agent-filterbar--social">
+            <label>
+              Cities
+              <input type="text" placeholder="Optional, comma separated" data-city-digest-cities>
+            </label>
+            <label>
+              Max Cities
+              <input type="number" min="1" max="10" value="3" data-city-digest-city-count>
+            </label>
+            <label>
+              Trucks / City
+              <input type="number" min="1" max="12" value="6" data-city-digest-truck-limit>
+            </label>
+          </div>
+
+          <div class="growth-agent-grid growth-agent-grid--dashboard" data-city-digest-summary></div>
+        </section>
+
         <section class="growth-agent-panel growth-agent-social-panel">
           <div class="panel-heading">
             <div>
@@ -290,6 +320,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script defer src="../../assets/growth-agent-console.js?v=5"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=6"></script>
 </body>
 </html>

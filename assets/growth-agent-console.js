@@ -36,6 +36,7 @@ const state = {
   lastSync: null,
   lastQueue: null,
   lastSocialBatch: null,
+  lastCityDigestBatch: null,
 };
 
 const selectors = {
@@ -66,6 +67,11 @@ const selectors = {
   weeklyReportSummary: document.querySelector('[data-weekly-report-summary]'),
   weeklyReportRecommendations: document.querySelector('[data-weekly-report-recommendations]'),
   weeklyReportLists: document.querySelector('[data-weekly-report-lists]'),
+  cityDigestGenerate: document.querySelector('[data-city-digest-generate]'),
+  cityDigestCities: document.querySelector('[data-city-digest-cities]'),
+  cityDigestCityCount: document.querySelector('[data-city-digest-city-count]'),
+  cityDigestTruckLimit: document.querySelector('[data-city-digest-truck-limit]'),
+  cityDigestSummary: document.querySelector('[data-city-digest-summary]'),
   socialGenerate: document.querySelector('[data-social-generate]'),
   socialRefresh: document.querySelector('[data-social-refresh]'),
   socialCity: document.querySelector('[data-social-city]'),
@@ -123,6 +129,10 @@ function setLoading(isLoading) {
     selectors.draftReviewRefresh,
     selectors.draftReviewStatus,
     selectors.weeklyReportGenerate,
+    selectors.cityDigestGenerate,
+    selectors.cityDigestCities,
+    selectors.cityDigestCityCount,
+    selectors.cityDigestTruckLimit,
     selectors.status,
     selectors.socialGenerate,
     selectors.socialRefresh,
@@ -277,6 +287,9 @@ function renderMetrics() {
   const autopilotCopy = state.lastAutopilotPlan
     ? `Last autopilot plan created ${formatCount(state.lastAutopilotPlan.drafts || 0)} scheduled drafts.`
     : 'Growth Autopilot builds reviewable scheduled drafts only.';
+  const digestCopy = state.lastCityDigestBatch
+    ? `Last city digest batch created ${formatCount(state.lastCityDigestBatch.packs || 0)} city pack${Number(state.lastCityDigestBatch.packs || 0) === 1 ? '' : 's'}.`
+    : 'Weekly city digests create social, email, push, and SEO drafts.';
 
   selectors.metrics.innerHTML = `
     ${metricRows.map(([label, value]) => `
@@ -287,7 +300,7 @@ function renderMetrics() {
     `).join('')}
     <div class="growth-agent-card growth-agent-card--wide">
       <strong>Automation</strong>
-      <span>${escapeHtml(syncCopy)} ${escapeHtml(queueCopy)} ${escapeHtml(socialCopy)} ${escapeHtml(autopilotCopy)}</span>
+      <span>${escapeHtml(syncCopy)} ${escapeHtml(queueCopy)} ${escapeHtml(socialCopy)} ${escapeHtml(autopilotCopy)} ${escapeHtml(digestCopy)}</span>
     </div>
   `;
 }
@@ -371,6 +384,8 @@ function contentFormatLabel(value) {
     owner_outreach_email: 'Owner email',
     owner_outreach_dm: 'Owner DM',
     city_discovery_post: 'City discovery',
+    city_digest_email: 'City digest email',
+    city_digest_push: 'City digest push',
   };
   return labels[value] || growthStatusLabel(value || 'Draft');
 }
@@ -420,11 +435,17 @@ function renderDraftReviewQueue() {
   }
 
   selectors.draftReviewQueue.innerHTML = drafts.map((draft) => {
-    const profileUrl = resolvePublicUrl(draft.profile_url, draft.truck_id, draft);
+    const isCityDigest = String(draft.content_format || '').startsWith('city_digest')
+      || (draft.risk_flags || []).includes('city_digest');
+    const profileUrl = draft.profile_url
+      ? resolvePublicUrl(draft.profile_url, draft.truck_id, draft)
+      : (draft.truck_id ? resolvePublicUrl('', draft.truck_id, draft) : '#');
     const trackingUrl = draft.tracking_url || `${GROWTH_AGENT_API_BASE_URL}/r/${draft.tracking_slug || ''}`;
-    const truckLabel = [draft.truck_name, draft.city].filter(Boolean).join(' / ') || 'No truck attached';
+    const truckLabel = [draft.truck_name, draft.city].filter(Boolean).join(' / ')
+      || (isCityDigest ? `${draft.city || 'City'} weekly digest` : 'No truck attached');
     const scheduleLabel = draft.scheduled_for ? formatDate(draft.scheduled_for) : 'Not scheduled';
     const subject = draft.subject ? `<strong>${escapeHtml(draft.subject)}</strong>` : '';
+    const profileLabel = isCityDigest ? 'Open SEO Draft' : 'Open Profile';
 
     return `
       <article class="draft-review-card">
@@ -440,7 +461,7 @@ function renderDraftReviewQueue() {
           </div>
           <div class="growth-agent-actions">
             <button class="row-action row-action--button" type="button" data-copy-caption="${escapeHtml(draft.id)}">Copy Caption</button>
-            <a class="row-action row-action--ghost" href="${escapeHtml(profileUrl)}" target="_blank" rel="noreferrer">Open Profile</a>
+            <a class="row-action row-action--ghost" href="${escapeHtml(profileUrl)}" target="_blank" rel="noreferrer">${escapeHtml(profileLabel)}</a>
             <a class="row-action row-action--ghost" href="${escapeHtml(trackingUrl)}" target="_blank" rel="noreferrer">Open Link</a>
           </div>
         </div>
@@ -605,6 +626,24 @@ function renderWeeklyReport() {
   `;
 }
 
+function renderCityDigestSummary() {
+  if (!selectors.cityDigestSummary) return;
+
+  const batch = state.lastCityDigestBatch;
+  const rows = [
+    ['City Packs', batch?.packs || 0],
+    ['Drafts', batch?.drafts || 0],
+    ['SEO Drafts', batch?.seoPages || 0],
+    ['Skipped', batch?.skipped || 0],
+  ];
+  selectors.cityDigestSummary.innerHTML = rows.map(([label, value]) => `
+    <div class="growth-agent-card">
+      <strong>${escapeHtml(formatCount(value))}</strong>
+      <span>${escapeHtml(label)}</span>
+    </div>
+  `).join('');
+}
+
 function renderSocialDrafts() {
   if (!selectors.socialDrafts) return;
 
@@ -704,6 +743,7 @@ function renderAll() {
   renderDraftReviewQueue();
   renderClaimFunnel();
   renderWeeklyReport();
+  renderCityDigestSummary();
   renderAutopilot();
   renderLeads();
   renderSocialDrafts();
@@ -823,6 +863,9 @@ async function runDailyAutomation() {
         social_limit: 10,
         autopilot_days: 7,
         autopilot_daily_posts: 2,
+        city_digest_enabled: true,
+        city_digest_city_count: Number(selectors.cityDigestCityCount?.value || 3),
+        city_digest_truck_limit: Number(selectors.cityDigestTruckLimit?.value || 6),
         platforms: selectedAutopilotPlatforms(),
         city: String(selectors.autopilotCity?.value || '').trim() || undefined,
         include_owner_tags: selectors.autopilotOwnerTags?.checked !== false,
@@ -834,9 +877,15 @@ async function runDailyAutomation() {
     state.lastQueue = {items: summary.queue_items || 0, real_sending_enabled: false};
     state.lastSocialBatch = {drafts: summary.social_drafts || 0, real_sending_enabled: false};
     state.lastAutopilotPlan = {drafts: summary.autopilot_drafts || 0, real_publishing_enabled: false};
+    state.lastCityDigestBatch = {
+      packs: summary.city_digest_packs || 0,
+      drafts: summary.city_digest_drafts || 0,
+      seoPages: summary.city_digest_seo_pages || 0,
+      skipped: 0,
+    };
     setMessage(
       selectors.message,
-      `Daily automation complete: ${summary.owner_outreach_drafts || 0} outreach drafts, ${summary.social_drafts || 0} social drafts, ${summary.autopilot_drafts || 0} scheduled drafts.`
+      `Daily automation complete: ${summary.owner_outreach_drafts || 0} outreach drafts, ${summary.social_drafts || 0} social drafts, ${summary.autopilot_drafts || 0} scheduled drafts, ${summary.city_digest_packs || 0} city digest packs.`
     );
     await loadGrowthAgent();
   } catch (error) {
@@ -954,6 +1003,48 @@ async function generateWeeklyReport() {
   }
 }
 
+async function generateWeeklyCityDigests() {
+  setLoading(true);
+  setMessage(selectors.message, 'Generating weekly city digest content...');
+
+  try {
+    const cities = String(selectors.cityDigestCities?.value || '')
+      .split(',')
+      .map((city) => city.trim())
+      .filter(Boolean);
+    const cityCount = Number(selectors.cityDigestCityCount?.value || 3);
+    const truckLimit = Number(selectors.cityDigestTruckLimit?.value || 6);
+    const payload = await callGrowthAgent('/admin/weekly-city-digests', {
+      method: 'POST',
+      body: {
+        ...currentWeekBounds(),
+        cities: cities.length ? cities : undefined,
+        city_count: Number.isFinite(cityCount) ? cityCount : 3,
+        truck_limit: Number.isFinite(truckLimit) ? truckLimit : 6,
+        platforms: selectedAutopilotPlatforms(),
+        actor: auth.currentUser?.email || 'growth-agent-console',
+      },
+    });
+    const packs = payload.batch?.packs || [];
+    const skipped = payload.batch?.skipped_cities || [];
+    state.lastCityDigestBatch = {
+      packs: packs.length,
+      drafts: packs.reduce((sum, pack) => sum + (pack.drafts?.length || 0), 0),
+      seoPages: packs.length,
+      skipped: skipped.length,
+    };
+    setMessage(
+      selectors.message,
+      `Created ${state.lastCityDigestBatch.packs} city digest pack${state.lastCityDigestBatch.packs === 1 ? '' : 's'} with ${state.lastCityDigestBatch.drafts} approval drafts.`
+    );
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Weekly city digest generation failed.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
 async function runDraftAction(draftId, action) {
   if (!draftId || !action) return;
 
@@ -1066,6 +1157,10 @@ selectors.weeklyReportGenerate?.addEventListener('click', () => {
   void generateWeeklyReport();
 });
 
+selectors.cityDigestGenerate?.addEventListener('click', () => {
+  void generateWeeklyCityDigests();
+});
+
 document.addEventListener('click', (event) => {
   const copyButton = event.target.closest('[data-copy-caption]');
   if (copyButton) {
@@ -1100,9 +1195,11 @@ auth.onAuthStateChanged(async (user) => {
     state.claimFunnelReport = null;
     state.weeklyReport = null;
     state.autopilotReport = null;
+    state.lastCityDigestBatch = null;
     renderDraftReviewQueue();
     renderClaimFunnel();
     renderWeeklyReport();
+    renderCityDigestSummary();
     renderSocialDrafts();
     renderAutopilot();
     return;

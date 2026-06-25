@@ -69,6 +69,7 @@ This repo hosts the public static pages for Food Truck Finder.
 - The Growth Agent page includes a Growth Autopilot panel for generating reviewable social content calendars, tracking links, scores, and recommendations.
 - The Growth Agent page includes a draft review queue with full post previews, truck profile links, tracking links, copy-caption buttons, approval actions, and filters for needs approval, approved, scheduled, published, rejected, and all drafts.
 - The Growth Agent page includes a daily automation button that calls `POST /admin/daily-growth-automation`, plus claim funnel and weekly growth report dashboards.
+- The Growth Agent page includes a Weekly City Digests panel that creates review-only social, email, push, and SEO draft packs through `POST /admin/weekly-city-digests`.
 - Growth Agent draft rows include approval actions for approve, reject, schedule, and mark posted. Truck profile buttons use `/truck/?id={truckId}` for Firestore-backed profiles.
 - Growth Agent access is still enforced server-side; admin emails must match the configured Cloud Run admin email fragment.
 
