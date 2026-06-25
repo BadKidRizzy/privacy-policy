@@ -476,6 +476,7 @@ function renderLeads() {
 }
 
 function draftPlatform(draft) {
+  if (draft.platform) return String(draft.platform).toLowerCase();
   const platformFlag = (draft.risk_flags || []).find((flag) => String(flag).startsWith('platform:'));
   return platformFlag ? platformFlag.replace('platform:', '') : 'social';
 }
@@ -483,11 +484,15 @@ function draftPlatform(draft) {
 function draftActionButtons(draftOrSlot) {
   const draftId = draftOrSlot.id || draftOrSlot.draft_id;
   const status = String(draftOrSlot.status || '');
+  const platform = draftPlatform(draftOrSlot);
   if (!draftId) return '';
 
   const buttons = [];
   if (status === 'needs_approval') {
     buttons.push(['approve', 'Approve']);
+  }
+  if (status === 'approved' && ['facebook', 'instagram'].includes(platform)) {
+    buttons.push(['publish', 'Post Now']);
   }
   if (status !== 'rejected_by_user' && status !== 'published') {
     buttons.push(['reject', 'Reject']);
@@ -1709,6 +1714,11 @@ async function runDraftAction(draftId, action) {
   const body = {
     actor: auth.currentUser?.email || 'growth-agent-console',
   };
+
+  if (action === 'publish') {
+    const confirmed = window.confirm('Post this approved draft now from the connected Food Truck Finder social account?');
+    if (!confirmed) return;
+  }
 
   if (action === 'reject') {
     const reason = window.prompt('Why reject this draft?');
