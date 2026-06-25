@@ -1052,6 +1052,89 @@
   color: var(--muted);
 }
 
+.social-inbox-list {
+  display: grid;
+  gap: 14px;
+}
+
+.social-inbox-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(31, 23, 19, 0.1);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 249, 0.95), rgba(248, 255, 254, 0.82)),
+    rgba(255, 255, 255, 0.86);
+}
+
+.social-inbox-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.social-inbox-card h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.social-inbox-card__header span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.social-inbox-message,
+.social-inbox-reply {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(31, 23, 19, 0.09);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.social-inbox-reply {
+  border-color: rgba(15, 124, 130, 0.16);
+  background: rgba(248, 255, 254, 0.82);
+}
+
+.social-inbox-reply--empty {
+  border-style: dashed;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.social-inbox-message strong,
+.social-inbox-reply strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+.social-inbox-message p,
+.social-inbox-reply p {
+  margin: 0;
+  color: #312720;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.social-inbox-reply small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
 .claim-funnel-board,
 .weekly-growth-lists {
   display: grid;

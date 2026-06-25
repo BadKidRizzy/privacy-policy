@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../../assets/site.css?v=1">
-  <link rel="stylesheet" href="../../assets/management-console.css?v=23">
+  <link rel="stylesheet" href="../../assets/management-console.css?v=24">
 </head>
 <body class="console-body growth-agent-page">
   <div class="console-shell">
@@ -142,6 +142,45 @@
 
           <div class="growth-agent-grid growth-agent-grid--dashboard" data-draft-review-counts></div>
           <div class="growth-agent-review-list" data-draft-review-queue></div>
+        </section>
+
+        <section class="growth-agent-panel growth-agent-social-inbox-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Social Inbox</p>
+              <h3>Comments and DMs</h3>
+              <p>Sync Facebook and Instagram comments/messages, review suggested replies, and keep real replies disabled until approved.</p>
+            </div>
+            <div class="panel-heading__actions">
+              <button class="button button--primary" type="button" data-social-inbox-sync>Sync Meta Inbox</button>
+              <button class="button button--secondary" type="button" data-social-inbox-refresh>Refresh Inbox</button>
+            </div>
+          </div>
+
+          <div class="growth-agent-filterbar growth-agent-filterbar--social">
+            <label>
+              Inbox Status
+              <select data-social-inbox-status>
+                <option value="needs_review">Needs review</option>
+                <option value="open">Open</option>
+                <option value="handled">Handled</option>
+                <option value="ignored">Ignored</option>
+                <option value="all">All threads</option>
+              </select>
+            </label>
+            <label>
+              Platform
+              <select data-social-inbox-platform>
+                <option value="all">All platforms</option>
+                <option value="instagram">Instagram</option>
+                <option value="facebook">Facebook</option>
+              </select>
+            </label>
+            <span data-social-inbox-loaded-at></span>
+          </div>
+
+          <div class="growth-agent-grid growth-agent-grid--dashboard" data-social-inbox-counts></div>
+          <div class="social-inbox-list" data-social-inbox-list></div>
         </section>
 
         <section class="growth-agent-panel growth-agent-claim-panel">
@@ -354,6 +393,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script defer src="../../assets/growth-agent-console.js?v=7"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=8"></script>
 </body>
 </html>

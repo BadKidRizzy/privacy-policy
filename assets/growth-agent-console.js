@@ -25,9 +25,12 @@ const state = {
   loadedAt: '',
   selectedStatus: 'needs_review',
   selectedDraftStatus: 'needs_approval',
+  selectedSocialInboxStatus: 'needs_review',
+  selectedSocialInboxPlatform: 'all',
   counts: {},
   leads: [],
   draftReviewQueue: null,
+  socialInbox: null,
   claimFunnelReport: null,
   weeklyReport: null,
   agentBriefing: null,
@@ -70,6 +73,13 @@ const selectors = {
   draftReviewLoadedAt: document.querySelector('[data-draft-review-loaded-at]'),
   draftReviewCounts: document.querySelector('[data-draft-review-counts]'),
   draftReviewQueue: document.querySelector('[data-draft-review-queue]'),
+  socialInboxSync: document.querySelector('[data-social-inbox-sync]'),
+  socialInboxRefresh: document.querySelector('[data-social-inbox-refresh]'),
+  socialInboxStatus: document.querySelector('[data-social-inbox-status]'),
+  socialInboxPlatform: document.querySelector('[data-social-inbox-platform]'),
+  socialInboxLoadedAt: document.querySelector('[data-social-inbox-loaded-at]'),
+  socialInboxCounts: document.querySelector('[data-social-inbox-counts]'),
+  socialInboxList: document.querySelector('[data-social-inbox-list]'),
   claimFunnelSummary: document.querySelector('[data-claim-funnel-summary]'),
   claimFunnelRecommendations: document.querySelector('[data-claim-funnel-recommendations]'),
   claimFunnelLeads: document.querySelector('[data-claim-funnel-leads]'),
@@ -141,6 +151,10 @@ function setLoading(isLoading) {
     selectors.agentInstructionForm?.querySelector('button'),
     selectors.draftReviewRefresh,
     selectors.draftReviewStatus,
+    selectors.socialInboxSync,
+    selectors.socialInboxRefresh,
+    selectors.socialInboxStatus,
+    selectors.socialInboxPlatform,
     selectors.weeklyReportGenerate,
     selectors.cityDigestGenerate,
     selectors.cityDigestCities,
@@ -161,6 +175,8 @@ function setLoading(isLoading) {
     ...selectors.socialPlatforms,
     ...selectors.autopilotPlatforms,
     ...document.querySelectorAll('[data-draft-action]'),
+    ...document.querySelectorAll('[data-social-reply-action]'),
+    ...document.querySelectorAll('[data-social-thread-status]'),
     ...document.querySelectorAll('[data-agent-task-status]'),
   ].forEach((control) => {
     if (control) control.disabled = isLoading;
@@ -589,6 +605,122 @@ function renderDraftReviewQueue() {
   }).join('');
 }
 
+function socialPlatformLabel(value) {
+  if (value === 'instagram') return 'Instagram';
+  if (value === 'facebook') return 'Facebook';
+  return growthStatusLabel(value || 'Social');
+}
+
+function socialReplyButtons(draft) {
+  if (!draft?.id) return '';
+  const status = String(draft.status || '');
+  const buttons = [
+    `<button class="row-action row-action--button" type="button" data-copy-social-reply="${escapeHtml(draft.id)}">Copy Reply</button>`,
+  ];
+  if (status === 'needs_approval') {
+    buttons.push(`<button class="row-action row-action--button" type="button" data-social-reply-action="approve" data-social-reply-id="${escapeHtml(draft.id)}">Approve</button>`);
+    buttons.push(`<button class="row-action row-action--ghost" type="button" data-social-reply-action="reject" data-social-reply-id="${escapeHtml(draft.id)}">Reject</button>`);
+  }
+  if (status === 'approved') {
+    buttons.push(`<button class="row-action row-action--button" type="button" data-social-reply-action="mark-sent" data-social-reply-id="${escapeHtml(draft.id)}">Mark Sent</button>`);
+  }
+  return `<div class="growth-agent-actions">${buttons.join('')}</div>`;
+}
+
+function renderSocialInbox() {
+  const inbox = state.socialInbox || {};
+  const counts = inbox.counts || {};
+  const items = inbox.items || [];
+
+  if (selectors.socialInboxCounts) {
+    const rows = [
+      ['Needs Review', counts.social_threads_needs_review || 0],
+      ['Reply Drafts', counts.social_reply_drafts || 0],
+      ['Needs Approval', counts.social_replies_needs_approval || 0],
+      ['Approved', counts.social_replies_approved || 0],
+      ['Messages', counts.social_messages || 0],
+      ['Accounts', counts.social_accounts || 0],
+    ];
+    selectors.socialInboxCounts.innerHTML = rows.map(([label, value]) => `
+      <div class="growth-agent-card">
+        <strong>${escapeHtml(formatCount(value))}</strong>
+        <span>${escapeHtml(label)}</span>
+      </div>
+    `).join('');
+  }
+
+  if (selectors.socialInboxLoadedAt) {
+    selectors.socialInboxLoadedAt.textContent = state.loadedAt
+      ? `Loaded ${formatDate(state.loadedAt)}`
+      : '';
+  }
+
+  if (!selectors.socialInboxList) return;
+
+  if (!items.length) {
+    selectors.socialInboxList.innerHTML = `
+      <div class="growth-agent-empty growth-agent-empty--card">No social inbox threads match this filter.</div>
+    `;
+    return;
+  }
+
+  selectors.socialInboxList.innerHTML = items.map((item) => {
+    const thread = item.thread || {};
+    const latest = item.latest_message || {};
+    const drafts = item.reply_drafts || [];
+    const draft = drafts[0] || null;
+    const platform = socialPlatformLabel(thread.platform);
+    const author = latest.author_handle || latest.author_name || thread.participant_handle || thread.participant_name || 'Unknown';
+    const messageText = latest.text || 'No message text captured.';
+    const replyText = draft?.reply_text || '';
+    const permalink = latest.permalink_url || thread.permalink_url || '';
+    const threadStatus = growthStatusLabel(thread.status || 'open');
+    const draftStatus = draft ? growthStatusLabel(draft.status || 'needs approval') : 'No draft';
+    const threadActionButtons = `
+      <div class="growth-agent-actions">
+        ${thread.status !== 'handled' ? `<button class="row-action row-action--ghost" type="button" data-social-thread-status="handled" data-social-thread-id="${escapeHtml(thread.id)}">Handled</button>` : ''}
+        ${thread.status !== 'ignored' ? `<button class="row-action row-action--ghost" type="button" data-social-thread-status="ignored" data-social-thread-id="${escapeHtml(thread.id)}">Ignore</button>` : ''}
+        ${permalink ? `<a class="row-action row-action--ghost" href="${escapeHtml(permalink)}" target="_blank" rel="noreferrer">Open Thread</a>` : ''}
+      </div>
+    `;
+
+    return `
+      <article class="social-inbox-card">
+        <div class="social-inbox-card__header">
+          <div>
+            <div class="draft-review-card__badges">
+              <span class="${escapeHtml(statusPillClass(thread.status))}">${escapeHtml(threadStatus)}</span>
+              <span class="status-pill">${escapeHtml(platform)}</span>
+              <span class="status-pill">${escapeHtml(growthStatusLabel(thread.thread_type || 'comment'))}</span>
+              <span class="${escapeHtml(statusPillClass(draft?.status))}">${escapeHtml(draftStatus)}</span>
+            </div>
+            <h4>${escapeHtml(thread.subject || `${platform} thread`)}</h4>
+            <span>${escapeHtml(author)} · ${escapeHtml(formatDate(latest.external_created_at || thread.latest_message_at || thread.updated_at))}</span>
+          </div>
+          ${threadActionButtons}
+        </div>
+        <div class="social-inbox-message">
+          <strong>Incoming</strong>
+          <p>${escapeHtml(messageText).replace(/\n/g, '<br>')}</p>
+        </div>
+        ${draft ? `
+          <div class="social-inbox-reply" data-social-reply-source="${escapeHtml(draft.id)}">
+            <strong>Suggested reply</strong>
+            <p>${escapeHtml(replyText).replace(/\n/g, '<br>')}</p>
+            <small>${escapeHtml((draft.risk_flags || []).join(' · '))}</small>
+            ${socialReplyButtons(draft)}
+          </div>
+        ` : `
+          <div class="social-inbox-reply social-inbox-reply--empty">
+            <strong>No reply draft</strong>
+            <p>This thread may be outbound-only or missing message text.</p>
+          </div>
+        `}
+      </article>
+    `;
+  }).join('');
+}
+
 function renderClaimFunnel() {
   const report = state.claimFunnelReport || {};
   const totals = report.totals || {};
@@ -852,6 +984,7 @@ function renderAll() {
   renderMetrics();
   renderAgentPanel();
   renderDraftReviewQueue();
+  renderSocialInbox();
   renderClaimFunnel();
   renderWeeklyReport();
   renderCityDigestSummary();
@@ -879,10 +1012,13 @@ async function loadGrowthAgent() {
     );
     const status = state.selectedStatus === 'all' ? '' : `&status=${encodeURIComponent(state.selectedStatus)}`;
     const draftStatus = state.selectedDraftStatus || 'needs_approval';
+    const inboxStatus = state.selectedSocialInboxStatus === 'all' ? '' : `&status=${encodeURIComponent(state.selectedSocialInboxStatus)}`;
+    const inboxPlatform = state.selectedSocialInboxPlatform === 'all' ? '' : `&platform=${encodeURIComponent(state.selectedSocialInboxPlatform)}`;
     const [
       leadsPayload,
       draftPayload,
       reviewQueuePayload,
+      socialInboxPayload,
       claimFunnelPayload,
       agentBriefingsPayload,
       agentTasksPayload,
@@ -893,6 +1029,7 @@ async function loadGrowthAgent() {
       callGrowthAgent(`/admin/owner-outreach-leads?limit=100${status}`),
       callGrowthAgent('/admin/campaign-drafts?status=needs_approval&limit=100'),
       callGrowthAgent(`/admin/campaign-draft-review-queue?status=${encodeURIComponent(draftStatus)}&limit=50`),
+      callGrowthAgent(`/admin/social-inbox?limit=50${inboxStatus}${inboxPlatform}`),
       callGrowthAgent('/admin/claim-funnel-report?limit=25'),
       callGrowthAgent('/admin/agent-briefings?limit=1'),
       callGrowthAgent('/admin/agent-tasks?status=open&limit=20'),
@@ -904,6 +1041,7 @@ async function loadGrowthAgent() {
     state.counts = Object.fromEntries(countResults);
     state.leads = leadsPayload.leads || [];
     state.draftReviewQueue = reviewQueuePayload.queue || null;
+    state.socialInbox = socialInboxPayload.inbox || null;
     state.claimFunnelReport = claimFunnelPayload.report || null;
     state.agentBriefing = agentBriefingsPayload.briefings?.[0] || null;
     state.agentTasks = agentTasksPayload.tasks || [];
@@ -1252,6 +1390,91 @@ async function updateAgentTaskStatus(taskId, status) {
   }
 }
 
+async function syncSocialInbox() {
+  setLoading(true);
+  setMessage(selectors.message, 'Syncing Meta social inbox...');
+
+  try {
+    const payload = await callGrowthAgent('/admin/social-inbox/sync-meta', {
+      method: 'POST',
+      body: {
+        limit: 25,
+        actor: auth.currentUser?.email || 'growth-agent-console',
+      },
+    });
+    const sync = payload.sync || {};
+    const skipped = sync.skipped || [];
+    const suffix = skipped.length
+      ? ` ${skipped.length} source${skipped.length === 1 ? '' : 's'} returned setup or permission notes.`
+      : '';
+    setMessage(
+      selectors.message,
+      `Social inbox synced: ${sync.messages?.length || 0} message${(sync.messages?.length || 0) === 1 ? '' : 's'} and ${sync.reply_drafts?.length || 0} reply draft${(sync.reply_drafts?.length || 0) === 1 ? '' : 's'}.${suffix}`
+    );
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Social inbox sync failed.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function runSocialReplyAction(draftId, action) {
+  if (!draftId || !action) return;
+  const body = {
+    actor: auth.currentUser?.email || 'growth-agent-console',
+  };
+
+  if (action === 'reject') {
+    const reason = window.prompt('Why reject this reply?');
+    if (!reason || !reason.trim()) return;
+    body.note = reason.trim();
+  }
+
+  if (action === 'mark-sent') {
+    const note = window.prompt('Where was this reply posted?');
+    if (note && note.trim()) body.note = note.trim();
+  }
+
+  setLoading(true);
+  setMessage(selectors.message, `${growthStatusLabel(action)} social reply...`);
+
+  try {
+    await callGrowthAgent(`/admin/social-reply-drafts/${encodeURIComponent(draftId)}/${action}`, {
+      method: 'POST',
+      body,
+    });
+    setMessage(selectors.message, `Social reply ${growthStatusLabel(action).toLowerCase()} complete.`);
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Social reply action failed.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function updateSocialThreadStatus(threadId, status) {
+  if (!threadId || !status) return;
+  setLoading(true);
+  setMessage(selectors.message, `Marking social thread ${growthStatusLabel(status).toLowerCase()}...`);
+
+  try {
+    await callGrowthAgent(`/admin/social-threads/${encodeURIComponent(threadId)}`, {
+      method: 'PATCH',
+      body: {
+        status,
+        actor: auth.currentUser?.email || 'growth-agent-console',
+      },
+    });
+    setMessage(selectors.message, `Social thread marked ${growthStatusLabel(status).toLowerCase()}.`);
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Unable to update social thread.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
 async function runDraftAction(draftId, action) {
   if (!draftId || !action) return;
 
@@ -1304,6 +1527,34 @@ async function copyDraftCaption(draftId) {
   }
 }
 
+async function copySocialReply(draftId) {
+  const source = document.querySelector(`[data-social-reply-source="${CSS.escape(draftId)}"]`);
+  const text = source?.querySelector('p')?.innerText || '';
+  if (!text.trim()) return;
+
+  try {
+    await navigator.clipboard.writeText(text.trim());
+    setMessage(selectors.message, 'Reply copied.');
+  } catch {
+    const textarea = document.createElement('textarea');
+    textarea.value = text.trim();
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    textarea.remove();
+    setMessage(selectors.message, 'Reply copied.');
+  }
+}
+
+function socialInboxFilterChanged() {
+  state.selectedSocialInboxStatus = selectors.socialInboxStatus?.value || 'needs_review';
+  state.selectedSocialInboxPlatform = selectors.socialInboxPlatform?.value || 'all';
+  void loadGrowthAgent();
+}
+
 selectors.loginForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const formData = new FormData(selectors.loginForm);
@@ -1352,6 +1603,14 @@ selectors.draftReviewRefresh?.addEventListener('click', () => {
   void loadGrowthAgent();
 });
 
+selectors.socialInboxSync?.addEventListener('click', () => {
+  void syncSocialInbox();
+});
+
+selectors.socialInboxRefresh?.addEventListener('click', () => {
+  void loadGrowthAgent();
+});
+
 selectors.autopilotGenerate?.addEventListener('click', () => {
   void generateGrowthAutopilotPlan();
 });
@@ -1383,9 +1642,33 @@ document.addEventListener('click', (event) => {
     return;
   }
 
+  const copyReplyButton = event.target.closest('[data-copy-social-reply]');
+  if (copyReplyButton) {
+    void copySocialReply(copyReplyButton.dataset.copySocialReply || '');
+    return;
+  }
+
   const taskButton = event.target.closest('[data-agent-task-status]');
   if (taskButton) {
     void updateAgentTaskStatus(taskButton.dataset.agentTaskId || '', taskButton.dataset.agentTaskStatus || '');
+    return;
+  }
+
+  const socialReplyButton = event.target.closest('[data-social-reply-action]');
+  if (socialReplyButton) {
+    void runSocialReplyAction(
+      socialReplyButton.dataset.socialReplyId || '',
+      socialReplyButton.dataset.socialReplyAction || ''
+    );
+    return;
+  }
+
+  const socialThreadButton = event.target.closest('[data-social-thread-status]');
+  if (socialThreadButton) {
+    void updateSocialThreadStatus(
+      socialThreadButton.dataset.socialThreadId || '',
+      socialThreadButton.dataset.socialThreadStatus || ''
+    );
     return;
   }
 
@@ -1398,6 +1681,10 @@ selectors.draftReviewStatus?.addEventListener('change', (event) => {
   state.selectedDraftStatus = event.target.value || 'needs_approval';
   void loadGrowthAgent();
 });
+
+selectors.socialInboxStatus?.addEventListener('change', socialInboxFilterChanged);
+
+selectors.socialInboxPlatform?.addEventListener('change', socialInboxFilterChanged);
 
 selectors.status?.addEventListener('change', (event) => {
   state.selectedStatus = event.target.value || 'needs_review';
@@ -1413,6 +1700,7 @@ auth.onAuthStateChanged(async (user) => {
     }
     state.socialDrafts = [];
     state.draftReviewQueue = null;
+    state.socialInbox = null;
     state.claimFunnelReport = null;
     state.weeklyReport = null;
     state.autopilotReport = null;
@@ -1423,6 +1711,7 @@ auth.onAuthStateChanged(async (user) => {
     state.lastCityDigestBatch = null;
     renderAgentPanel();
     renderDraftReviewQueue();
+    renderSocialInbox();
     renderClaimFunnel();
     renderWeeklyReport();
     renderCityDigestSummary();
