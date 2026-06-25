@@ -189,6 +189,103 @@ function setLoading(isLoading) {
   });
 }
 
+const PANEL_STORAGE_PREFIX = 'ftf-growth-agent-panel:';
+
+function storageGet(key) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function storageSet(key, value) {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Ignore private browsing or blocked storage.
+  }
+}
+
+function panelKey(panel, index) {
+  const heading = panel.querySelector('.panel-heading h3')?.textContent || `panel-${index}`;
+  return panel.dataset.panelKey || panel.id || slugify(heading) || `panel-${index}`;
+}
+
+function setPanelCollapsed(panel, collapsed, {persist = true} = {}) {
+  const button = panel.querySelector('[data-panel-collapse]');
+  const body = panel.querySelector('.growth-agent-panel__body');
+  panel.classList.toggle('is-collapsed', collapsed);
+
+  if (body) {
+    body.hidden = collapsed;
+  }
+
+  if (button) {
+    button.textContent = collapsed ? 'Expand' : 'Collapse';
+    button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  }
+
+  if (persist) {
+    storageSet(`${PANEL_STORAGE_PREFIX}${panel.dataset.panelKey}`, collapsed ? 'closed' : 'open');
+  }
+}
+
+function expandPanelForHash() {
+  const hash = window.location.hash;
+  if (!hash || hash.length < 2) return;
+
+  const target = document.getElementById(hash.slice(1));
+  const panel = target?.classList.contains('growth-agent-panel')
+    ? target
+    : target?.closest?.('.growth-agent-panel');
+  if (!panel) return;
+
+  setPanelCollapsed(panel, false);
+}
+
+function initCollapsiblePanels() {
+  const panels = Array.from(document.querySelectorAll('.growth-agent-panel'));
+  panels.forEach((panel, index) => {
+    const heading = Array.from(panel.children).find((child) => child.classList.contains('panel-heading'));
+    if (!heading) return;
+
+    panel.dataset.panelKey = panelKey(panel, index);
+
+    if (!panel.querySelector(':scope > .growth-agent-panel__body')) {
+      const body = document.createElement('div');
+      body.className = 'growth-agent-panel__body';
+      body.id = `${panel.dataset.panelKey}-body`;
+      Array.from(panel.children).forEach((child) => {
+        if (child !== heading) body.appendChild(child);
+      });
+      panel.appendChild(body);
+    }
+
+    let actions = heading.querySelector('.panel-heading__actions');
+    if (!actions) {
+      actions = document.createElement('div');
+      actions.className = 'panel-heading__actions';
+      heading.appendChild(actions);
+    }
+
+    if (!actions.querySelector('[data-panel-collapse]')) {
+      const button = document.createElement('button');
+      button.className = 'growth-agent-collapse';
+      button.type = 'button';
+      button.dataset.panelCollapse = panel.dataset.panelKey;
+      button.setAttribute('aria-controls', `${panel.dataset.panelKey}-body`);
+      actions.appendChild(button);
+    }
+
+    const saved = storageGet(`${PANEL_STORAGE_PREFIX}${panel.dataset.panelKey}`);
+    const defaultClosed = panel.dataset.panelDefault === 'closed';
+    setPanelCollapsed(panel, saved ? saved === 'closed' : defaultClosed, {persist: false});
+  });
+
+  expandPanelForHash();
+}
+
 function formatDate(value) {
   if (!value) return 'Not set';
   const parsed = new Date(value);
@@ -1960,6 +2057,20 @@ selectors.cityDigestGenerate?.addEventListener('click', () => {
 });
 
 document.addEventListener('click', (event) => {
+  const collapseButton = event.target.closest('[data-panel-collapse]');
+  if (collapseButton) {
+    const panel = collapseButton.closest('.growth-agent-panel');
+    if (panel) {
+      setPanelCollapsed(panel, !panel.classList.contains('is-collapsed'));
+    }
+    return;
+  }
+
+  const hashLink = event.target.closest('a[href^="#"]');
+  if (hashLink) {
+    window.setTimeout(expandPanelForHash, 0);
+  }
+
   const statusFilterButton = event.target.closest('[data-draft-status-filter]');
   if (statusFilterButton) {
     const status = statusFilterButton.dataset.draftStatusFilter || 'needs_approval';
@@ -2040,6 +2151,10 @@ selectors.status?.addEventListener('change', (event) => {
   state.selectedStatus = event.target.value || 'needs_review';
   void loadGrowthAgent();
 });
+
+window.addEventListener('hashchange', expandPanelForHash);
+
+initCollapsiblePanels();
 
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
