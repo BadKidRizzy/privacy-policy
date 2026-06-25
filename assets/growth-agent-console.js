@@ -27,6 +27,8 @@ const state = {
   counts: {},
   leads: [],
   socialDrafts: [],
+  autopilotReport: null,
+  lastAutopilotPlan: null,
   lastSync: null,
   lastQueue: null,
   lastSocialBatch: null,
@@ -54,6 +56,16 @@ const selectors = {
   socialOwnerTags: document.querySelector('[data-social-owner-tags]'),
   socialPlatforms: Array.from(document.querySelectorAll('[data-social-platform]')),
   socialDrafts: document.querySelector('[data-social-drafts]'),
+  autopilotGenerate: document.querySelector('[data-autopilot-generate]'),
+  autopilotRefresh: document.querySelector('[data-autopilot-refresh]'),
+  autopilotCity: document.querySelector('[data-autopilot-city]'),
+  autopilotDays: document.querySelector('[data-autopilot-days]'),
+  autopilotDailyPosts: document.querySelector('[data-autopilot-daily-posts]'),
+  autopilotOwnerTags: document.querySelector('[data-autopilot-owner-tags]'),
+  autopilotPlatforms: Array.from(document.querySelectorAll('[data-autopilot-platform]')),
+  autopilotSummary: document.querySelector('[data-autopilot-summary]'),
+  autopilotCalendar: document.querySelector('[data-autopilot-calendar]'),
+  autopilotRecommendations: document.querySelector('[data-autopilot-recommendations]'),
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -96,7 +108,14 @@ function setLoading(isLoading) {
     selectors.socialCity,
     selectors.socialLimit,
     selectors.socialOwnerTags,
+    selectors.autopilotGenerate,
+    selectors.autopilotRefresh,
+    selectors.autopilotCity,
+    selectors.autopilotDays,
+    selectors.autopilotDailyPosts,
+    selectors.autopilotOwnerTags,
     ...selectors.socialPlatforms,
+    ...selectors.autopilotPlatforms,
   ].forEach((control) => {
     if (control) control.disabled = isLoading;
   });
@@ -193,6 +212,9 @@ function renderMetrics() {
   const socialCopy = state.lastSocialBatch
     ? `Last social batch created ${formatCount(state.lastSocialBatch.drafts || 0)} drafts.`
     : 'Social drafts stay in approval until posted manually.';
+  const autopilotCopy = state.lastAutopilotPlan
+    ? `Last autopilot plan created ${formatCount(state.lastAutopilotPlan.drafts || 0)} scheduled drafts.`
+    : 'Growth Autopilot builds reviewable scheduled drafts only.';
 
   selectors.metrics.innerHTML = `
     ${metricRows.map(([label, value]) => `
@@ -203,7 +225,7 @@ function renderMetrics() {
     `).join('')}
     <div class="growth-agent-card growth-agent-card--wide">
       <strong>Automation</strong>
-      <span>${escapeHtml(syncCopy)} ${escapeHtml(queueCopy)} ${escapeHtml(socialCopy)}</span>
+      <span>${escapeHtml(syncCopy)} ${escapeHtml(queueCopy)} ${escapeHtml(socialCopy)} ${escapeHtml(autopilotCopy)}</span>
     </div>
   `;
 }
@@ -278,8 +300,71 @@ function renderSocialDrafts() {
   }).join('');
 }
 
+function renderAutopilot() {
+  const report = state.autopilotReport || {};
+  const totals = report.totals || {};
+  const recommendations = report.recommendations || [];
+  const calendar = report.scheduled || [];
+
+  if (selectors.autopilotSummary) {
+    const rows = [
+      ['Drafts', totals.drafts || 0],
+      ['Needs Approval', totals.pending_approval || 0],
+      ['Scheduled', totals.scheduled || 0],
+      ['Published', totals.published || 0],
+      ['Clicks', totals.clicks || 0],
+      ['Avg Score', totals.average_score || 0],
+    ];
+    selectors.autopilotSummary.innerHTML = rows.map(([label, value]) => `
+      <div class="growth-agent-card">
+        <strong>${escapeHtml(formatCount(value))}</strong>
+        <span>${escapeHtml(label)}</span>
+      </div>
+    `).join('');
+  }
+
+  if (selectors.autopilotRecommendations) {
+    if (!recommendations.length) {
+      selectors.autopilotRecommendations.innerHTML = '';
+    } else {
+      selectors.autopilotRecommendations.innerHTML = recommendations.map((item) => `
+        <article class="growth-agent-recommendation">
+          <strong>${escapeHtml(item.title || 'Recommendation')}</strong>
+          <span>${escapeHtml(item.detail || '')}</span>
+        </article>
+      `).join('');
+    }
+  }
+
+  if (selectors.autopilotCalendar) {
+    if (!calendar.length) {
+      selectors.autopilotCalendar.innerHTML = `
+        <tr>
+          <td colspan="7" class="growth-agent-empty">No Growth Autopilot calendar items yet.</td>
+        </tr>
+      `;
+    } else {
+      selectors.autopilotCalendar.innerHTML = calendar.map((slot) => `
+        <tr>
+          <td>
+            <strong>${escapeHtml(formatDate(slot.scheduled_for))}</strong>
+            <span>${escapeHtml(slot.date || '')}</span>
+          </td>
+          <td><span class="status-pill">${escapeHtml(String(slot.platform || 'social').toUpperCase())}</span></td>
+          <td>${escapeHtml(String(slot.template || '').replace(/_/g, ' '))}</td>
+          <td>${escapeHtml(slot.truck_name || 'Unknown truck')}</td>
+          <td>${escapeHtml(slot.score ?? 0)}</td>
+          <td><span class="status-pill">${escapeHtml(growthStatusLabel(slot.status))}</span></td>
+          <td><a class="row-action row-action--ghost" href="${escapeHtml(slot.tracking_url || '#')}" target="_blank" rel="noreferrer">Open Link</a></td>
+        </tr>
+      `).join('');
+    }
+  }
+}
+
 function renderAll() {
   renderMetrics();
+  renderAutopilot();
   renderLeads();
   renderSocialDrafts();
 
@@ -304,12 +389,14 @@ async function loadGrowthAgent() {
     const status = state.selectedStatus === 'all' ? '' : `&status=${encodeURIComponent(state.selectedStatus)}`;
     const leadsPayload = await callGrowthAgent(`/admin/owner-outreach-leads?limit=100${status}`);
     const draftPayload = await callGrowthAgent('/admin/campaign-drafts?status=needs_approval&limit=100');
+    const autopilotPayload = await callGrowthAgent('/admin/growth-autopilot-report?days=14');
 
     state.counts = Object.fromEntries(countResults);
     state.leads = leadsPayload.leads || [];
     state.socialDrafts = (draftPayload.drafts || [])
       .filter((draft) => draft.channel === 'social_draft')
       .slice(0, 25);
+    state.autopilotReport = autopilotPayload.report || null;
     state.loadedAt = new Date().toISOString();
     setMessage(selectors.message, 'Growth Agent data loaded.');
     renderAll();
@@ -372,6 +459,46 @@ function selectedSocialPlatforms() {
     .filter((input) => input.checked)
     .map((input) => input.value);
   return platforms.length ? platforms : ['instagram', 'facebook', 'tiktok', 'x'];
+}
+
+function selectedAutopilotPlatforms() {
+  const platforms = selectors.autopilotPlatforms
+    .filter((input) => input.checked)
+    .map((input) => input.value);
+  return platforms.length ? platforms : ['instagram', 'facebook', 'tiktok', 'x'];
+}
+
+async function generateGrowthAutopilotPlan() {
+  setLoading(true);
+  setMessage(selectors.message, 'Generating Growth Autopilot calendar...');
+
+  try {
+    const city = String(selectors.autopilotCity?.value || '').trim();
+    const days = Number(selectors.autopilotDays?.value || 7);
+    const dailyPosts = Number(selectors.autopilotDailyPosts?.value || 2);
+    const payload = await callGrowthAgent('/admin/growth-autopilot-plan', {
+      method: 'POST',
+      body: {
+        days: Number.isFinite(days) ? days : 7,
+        daily_posts: Number.isFinite(dailyPosts) ? dailyPosts : 2,
+        platforms: selectedAutopilotPlatforms(),
+        city: city || undefined,
+        include_owner_tags: selectors.autopilotOwnerTags?.checked !== false,
+        actor: auth.currentUser?.email || 'growth-agent-console',
+      },
+    });
+    const drafts = payload.plan?.drafts || [];
+    state.lastAutopilotPlan = {
+      drafts: drafts.length,
+      real_publishing_enabled: payload.plan?.real_publishing_enabled === true,
+    };
+    setMessage(selectors.message, `Growth Autopilot created ${drafts.length} scheduled draft${drafts.length === 1 ? '' : 's'} for approval. Real publishing remains disabled.`);
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Growth Autopilot generation failed.', true);
+  } finally {
+    setLoading(false);
+  }
 }
 
 async function generateSocialDrafts() {
@@ -437,6 +564,14 @@ selectors.queue?.addEventListener('click', () => {
   void generateGrowthAgentQueue();
 });
 
+selectors.autopilotGenerate?.addEventListener('click', () => {
+  void generateGrowthAutopilotPlan();
+});
+
+selectors.autopilotRefresh?.addEventListener('click', () => {
+  void loadGrowthAgent();
+});
+
 selectors.socialGenerate?.addEventListener('click', () => {
   void generateSocialDrafts();
 });
@@ -458,7 +593,9 @@ auth.onAuthStateChanged(async (user) => {
       selectors.sessionSummary.textContent = '';
     }
     state.socialDrafts = [];
+    state.autopilotReport = null;
     renderSocialDrafts();
+    renderAutopilot();
     return;
   }
 

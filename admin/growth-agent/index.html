@@ -78,6 +78,65 @@
 
         <div class="growth-agent-grid growth-agent-grid--dashboard" data-growth-agent-metrics></div>
 
+        <section class="growth-agent-panel growth-agent-autopilot-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Growth Autopilot</p>
+              <h3>Content Calendar</h3>
+              <p>Generate a reviewable social calendar with scored truck spotlight drafts, tracking links, and recommendations.</p>
+            </div>
+            <div class="panel-heading__actions">
+              <button class="button button--primary" type="button" data-autopilot-generate>Generate 7-Day Plan</button>
+              <button class="button button--secondary" type="button" data-autopilot-refresh>Refresh Autopilot</button>
+            </div>
+          </div>
+
+          <div class="growth-agent-filterbar growth-agent-filterbar--social">
+            <label>
+              City
+              <input type="text" placeholder="Optional city" data-autopilot-city>
+            </label>
+            <label>
+              Days
+              <input type="number" min="1" max="30" value="7" data-autopilot-days>
+            </label>
+            <label>
+              Posts / Day
+              <input type="number" min="1" max="8" value="2" data-autopilot-daily-posts>
+            </label>
+            <label class="growth-agent-check">
+              <span>Owner Tags</span>
+              <input type="checkbox" checked data-autopilot-owner-tags>
+            </label>
+            <div class="growth-agent-platforms" aria-label="Autopilot social platforms">
+              <label><input type="checkbox" value="instagram" checked data-autopilot-platform> Instagram</label>
+              <label><input type="checkbox" value="facebook" checked data-autopilot-platform> Facebook</label>
+              <label><input type="checkbox" value="tiktok" checked data-autopilot-platform> TikTok</label>
+              <label><input type="checkbox" value="x" checked data-autopilot-platform> X</label>
+            </div>
+          </div>
+
+          <div class="growth-agent-grid growth-agent-grid--dashboard" data-autopilot-summary></div>
+          <div class="growth-agent-recommendations" data-autopilot-recommendations></div>
+
+          <div class="growth-agent-table-wrap">
+            <table class="growth-agent-table growth-agent-table--drafts">
+              <thead>
+                <tr>
+                  <th>Scheduled</th>
+                  <th>Platform</th>
+                  <th>Template</th>
+                  <th>Truck</th>
+                  <th>Score</th>
+                  <th>Status</th>
+                  <th>Tracking</th>
+                </tr>
+              </thead>
+              <tbody data-autopilot-calendar></tbody>
+            </table>
+          </div>
+        </section>
+
         <section class="growth-agent-panel growth-agent-social-panel">
           <div class="panel-heading">
             <div>
@@ -166,6 +225,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script defer src="../../assets/growth-agent-console.js?v=2"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=3"></script>
 </body>
 </html>
