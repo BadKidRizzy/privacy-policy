@@ -67,6 +67,7 @@ This repo hosts the public static pages for Food Truck Finder.
 - Claim auto-response email drafts are created by the backend, but real email sending remains disabled until a provider is intentionally connected.
 - The `/admin/growth-agent/` console calls `https://food-truck-growth-agent-xmel35gaya-uc.a.run.app` with the signed-in Firebase Auth ID token from `food-truck-finder-prod`.
 - The Growth Agent page includes a Growth Autopilot panel for generating reviewable social content calendars, tracking links, scores, and recommendations.
+- Growth Agent draft rows include approval actions for approve, reject, schedule, and mark posted. Truck profile buttons use `/truck/?id={truckId}` for Firestore-backed profiles.
 - Growth Agent access is still enforced server-side; admin emails must match the configured Cloud Run admin email fragment.
 
 ## Published Paths

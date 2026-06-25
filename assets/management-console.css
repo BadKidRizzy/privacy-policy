@@ -791,6 +791,19 @@
   white-space: pre-wrap;
 }
 
+.growth-agent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-width: 180px;
+}
+
+.growth-agent-actions .row-action {
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 0.74rem;
+}
+
 .growth-agent-empty {
   color: var(--muted);
   font-weight: 800;

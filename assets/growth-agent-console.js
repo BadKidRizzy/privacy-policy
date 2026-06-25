@@ -116,6 +116,7 @@ function setLoading(isLoading) {
     selectors.autopilotOwnerTags,
     ...selectors.socialPlatforms,
     ...selectors.autopilotPlatforms,
+    ...document.querySelectorAll('[data-draft-action]'),
   ].forEach((control) => {
     if (control) control.disabled = isLoading;
   });
@@ -147,14 +148,54 @@ function growthStatusLabel(status) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function resolvePublicUrl(value, fallbackId = '') {
-  const fallback = `${PUBLIC_TRUCK_SHARE_BASE_URL}${encodeURIComponent(fallbackId || '')}/`;
+function slugify(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'truck';
+}
+
+function dynamicTruckUrl(truckId) {
+  const url = new URL('/truck/', PUBLIC_SITE_BASE_URL);
+  url.searchParams.set('id', truckId);
+  return url.toString();
+}
+
+function staticTruckUrl(lead) {
+  const name = slugify(lead?.truck_name || lead?.name || lead?.truck_id || '');
+  const city = slugify(lead?.city || lead?.truck_id || '');
+  return `${PUBLIC_TRUCK_SHARE_BASE_URL}${encodeURIComponent(city ? `${name}-${city}` : name)}/`;
+}
+
+function isRawTruckIdPath(url, truckId) {
+  if (!truckId) return false;
 
   try {
-    return new URL(value || fallback, PUBLIC_SITE_BASE_URL).toString();
+    const parsed = new URL(url, PUBLIC_SITE_BASE_URL);
+    const pathParts = parsed.pathname.split('/').filter(Boolean);
+    return parsed.search === ''
+      && pathParts[0] === 'truck'
+      && decodeURIComponent(pathParts[1] || '') === String(truckId);
   } catch {
-    return fallback;
+    return false;
   }
+}
+
+function resolvePublicUrl(value, fallbackId = '', lead = null) {
+  if (fallbackId) {
+    return dynamicTruckUrl(fallbackId);
+  }
+
+  if (value && !isRawTruckIdPath(value, fallbackId)) {
+    try {
+      return new URL(value, PUBLIC_SITE_BASE_URL).toString();
+    } catch {
+      return staticTruckUrl(lead);
+    }
+  }
+
+  return staticTruckUrl(lead);
 }
 
 async function callGrowthAgent(path, options = {}) {
@@ -248,7 +289,7 @@ function renderLeads() {
       lead.owner_phone,
       lead.owner_social_handle,
     ].filter(Boolean).join(' / ') || 'Needs contact research';
-    const profileUrl = resolvePublicUrl(lead.profile_url, lead.truck_id);
+    const profileUrl = resolvePublicUrl(lead.profile_url, lead.truck_id, lead);
 
     return `
       <tr>
@@ -270,13 +311,43 @@ function draftPlatform(draft) {
   return platformFlag ? platformFlag.replace('platform:', '') : 'social';
 }
 
+function draftActionButtons(draftOrSlot) {
+  const draftId = draftOrSlot.id || draftOrSlot.draft_id;
+  const status = String(draftOrSlot.status || '');
+  if (!draftId) return '';
+
+  const buttons = [];
+  if (status === 'needs_approval') {
+    buttons.push(['approve', 'Approve']);
+  }
+  if (status !== 'rejected_by_user' && status !== 'published') {
+    buttons.push(['reject', 'Reject']);
+  }
+  if (status === 'approved' || status === 'needs_approval') {
+    buttons.push(['mark-scheduled', 'Schedule']);
+  }
+  if (status === 'approved' || status === 'scheduled') {
+    buttons.push(['mark-published', 'Mark Posted']);
+  }
+
+  return `
+    <div class="growth-agent-actions">
+      ${buttons.map(([action, label]) => `
+        <button class="row-action row-action--button" type="button" data-draft-action="${escapeHtml(action)}" data-draft-id="${escapeHtml(draftId)}">
+          ${escapeHtml(label)}
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
 function renderSocialDrafts() {
   if (!selectors.socialDrafts) return;
 
   if (!state.socialDrafts.length) {
     selectors.socialDrafts.innerHTML = `
       <tr>
-        <td colspan="4" class="growth-agent-empty">No social drafts are waiting for approval.</td>
+        <td colspan="5" class="growth-agent-empty">No social drafts are waiting for approval.</td>
       </tr>
     `;
     return;
@@ -295,6 +366,7 @@ function renderSocialDrafts() {
         </td>
         <td><span class="status-pill">${escapeHtml(growthStatusLabel(draft.status))}</span></td>
         <td><a class="row-action row-action--ghost" href="${escapeHtml(trackingUrl)}" target="_blank" rel="noreferrer">Open Link</a></td>
+        <td>${draftActionButtons(draft)}</td>
       </tr>
     `;
   }).join('');
@@ -340,7 +412,7 @@ function renderAutopilot() {
     if (!calendar.length) {
       selectors.autopilotCalendar.innerHTML = `
         <tr>
-          <td colspan="7" class="growth-agent-empty">No Growth Autopilot calendar items yet.</td>
+          <td colspan="8" class="growth-agent-empty">No Growth Autopilot calendar items yet.</td>
         </tr>
       `;
     } else {
@@ -356,6 +428,7 @@ function renderAutopilot() {
           <td>${escapeHtml(slot.score ?? 0)}</td>
           <td><span class="status-pill">${escapeHtml(growthStatusLabel(slot.status))}</span></td>
           <td><a class="row-action row-action--ghost" href="${escapeHtml(slot.tracking_url || '#')}" target="_blank" rel="noreferrer">Open Link</a></td>
+          <td>${draftActionButtons(slot)}</td>
         </tr>
       `).join('');
     }
@@ -532,6 +605,36 @@ async function generateSocialDrafts() {
   }
 }
 
+async function runDraftAction(draftId, action) {
+  if (!draftId || !action) return;
+
+  const body = {
+    actor: auth.currentUser?.email || 'growth-agent-console',
+  };
+
+  if (action === 'reject') {
+    const reason = window.prompt('Why reject this draft?');
+    if (!reason || !reason.trim()) return;
+    body.rejection_reason = reason.trim();
+  }
+
+  setLoading(true);
+  setMessage(selectors.message, `${growthStatusLabel(action)} draft...`);
+
+  try {
+    await callGrowthAgent(`/admin/campaign-drafts/${encodeURIComponent(draftId)}/${action}`, {
+      method: 'POST',
+      body,
+    });
+    setMessage(selectors.message, `Draft ${growthStatusLabel(action).toLowerCase()} complete.`);
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Draft action failed.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
 selectors.loginForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const formData = new FormData(selectors.loginForm);
@@ -578,6 +681,12 @@ selectors.socialGenerate?.addEventListener('click', () => {
 
 selectors.socialRefresh?.addEventListener('click', () => {
   void loadGrowthAgent();
+});
+
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-draft-action]');
+  if (!button) return;
+  void runDraftAction(button.dataset.draftId || '', button.dataset.draftAction || '');
 });
 
 selectors.status?.addEventListener('change', (event) => {
