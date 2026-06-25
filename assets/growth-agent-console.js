@@ -601,6 +601,27 @@ function mediaActionButtons(candidate) {
   `;
 }
 
+function draftNextStep(draft) {
+  const status = String(draft.status || '');
+  const platform = draftPlatform(draft);
+  if (status === 'needs_approval') {
+    return 'Next: approve the caption, then it moves to Approved / ready to post.';
+  }
+  if (status === 'approved' && platform === 'instagram' && !draftSelectedMedia(draft)) {
+    return 'Next: select one image before Instagram can publish.';
+  }
+  if (status === 'approved' && ['facebook', 'instagram'].includes(platform)) {
+    return 'Ready: use Post Now to publish from the connected account.';
+  }
+  if (status === 'failed') {
+    return 'Needs attention: check the error, fix media or permissions, then reapprove.';
+  }
+  if (status === 'published') {
+    return 'Published from the Growth Agent.';
+  }
+  return '';
+}
+
 function renderDraftMedia(draft) {
   const candidates = draft.media_candidates || [];
   const selected = draftSelectedMedia(draft);
@@ -671,17 +692,18 @@ function renderDraftReviewQueue() {
 
   if (selectors.draftReviewCounts) {
     const rows = [
-      ['Needs Approval', counts.needs_approval || 0],
-      ['Approved', counts.approved || 0],
-      ['Scheduled', counts.scheduled || 0],
-      ['Published', counts.published || 0],
-      ['Rejected', counts.rejected || 0],
+      ['Needs Approval', counts.needs_approval || 0, 'needs_approval'],
+      ['Approved / Ready', counts.approved || 0, 'approved'],
+      ['Scheduled', counts.scheduled || 0, 'scheduled'],
+      ['Published', counts.published || 0, 'published'],
+      ['Failed', counts.failed || 0, 'failed'],
+      ['Rejected', counts.rejected || 0, 'rejected'],
     ];
-    selectors.draftReviewCounts.innerHTML = rows.map(([label, value]) => `
-      <div class="growth-agent-card">
+    selectors.draftReviewCounts.innerHTML = rows.map(([label, value, status]) => `
+      <button class="growth-agent-card growth-agent-card--button ${state.selectedDraftStatus === status ? 'is-active' : ''}" type="button" data-draft-status-filter="${escapeHtml(status)}">
         <strong>${escapeHtml(formatCount(value))}</strong>
         <span>${escapeHtml(label)}</span>
-      </div>
+      </button>
     `).join('');
   }
 
@@ -728,6 +750,7 @@ function renderDraftReviewQueue() {
     const scheduleLabel = draft.scheduled_for ? formatDate(draft.scheduled_for) : 'Not scheduled';
     const subject = draft.subject ? `<strong>${escapeHtml(draft.subject)}</strong>` : '';
     const profileLabel = isCityDigest ? 'Open SEO Draft' : 'Open Profile';
+    const nextStep = draftNextStep(draft);
 
     return `
       <article class="draft-review-card">
@@ -744,9 +767,10 @@ function renderDraftReviewQueue() {
           <div class="growth-agent-actions">
             <button class="row-action row-action--button" type="button" data-copy-caption="${escapeHtml(draft.id)}">Copy Caption</button>
             <a class="row-action row-action--ghost" href="${escapeHtml(profileUrl)}" target="_blank" rel="noreferrer">${escapeHtml(profileLabel)}</a>
-            ${trackingUrl ? `<a class="row-action row-action--ghost" href="${escapeHtml(trackingUrl)}" target="_blank" rel="noreferrer">Test App Link</a>` : ''}
+            ${trackingUrl ? `<button class="row-action row-action--ghost" type="button" data-copy-tracking="${escapeHtml(trackingUrl)}">Copy App Link</button>` : ''}
           </div>
         </div>
+        ${nextStep ? `<p class="draft-review-card__next">${escapeHtml(nextStep)}</p>` : ''}
         <div class="draft-review-card__copy" data-caption-source="${escapeHtml(draft.id)}">
           ${subject}
           <p>${escapeHtml(draft.text || '').replace(/\n/g, '<br>')}</p>
@@ -1107,7 +1131,7 @@ function renderSocialDrafts() {
           <span class="growth-agent-draft-copy">${escapeHtml(draft.text || '')}</span>
         </td>
         <td><span class="status-pill">${escapeHtml(growthStatusLabel(draft.status))}</span></td>
-        <td>${trackingUrl ? `<a class="row-action row-action--ghost" href="${escapeHtml(trackingUrl)}" target="_blank" rel="noreferrer">Test App Link</a>` : 'No tracking link'}</td>
+        <td>${trackingUrl ? `<button class="row-action row-action--ghost" type="button" data-copy-tracking="${escapeHtml(trackingUrl)}">Copy App Link</button>` : 'No tracking link'}</td>
         <td>${draftActionButtons(draft)}</td>
       </tr>
     `;
@@ -1169,7 +1193,7 @@ function renderAutopilot() {
           <td>${escapeHtml(slot.truck_name || 'Unknown truck')}</td>
           <td>${escapeHtml(slot.score ?? 0)}</td>
           <td><span class="status-pill">${escapeHtml(growthStatusLabel(slot.status))}</span></td>
-          <td>${slot.tracking_url ? `<a class="row-action row-action--ghost" href="${escapeHtml(slot.tracking_url)}" target="_blank" rel="noreferrer">Test App Link</a>` : 'No tracking link'}</td>
+          <td>${slot.tracking_url ? `<button class="row-action row-action--ghost" type="button" data-copy-tracking="${escapeHtml(slot.tracking_url)}">Copy App Link</button>` : 'No tracking link'}</td>
           <td>${draftActionButtons(slot)}</td>
         </tr>
       `).join('');
@@ -1773,12 +1797,31 @@ async function runDraftAction(draftId, action) {
     const publishMessage = publishResult?.message
       ? `${publishResult.provider || 'Publisher'}: ${publishResult.message}`
       : `Draft ${growthStatusLabel(action).toLowerCase()} complete.`;
-    setMessage(selectors.message, publishMessage);
+    let finalMessage = publishMessage;
+    if (action === 'approve') {
+      state.selectedDraftStatus = 'approved';
+      if (selectors.draftReviewStatus) {
+        selectors.draftReviewStatus.value = 'approved';
+      }
+      finalMessage = 'Draft approved. Showing Approved / Ready drafts so you can post it now.';
+    }
     await loadGrowthAgent();
+    setMessage(selectors.message, finalMessage);
   } catch (error) {
     setMessage(selectors.message, error.message || 'Draft action failed.', true);
   } finally {
     setLoading(false);
+  }
+}
+
+async function copyTrackingLink(url) {
+  if (!url) return;
+
+  try {
+    await navigator.clipboard.writeText(url);
+    setMessage(selectors.message, 'App tracking link copied.');
+  } catch {
+    window.prompt('App tracking link:', url);
   }
 }
 
@@ -1917,6 +1960,23 @@ selectors.cityDigestGenerate?.addEventListener('click', () => {
 });
 
 document.addEventListener('click', (event) => {
+  const statusFilterButton = event.target.closest('[data-draft-status-filter]');
+  if (statusFilterButton) {
+    const status = statusFilterButton.dataset.draftStatusFilter || 'needs_approval';
+    state.selectedDraftStatus = status;
+    if (selectors.draftReviewStatus) {
+      selectors.draftReviewStatus.value = status;
+    }
+    void loadGrowthAgent();
+    return;
+  }
+
+  const trackingButton = event.target.closest('[data-copy-tracking]');
+  if (trackingButton) {
+    void copyTrackingLink(trackingButton.dataset.copyTracking || '');
+    return;
+  }
+
   const copyButton = event.target.closest('[data-copy-caption]');
   if (copyButton) {
     void copyDraftCaption(copyButton.dataset.copyCaption || '');

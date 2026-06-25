@@ -631,6 +631,25 @@
   background: rgba(255, 255, 255, 0.78);
 }
 
+.growth-agent-card--button {
+  width: 100%;
+  min-height: 84px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.growth-agent-card--button.is-active {
+  border-color: rgba(15, 124, 130, 0.36);
+  box-shadow: 0 0 0 3px rgba(15, 124, 130, 0.1);
+}
+
+.growth-agent-card--button:hover,
+.growth-agent-card--button:focus-visible {
+  border-color: rgba(238, 108, 63, 0.42);
+  outline: none;
+}
+
 .growth-agent-card--wide {
   grid-column: span 2;
 }
@@ -1119,6 +1138,18 @@
   border: 1px solid rgba(15, 124, 130, 0.14);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.72);
+}
+
+.draft-review-card__next {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(15, 124, 130, 0.14);
+  border-radius: 12px;
+  background: rgba(15, 124, 130, 0.07);
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 850;
+  line-height: 1.45;
 }
 
 .draft-review-card__header .growth-agent-actions {
