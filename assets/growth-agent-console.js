@@ -26,8 +26,10 @@ const state = {
   selectedStatus: 'needs_review',
   counts: {},
   leads: [],
+  socialDrafts: [],
   lastSync: null,
   lastQueue: null,
+  lastSocialBatch: null,
 };
 
 const selectors = {
@@ -45,6 +47,13 @@ const selectors = {
   refresh: document.querySelector('[data-growth-agent-refresh]'),
   sync: document.querySelector('[data-growth-agent-sync]'),
   queue: document.querySelector('[data-growth-agent-queue]'),
+  socialGenerate: document.querySelector('[data-social-generate]'),
+  socialRefresh: document.querySelector('[data-social-refresh]'),
+  socialCity: document.querySelector('[data-social-city]'),
+  socialLimit: document.querySelector('[data-social-limit]'),
+  socialOwnerTags: document.querySelector('[data-social-owner-tags]'),
+  socialPlatforms: Array.from(document.querySelectorAll('[data-social-platform]')),
+  socialDrafts: document.querySelector('[data-social-drafts]'),
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -82,6 +91,12 @@ function setLoading(isLoading) {
     selectors.sync,
     selectors.queue,
     selectors.status,
+    selectors.socialGenerate,
+    selectors.socialRefresh,
+    selectors.socialCity,
+    selectors.socialLimit,
+    selectors.socialOwnerTags,
+    ...selectors.socialPlatforms,
   ].forEach((control) => {
     if (control) control.disabled = isLoading;
   });
@@ -175,6 +190,9 @@ function renderMetrics() {
   const queueCopy = state.lastQueue
     ? `Last queue generated ${formatCount(state.lastQueue.items || 0)} review items.`
     : 'Outreach queue runs daily at 6:15 AM.';
+  const socialCopy = state.lastSocialBatch
+    ? `Last social batch created ${formatCount(state.lastSocialBatch.drafts || 0)} drafts.`
+    : 'Social drafts stay in approval until posted manually.';
 
   selectors.metrics.innerHTML = `
     ${metricRows.map(([label, value]) => `
@@ -185,7 +203,7 @@ function renderMetrics() {
     `).join('')}
     <div class="growth-agent-card growth-agent-card--wide">
       <strong>Automation</strong>
-      <span>${escapeHtml(syncCopy)} ${escapeHtml(queueCopy)}</span>
+      <span>${escapeHtml(syncCopy)} ${escapeHtml(queueCopy)} ${escapeHtml(socialCopy)}</span>
     </div>
   `;
 }
@@ -225,9 +243,45 @@ function renderLeads() {
   }).join('');
 }
 
+function draftPlatform(draft) {
+  const platformFlag = (draft.risk_flags || []).find((flag) => String(flag).startsWith('platform:'));
+  return platformFlag ? platformFlag.replace('platform:', '') : 'social';
+}
+
+function renderSocialDrafts() {
+  if (!selectors.socialDrafts) return;
+
+  if (!state.socialDrafts.length) {
+    selectors.socialDrafts.innerHTML = `
+      <tr>
+        <td colspan="4" class="growth-agent-empty">No social drafts are waiting for approval.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  selectors.socialDrafts.innerHTML = state.socialDrafts.map((draft) => {
+    const platform = draftPlatform(draft);
+    const trackingUrl = draft.tracking_url || `${GROWTH_AGENT_API_BASE_URL}/r/${draft.tracking_slug || ''}`;
+
+    return `
+      <tr>
+        <td><span class="status-pill">${escapeHtml(platform.toUpperCase())}</span></td>
+        <td>
+          <strong>${escapeHtml(draft.audience || 'Social draft')}</strong>
+          <span class="growth-agent-draft-copy">${escapeHtml(draft.text || '')}</span>
+        </td>
+        <td><span class="status-pill">${escapeHtml(growthStatusLabel(draft.status))}</span></td>
+        <td><a class="row-action row-action--ghost" href="${escapeHtml(trackingUrl)}" target="_blank" rel="noreferrer">Open Link</a></td>
+      </tr>
+    `;
+  }).join('');
+}
+
 function renderAll() {
   renderMetrics();
   renderLeads();
+  renderSocialDrafts();
 
   if (selectors.loadedAt) {
     selectors.loadedAt.textContent = state.loadedAt
@@ -249,9 +303,13 @@ async function loadGrowthAgent() {
     );
     const status = state.selectedStatus === 'all' ? '' : `&status=${encodeURIComponent(state.selectedStatus)}`;
     const leadsPayload = await callGrowthAgent(`/admin/owner-outreach-leads?limit=100${status}`);
+    const draftPayload = await callGrowthAgent('/admin/campaign-drafts?status=needs_approval&limit=100');
 
     state.counts = Object.fromEntries(countResults);
     state.leads = leadsPayload.leads || [];
+    state.socialDrafts = (draftPayload.drafts || [])
+      .filter((draft) => draft.channel === 'social_draft')
+      .slice(0, 25);
     state.loadedAt = new Date().toISOString();
     setMessage(selectors.message, 'Growth Agent data loaded.');
     renderAll();
@@ -309,6 +367,44 @@ async function generateGrowthAgentQueue() {
   }
 }
 
+function selectedSocialPlatforms() {
+  const platforms = selectors.socialPlatforms
+    .filter((input) => input.checked)
+    .map((input) => input.value);
+  return platforms.length ? platforms : ['instagram', 'facebook', 'tiktok', 'x'];
+}
+
+async function generateSocialDrafts() {
+  setLoading(true);
+  setMessage(selectors.message, 'Generating social drafts for approval...');
+
+  try {
+    const city = String(selectors.socialCity?.value || '').trim();
+    const limit = Number(selectors.socialLimit?.value || 10);
+    const payload = await callGrowthAgent('/admin/social-growth-drafts', {
+      method: 'POST',
+      body: {
+        platforms: selectedSocialPlatforms(),
+        city: city || undefined,
+        limit: Number.isFinite(limit) ? limit : 10,
+        include_owner_tags: selectors.socialOwnerTags?.checked !== false,
+        actor: auth.currentUser?.email || 'growth-agent-console',
+      },
+    });
+    const drafts = payload.batch?.drafts || [];
+    state.lastSocialBatch = {
+      drafts: drafts.length,
+      real_publishing_enabled: payload.batch?.real_publishing_enabled === true,
+    };
+    setMessage(selectors.message, `Created ${drafts.length} social draft${drafts.length === 1 ? '' : 's'} for approval. Real publishing remains disabled.`);
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Social draft generation failed.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
 selectors.loginForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const formData = new FormData(selectors.loginForm);
@@ -341,6 +437,14 @@ selectors.queue?.addEventListener('click', () => {
   void generateGrowthAgentQueue();
 });
 
+selectors.socialGenerate?.addEventListener('click', () => {
+  void generateSocialDrafts();
+});
+
+selectors.socialRefresh?.addEventListener('click', () => {
+  void loadGrowthAgent();
+});
+
 selectors.status?.addEventListener('change', (event) => {
   state.selectedStatus = event.target.value || 'needs_review';
   void loadGrowthAgent();
@@ -353,6 +457,8 @@ auth.onAuthStateChanged(async (user) => {
     if (selectors.sessionSummary) {
       selectors.sessionSummary.textContent = '';
     }
+    state.socialDrafts = [];
+    renderSocialDrafts();
     return;
   }
 

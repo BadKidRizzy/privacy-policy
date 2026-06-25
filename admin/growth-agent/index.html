@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../../assets/site.css?v=1">
-  <link rel="stylesheet" href="../../assets/management-console.css?v=20">
+  <link rel="stylesheet" href="../../assets/management-console.css?v=21">
 </head>
 <body class="console-body growth-agent-page">
   <div class="console-shell">
@@ -78,6 +78,55 @@
 
         <div class="growth-agent-grid growth-agent-grid--dashboard" data-growth-agent-metrics></div>
 
+        <section class="growth-agent-panel growth-agent-social-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Social Growth</p>
+              <h3>Social Drafts</h3>
+              <p>Generate approval-ready posts for TikTok, Instagram, Facebook, and X from unclaimed truck leads.</p>
+            </div>
+            <div class="panel-heading__actions">
+              <button class="button button--primary" type="button" data-social-generate>Generate Social Drafts</button>
+              <button class="button button--secondary" type="button" data-social-refresh>Refresh Drafts</button>
+            </div>
+          </div>
+
+          <div class="growth-agent-filterbar growth-agent-filterbar--social">
+            <label>
+              City
+              <input type="text" placeholder="Optional city" data-social-city>
+            </label>
+            <label>
+              Lead Limit
+              <input type="number" min="1" max="50" value="10" data-social-limit>
+            </label>
+            <label class="growth-agent-check">
+              <span>Owner Tags</span>
+              <input type="checkbox" checked data-social-owner-tags>
+            </label>
+            <div class="growth-agent-platforms" aria-label="Social platforms">
+              <label><input type="checkbox" value="instagram" checked data-social-platform> Instagram</label>
+              <label><input type="checkbox" value="facebook" checked data-social-platform> Facebook</label>
+              <label><input type="checkbox" value="tiktok" checked data-social-platform> TikTok</label>
+              <label><input type="checkbox" value="x" checked data-social-platform> X</label>
+            </div>
+          </div>
+
+          <div class="growth-agent-table-wrap">
+            <table class="growth-agent-table growth-agent-table--drafts">
+              <thead>
+                <tr>
+                  <th>Platform</th>
+                  <th>Draft</th>
+                  <th>Status</th>
+                  <th>Tracking</th>
+                </tr>
+              </thead>
+              <tbody data-social-drafts></tbody>
+            </table>
+          </div>
+        </section>
+
         <div class="growth-agent-filterbar">
           <label>
             Lead Status
@@ -117,6 +166,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script defer src="../../assets/growth-agent-console.js?v=1"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=2"></script>
 </body>
 </html>
