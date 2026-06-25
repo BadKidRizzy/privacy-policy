@@ -31,7 +31,9 @@ This repo hosts the public static pages for Food Truck Finder.
 - `delete-account.html`
   Account deletion instructions page.
 - `admin/index.html`
-  Private management console served at `/admin/`, including the Cloud Run Growth Agent panel.
+  Private management console served at `/admin/`.
+- `admin/growth-agent/index.html`
+  Private Growth Agent console served at `/admin/growth-agent/`.
 - `open/index.html`
   Deep-link handoff page that tries to open the mobile app.
 - `docs/ftfowners/index.html`
@@ -61,7 +63,7 @@ This repo hosts the public static pages for Food Truck Finder.
 - The claim form posts to the Firebase HTTPS function `submitOwnerClaimRequest`.
 - The backend records `claim_started`, `claim_submitted`, and later management updates for `claim_verified`, `rejected`, or `needs_more_info`.
 - Claim auto-response email drafts are created by the backend, but real email sending remains disabled until a provider is intentionally connected.
-- The `/admin/` Growth Agent panel calls `https://food-truck-growth-agent-xmel35gaya-uc.a.run.app` with the signed-in Firebase Auth ID token from `food-truck-finder-prod`.
+- The `/admin/growth-agent/` console calls `https://food-truck-growth-agent-xmel35gaya-uc.a.run.app` with the signed-in Firebase Auth ID token from `food-truck-finder-prod`.
 - Growth Agent access is still enforced server-side; admin emails must match the configured Cloud Run admin email fragment.
 
 ## Published Paths
@@ -98,6 +100,8 @@ This repo hosts the public static pages for Food Truck Finder.
   Delete account page
 - `/admin/`
   Private management console
+- `/admin/growth-agent/`
+  Private Growth Agent console
 - `/open/`
   App open / deep-link page
 - `/docs/ftfowners/`

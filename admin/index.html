@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../assets/site.css?v=1">
-  <link rel="stylesheet" href="../assets/management-console.css?v=19">
+  <link rel="stylesheet" href="../assets/management-console.css?v=20">
 </head>
 <body class="console-body">
   <div class="console-shell">
@@ -29,6 +29,7 @@
       </a>
 
       <div class="console-header__actions">
+        <a href="./growth-agent/">Growth Agent</a>
         <a href="../privacy-policy/">Privacy</a>
         <a href="../delete-account.html">Delete Account</a>
         <button class="button button--ghost" type="button" data-sign-out hidden>Sign Out</button>
@@ -70,45 +71,12 @@
           </div>
 
           <div class="console-toolbar__actions">
+            <a class="button button--primary" href="./growth-agent/">Growth Agent</a>
             <button class="button button--secondary" type="button" data-refresh>Refresh</button>
           </div>
         </div>
 
         <div class="metric-grid" data-metrics></div>
-
-        <section class="growth-agent-panel" data-growth-agent-panel>
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Growth Agent</p>
-              <h3>Owner Outreach Queue</h3>
-              <p>Review unclaimed truck leads, run the daily outreach queue, and keep Firestore truck data synced into the Growth Agent.</p>
-            </div>
-            <div class="panel-heading__actions">
-              <span data-growth-agent-loaded-at></span>
-              <button class="button button--secondary" type="button" data-growth-agent-refresh>Refresh Growth Agent</button>
-              <button class="button button--secondary" type="button" data-growth-agent-sync>Sync Trucks</button>
-              <button class="button button--primary" type="button" data-growth-agent-queue>Generate Queue</button>
-            </div>
-          </div>
-
-          <div class="growth-agent-grid" data-growth-agent-metrics></div>
-          <p class="console-message" data-growth-agent-message></p>
-
-          <div class="growth-agent-table-wrap">
-            <table class="growth-agent-table">
-              <thead>
-                <tr>
-                  <th>Truck</th>
-                  <th>Status</th>
-                  <th>Contact</th>
-                  <th>Priority</th>
-                  <th>Profile</th>
-                </tr>
-              </thead>
-              <tbody data-growth-agent-leads></tbody>
-            </table>
-          </div>
-        </section>
 
         <nav class="console-tabs" aria-label="Management sections">
           <button type="button" class="is-active" data-tab="owners">Owners</button>
@@ -569,6 +537,6 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
-  <script defer src="../assets/management-console.js?v=26"></script>
+  <script defer src="../assets/management-console.js?v=27"></script>
 </body>
 </html>

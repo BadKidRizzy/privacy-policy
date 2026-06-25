@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Truck Finder Growth Agent</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta
+    name="description"
+    content="Secure Food Truck Finder Growth Agent console for owner outreach and claim funnel review."
+  >
+  <meta name="theme-color" content="#1f1713">
+  <link rel="icon" type="image/png" href="../../assets/brand/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="../../assets/site.css?v=1">
+  <link rel="stylesheet" href="../../assets/management-console.css?v=20">
+</head>
+<body class="console-body growth-agent-page">
+  <div class="console-shell">
+    <header class="console-header">
+      <a class="brand" href="../../" aria-label="Food Truck Finder home">
+        <img src="../../assets/brand/IconLogo.png" alt="Food Truck Finder logo" width="44" height="44">
+        <span>FTF Growth Agent</span>
+      </a>
+
+      <div class="console-header__actions">
+        <a href="../">Management Console</a>
+        <a href="../../privacy-policy/">Privacy</a>
+        <button class="button button--ghost" type="button" data-sign-out hidden>Sign Out</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="console-hero" data-auth-section>
+        <div>
+          <p class="eyebrow">Private Console</p>
+          <h1>Growth Agent</h1>
+          <p>
+            Sign in with an approved admin account to review owner outreach leads, sync truck data,
+            and generate the daily claim outreach queue.
+          </p>
+        </div>
+
+        <form class="login-card" data-login-form>
+          <h2>Admin sign in</h2>
+          <label>
+            Email
+            <input name="email" type="email" autocomplete="email" required>
+          </label>
+          <label>
+            Password
+            <input name="password" type="password" autocomplete="current-password" required>
+          </label>
+          <button class="button button--primary" type="submit">Open Growth Agent</button>
+          <p class="console-message" data-auth-message></p>
+        </form>
+      </section>
+
+      <section class="console-app growth-agent-app" data-growth-agent-app hidden>
+        <div class="console-toolbar">
+          <div class="console-toolbar__copy">
+            <p class="eyebrow">Growth Agent</p>
+            <h2>Owner Outreach Queue</h2>
+            <p data-session-summary>Loading account...</p>
+          </div>
+
+          <div class="console-toolbar__actions">
+            <button class="button button--secondary" type="button" data-growth-agent-refresh>Refresh</button>
+            <button class="button button--secondary" type="button" data-growth-agent-sync>Sync Trucks</button>
+            <button class="button button--primary" type="button" data-growth-agent-queue>Generate Queue</button>
+          </div>
+        </div>
+
+        <div class="growth-agent-grid growth-agent-grid--dashboard" data-growth-agent-metrics></div>
+
+        <div class="growth-agent-filterbar">
+          <label>
+            Lead Status
+            <select data-growth-agent-status>
+              <option value="needs_review">Needs review</option>
+              <option value="not_contacted">Not contacted</option>
+              <option value="contacted">Contacted</option>
+              <option value="claim_started">Claim started</option>
+              <option value="claimed">Claimed</option>
+              <option value="verified">Verified</option>
+              <option value="do_not_contact">Do not contact</option>
+              <option value="all">All leads</option>
+            </select>
+          </label>
+          <span data-growth-agent-loaded-at></span>
+        </div>
+
+        <p class="console-message" data-growth-agent-message></p>
+
+        <div class="growth-agent-table-wrap">
+          <table class="growth-agent-table">
+            <thead>
+              <tr>
+                <th>Truck</th>
+                <th>Status</th>
+                <th>Contact</th>
+                <th>Priority</th>
+                <th>Profile</th>
+              </tr>
+            </thead>
+            <tbody data-growth-agent-leads></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=1"></script>
+</body>
+</html>
