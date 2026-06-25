@@ -73,10 +73,56 @@
             <button class="button button--secondary" type="button" data-growth-agent-refresh>Refresh</button>
             <button class="button button--secondary" type="button" data-growth-agent-sync>Sync Trucks</button>
             <button class="button button--primary" type="button" data-growth-agent-queue>Generate Queue</button>
+            <button class="button button--primary" type="button" data-daily-automation-run>Run Daily Automation</button>
           </div>
         </div>
 
         <div class="growth-agent-grid growth-agent-grid--dashboard" data-growth-agent-metrics></div>
+
+        <section class="growth-agent-panel growth-agent-review-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Approval Queue</p>
+              <h3>Draft Review Queue</h3>
+              <p>Review full captions, owner outreach drafts, profile links, tracking links, and scheduled post status.</p>
+            </div>
+            <div class="panel-heading__actions">
+              <button class="button button--secondary" type="button" data-draft-review-refresh>Refresh Drafts</button>
+            </div>
+          </div>
+
+          <div class="growth-agent-filterbar">
+            <label>
+              Draft Status
+              <select data-draft-review-status>
+                <option value="needs_approval">Needs approval</option>
+                <option value="approved">Approved</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="published">Published</option>
+                <option value="rejected">Rejected</option>
+                <option value="all">All drafts</option>
+              </select>
+            </label>
+            <span data-draft-review-loaded-at></span>
+          </div>
+
+          <div class="growth-agent-grid growth-agent-grid--dashboard" data-draft-review-counts></div>
+          <div class="growth-agent-review-list" data-draft-review-queue></div>
+        </section>
+
+        <section class="growth-agent-panel growth-agent-claim-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Claim Funnel</p>
+              <h3>Owner Claim Dashboard</h3>
+              <p>Track new claims, pending proof, verified trucks, rejected claims, and leads that need more information.</p>
+            </div>
+          </div>
+
+          <div class="growth-agent-grid growth-agent-grid--dashboard" data-claim-funnel-summary></div>
+          <div class="growth-agent-recommendations" data-claim-funnel-recommendations></div>
+          <div class="claim-funnel-board" data-claim-funnel-leads></div>
+        </section>
 
         <section class="growth-agent-panel growth-agent-autopilot-panel">
           <div class="panel-heading">
@@ -136,6 +182,23 @@
               <tbody data-autopilot-calendar></tbody>
             </table>
           </div>
+        </section>
+
+        <section class="growth-agent-panel growth-agent-weekly-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Growth Report</p>
+              <h3>Weekly Growth Report</h3>
+              <p>See tracking clicks, claim activity, app download clicks, top trucks, top cities, top posts, and suggested campaigns.</p>
+            </div>
+            <div class="panel-heading__actions">
+              <button class="button button--primary" type="button" data-weekly-report-generate>Generate Weekly Report</button>
+            </div>
+          </div>
+
+          <div class="growth-agent-grid growth-agent-grid--dashboard" data-weekly-report-summary></div>
+          <div class="growth-agent-recommendations" data-weekly-report-recommendations></div>
+          <div class="weekly-growth-lists" data-weekly-report-lists></div>
         </section>
 
         <section class="growth-agent-panel growth-agent-social-panel">
@@ -227,6 +290,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script defer src="../../assets/growth-agent-console.js?v=4"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=5"></script>
 </body>
 </html>

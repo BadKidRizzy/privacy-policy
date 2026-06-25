@@ -810,6 +810,171 @@
   text-align: center;
 }
 
+.growth-agent-empty--card {
+  padding: 22px;
+  border: 1px dashed rgba(31, 23, 19, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.growth-agent-review-list {
+  display: grid;
+  gap: 14px;
+}
+
+.draft-review-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(31, 23, 19, 0.1);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 249, 0.95), rgba(255, 248, 241, 0.82)),
+    rgba(255, 255, 255, 0.86);
+}
+
+.draft-review-card__header,
+.draft-review-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.draft-review-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+
+.draft-review-card h4,
+.claim-funnel-column h4,
+.weekly-growth-lists h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.draft-review-card__header span,
+.draft-review-card__reason {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.draft-review-card__copy {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(15, 124, 130, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.draft-review-card__copy strong {
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+.draft-review-card__copy p,
+.draft-review-card__brief p {
+  margin: 0;
+  color: #312720;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.draft-review-card__brief {
+  padding: 12px 14px;
+  border: 1px solid rgba(31, 23, 19, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.draft-review-card__brief summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.draft-review-card__brief p {
+  margin-top: 10px;
+  color: var(--muted);
+}
+
+.claim-funnel-board,
+.weekly-growth-lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.claim-funnel-column,
+.weekly-growth-lists section {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(31, 23, 19, 0.09);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.claim-funnel-card {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid rgba(31, 23, 19, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 253, 249, 0.78);
+}
+
+.claim-funnel-card strong {
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.claim-funnel-card span,
+.weekly-growth-lists li span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.42;
+  overflow-wrap: anywhere;
+}
+
+.weekly-growth-lists ul {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.weekly-growth-lists li {
+  display: grid;
+  gap: 4px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.weekly-growth-lists li:first-child {
+  border-top: 0;
+}
+
+.weekly-growth-lists li strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
 .table-wrap {
   width: 100%;
   overflow: auto;

@@ -24,8 +24,12 @@ const state = {
   loading: false,
   loadedAt: '',
   selectedStatus: 'needs_review',
+  selectedDraftStatus: 'needs_approval',
   counts: {},
   leads: [],
+  draftReviewQueue: null,
+  claimFunnelReport: null,
+  weeklyReport: null,
   socialDrafts: [],
   autopilotReport: null,
   lastAutopilotPlan: null,
@@ -49,6 +53,19 @@ const selectors = {
   refresh: document.querySelector('[data-growth-agent-refresh]'),
   sync: document.querySelector('[data-growth-agent-sync]'),
   queue: document.querySelector('[data-growth-agent-queue]'),
+  dailyAutomationRun: document.querySelector('[data-daily-automation-run]'),
+  draftReviewRefresh: document.querySelector('[data-draft-review-refresh]'),
+  draftReviewStatus: document.querySelector('[data-draft-review-status]'),
+  draftReviewLoadedAt: document.querySelector('[data-draft-review-loaded-at]'),
+  draftReviewCounts: document.querySelector('[data-draft-review-counts]'),
+  draftReviewQueue: document.querySelector('[data-draft-review-queue]'),
+  claimFunnelSummary: document.querySelector('[data-claim-funnel-summary]'),
+  claimFunnelRecommendations: document.querySelector('[data-claim-funnel-recommendations]'),
+  claimFunnelLeads: document.querySelector('[data-claim-funnel-leads]'),
+  weeklyReportGenerate: document.querySelector('[data-weekly-report-generate]'),
+  weeklyReportSummary: document.querySelector('[data-weekly-report-summary]'),
+  weeklyReportRecommendations: document.querySelector('[data-weekly-report-recommendations]'),
+  weeklyReportLists: document.querySelector('[data-weekly-report-lists]'),
   socialGenerate: document.querySelector('[data-social-generate]'),
   socialRefresh: document.querySelector('[data-social-refresh]'),
   socialCity: document.querySelector('[data-social-city]'),
@@ -102,6 +119,10 @@ function setLoading(isLoading) {
     selectors.refresh,
     selectors.sync,
     selectors.queue,
+    selectors.dailyAutomationRun,
+    selectors.draftReviewRefresh,
+    selectors.draftReviewStatus,
+    selectors.weeklyReportGenerate,
     selectors.status,
     selectors.socialGenerate,
     selectors.socialRefresh,
@@ -341,6 +362,249 @@ function draftActionButtons(draftOrSlot) {
   `;
 }
 
+function contentFormatLabel(value) {
+  const labels = {
+    instagram_caption: 'Instagram caption',
+    tiktok_caption: 'TikTok caption',
+    facebook_post: 'Facebook post',
+    x_post: 'X post',
+    owner_outreach_email: 'Owner email',
+    owner_outreach_dm: 'Owner DM',
+    city_discovery_post: 'City discovery',
+  };
+  return labels[value] || growthStatusLabel(value || 'Draft');
+}
+
+function statusPillClass(status) {
+  const normalized = String(status || '');
+  if (normalized === 'published' || normalized === 'verified') return 'status-pill status-pill--success';
+  if (normalized.startsWith('rejected') || normalized === 'do_not_contact') return 'status-pill status-pill--danger';
+  if (normalized === 'needs_approval' || normalized === 'needs_review' || normalized === 'claim_started') return 'status-pill status-pill--warn';
+  return 'status-pill';
+}
+
+function renderDraftReviewQueue() {
+  const queue = state.draftReviewQueue || {};
+  const drafts = queue.drafts || [];
+  const counts = queue.counts || {};
+
+  if (selectors.draftReviewCounts) {
+    const rows = [
+      ['Needs Approval', counts.needs_approval || 0],
+      ['Approved', counts.approved || 0],
+      ['Scheduled', counts.scheduled || 0],
+      ['Published', counts.published || 0],
+      ['Rejected', counts.rejected || 0],
+    ];
+    selectors.draftReviewCounts.innerHTML = rows.map(([label, value]) => `
+      <div class="growth-agent-card">
+        <strong>${escapeHtml(formatCount(value))}</strong>
+        <span>${escapeHtml(label)}</span>
+      </div>
+    `).join('');
+  }
+
+  if (selectors.draftReviewLoadedAt) {
+    selectors.draftReviewLoadedAt.textContent = state.loadedAt
+      ? `Loaded ${formatDate(state.loadedAt)}`
+      : '';
+  }
+
+  if (!selectors.draftReviewQueue) return;
+
+  if (!drafts.length) {
+    selectors.draftReviewQueue.innerHTML = `
+      <div class="growth-agent-empty growth-agent-empty--card">No drafts match this status.</div>
+    `;
+    return;
+  }
+
+  selectors.draftReviewQueue.innerHTML = drafts.map((draft) => {
+    const profileUrl = resolvePublicUrl(draft.profile_url, draft.truck_id, draft);
+    const trackingUrl = draft.tracking_url || `${GROWTH_AGENT_API_BASE_URL}/r/${draft.tracking_slug || ''}`;
+    const truckLabel = [draft.truck_name, draft.city].filter(Boolean).join(' / ') || 'No truck attached';
+    const scheduleLabel = draft.scheduled_for ? formatDate(draft.scheduled_for) : 'Not scheduled';
+    const subject = draft.subject ? `<strong>${escapeHtml(draft.subject)}</strong>` : '';
+
+    return `
+      <article class="draft-review-card">
+        <div class="draft-review-card__header">
+          <div>
+            <div class="draft-review-card__badges">
+              <span class="${escapeHtml(statusPillClass(draft.status))}">${escapeHtml(growthStatusLabel(draft.status))}</span>
+              <span class="status-pill">${escapeHtml(contentFormatLabel(draft.content_format))}</span>
+              <span class="status-pill">${escapeHtml(String(draft.platform || draft.channel || 'draft').toUpperCase())}</span>
+            </div>
+            <h4>${escapeHtml(truckLabel)}</h4>
+            <span>${escapeHtml(scheduleLabel)} · ${escapeHtml(formatCount(draft.clicks || 0))} click${Number(draft.clicks || 0) === 1 ? '' : 's'}</span>
+          </div>
+          <div class="growth-agent-actions">
+            <button class="row-action row-action--button" type="button" data-copy-caption="${escapeHtml(draft.id)}">Copy Caption</button>
+            <a class="row-action row-action--ghost" href="${escapeHtml(profileUrl)}" target="_blank" rel="noreferrer">Open Profile</a>
+            <a class="row-action row-action--ghost" href="${escapeHtml(trackingUrl)}" target="_blank" rel="noreferrer">Open Link</a>
+          </div>
+        </div>
+        <div class="draft-review-card__copy" data-caption-source="${escapeHtml(draft.id)}">
+          ${subject}
+          <p>${escapeHtml(draft.text || '').replace(/\n/g, '<br>')}</p>
+        </div>
+        ${draft.media_brief ? `<details class="draft-review-card__brief"><summary>Media and reviewer notes</summary><p>${escapeHtml(draft.media_brief).replace(/\n/g, '<br>')}</p></details>` : ''}
+        ${draft.rejection_reason ? `<p class="draft-review-card__reason">Rejected: ${escapeHtml(draft.rejection_reason)}</p>` : ''}
+        <div class="draft-review-card__footer">
+          ${draftActionButtons(draft)}
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+function renderClaimFunnel() {
+  const report = state.claimFunnelReport || {};
+  const totals = report.totals || {};
+  const buckets = report.buckets || {};
+  const recommendations = report.recommendations || [];
+
+  if (selectors.claimFunnelSummary) {
+    const rows = [
+      ['New Claims', totals.new_claims || 0],
+      ['Pending Proof', totals.pending_proof || 0],
+      ['Verified', totals.verified || 0],
+      ['Rejected', totals.rejected || 0],
+      ['Needs Info', totals.needs_more_info || 0],
+      ['All Leads', totals.all_leads || 0],
+    ];
+    selectors.claimFunnelSummary.innerHTML = rows.map(([label, value]) => `
+      <div class="growth-agent-card">
+        <strong>${escapeHtml(formatCount(value))}</strong>
+        <span>${escapeHtml(label)}</span>
+      </div>
+    `).join('');
+  }
+
+  if (selectors.claimFunnelRecommendations) {
+    selectors.claimFunnelRecommendations.innerHTML = recommendations.map((item) => `
+      <article class="growth-agent-recommendation">
+        <strong>${escapeHtml(item.title || 'Recommendation')}</strong>
+        <span>${escapeHtml(item.detail || item.action || '')}</span>
+      </article>
+    `).join('');
+  }
+
+  if (!selectors.claimFunnelLeads) return;
+  const bucketLabels = [
+    ['new_claims', 'New Claims'],
+    ['pending_proof', 'Pending Proof'],
+    ['verified', 'Verified'],
+    ['rejected', 'Rejected'],
+    ['needs_more_info', 'Needs Info'],
+  ];
+  selectors.claimFunnelLeads.innerHTML = bucketLabels.map(([bucket, label]) => {
+    const leads = buckets[bucket] || [];
+    const leadRows = leads.length
+      ? leads.slice(0, 8).map((lead) => {
+        const profileUrl = resolvePublicUrl(lead.profile_url, lead.truck_id, lead);
+        const contact = [
+          lead.owner_email,
+          lead.owner_phone,
+          lead.owner_social_handle,
+        ].filter(Boolean).join(' / ') || 'No contact yet';
+        return `
+          <article class="claim-funnel-card">
+            <strong>${escapeHtml(lead.truck_name || 'Unnamed truck')}</strong>
+            <span>${escapeHtml(lead.city || lead.truck_id || '')}</span>
+            <span>${escapeHtml(contact)}</span>
+            <span>${escapeHtml(lead.latest_event_type ? growthStatusLabel(lead.latest_event_type) : growthStatusLabel(lead.outreach_status))}</span>
+            <a class="row-action row-action--ghost" href="${escapeHtml(profileUrl)}" target="_blank" rel="noreferrer">Open Profile</a>
+          </article>
+        `;
+      }).join('')
+      : '<p class="growth-agent-empty">No leads in this bucket.</p>';
+
+    return `
+      <section class="claim-funnel-column">
+        <h4>${escapeHtml(label)}</h4>
+        ${leadRows}
+      </section>
+    `;
+  }).join('');
+}
+
+function renderWeeklyReport() {
+  const report = state.weeklyReport || {};
+  const summary = report.summary || {};
+  const recommendations = report.recommendations || [];
+  const topPosts = summary.top_posts || [];
+  const topCities = summary.top_cities || [];
+  const topTrucks = summary.top_trucks || [];
+
+  if (selectors.weeklyReportSummary) {
+    const rows = [
+      ['Tracking Clicks', summary.tracking_clicks || 0],
+      ['Claim Visits', summary.claim_page_visits || 0],
+      ['Claim Submits', summary.claim_submissions || summary.owner_claim_submissions || 0],
+      ['App Clicks', summary.app_download_clicks || 0],
+      ['Drafts', summary.campaign_drafts || 0],
+      ['SEO Pages', summary.public_seo_pages || 0],
+    ];
+    selectors.weeklyReportSummary.innerHTML = rows.map(([label, value]) => `
+      <div class="growth-agent-card">
+        <strong>${escapeHtml(formatCount(value))}</strong>
+        <span>${escapeHtml(label)}</span>
+      </div>
+    `).join('');
+  }
+
+  if (selectors.weeklyReportRecommendations) {
+    selectors.weeklyReportRecommendations.innerHTML = recommendations.map((item) => `
+      <article class="growth-agent-recommendation">
+        <strong>${escapeHtml(item.priority ? growthStatusLabel(item.priority) : 'Recommendation')}</strong>
+        <span>${escapeHtml(item.action || item.detail || '')}</span>
+      </article>
+    `).join('');
+  }
+
+  if (!selectors.weeklyReportLists) return;
+  const postRows = topPosts.length
+    ? topPosts.map((post) => `
+      <li>
+        <strong>${escapeHtml(post.audience || post.channel || 'Draft')}</strong>
+        <span>${escapeHtml(formatCount(post.clicks || 0))} clicks · ${escapeHtml(growthStatusLabel(post.status))}</span>
+      </li>
+    `).join('')
+    : '<li><span>No tracked post clicks yet.</span></li>';
+  const cityRows = topCities.length
+    ? topCities.map((city) => `
+      <li>
+        <strong>${escapeHtml(city.city || 'Unknown')}</strong>
+        <span>${escapeHtml(formatCount(city.known_trucks || 0))} known trucks</span>
+      </li>
+    `).join('')
+    : '<li><span>No city data yet.</span></li>';
+  const truckRows = topTrucks.length
+    ? topTrucks.map((truck) => `
+      <li>
+        <strong>${escapeHtml(truck.truck_name || 'Unnamed truck')}</strong>
+        <span>${escapeHtml(truck.city || truck.truck_id || '')} · ${escapeHtml(formatCount(truck.claim_events || 0))} claim events</span>
+      </li>
+    `).join('')
+    : '<li><span>No truck activity yet.</span></li>';
+
+  selectors.weeklyReportLists.innerHTML = `
+    <section>
+      <h4>Top Posts</h4>
+      <ul>${postRows}</ul>
+    </section>
+    <section>
+      <h4>Top Cities</h4>
+      <ul>${cityRows}</ul>
+    </section>
+    <section>
+      <h4>Top Trucks</h4>
+      <ul>${truckRows}</ul>
+    </section>
+  `;
+}
+
 function renderSocialDrafts() {
   if (!selectors.socialDrafts) return;
 
@@ -437,6 +701,9 @@ function renderAutopilot() {
 
 function renderAll() {
   renderMetrics();
+  renderDraftReviewQueue();
+  renderClaimFunnel();
+  renderWeeklyReport();
   renderAutopilot();
   renderLeads();
   renderSocialDrafts();
@@ -460,12 +727,28 @@ async function loadGrowthAgent() {
       })
     );
     const status = state.selectedStatus === 'all' ? '' : `&status=${encodeURIComponent(state.selectedStatus)}`;
-    const leadsPayload = await callGrowthAgent(`/admin/owner-outreach-leads?limit=100${status}`);
-    const draftPayload = await callGrowthAgent('/admin/campaign-drafts?status=needs_approval&limit=100');
-    const autopilotPayload = await callGrowthAgent('/admin/growth-autopilot-report?days=14');
+    const draftStatus = state.selectedDraftStatus || 'needs_approval';
+    const [
+      leadsPayload,
+      draftPayload,
+      reviewQueuePayload,
+      claimFunnelPayload,
+      autopilotPayload,
+      weeklyReportsPayload,
+    ] = await Promise.all([
+      callGrowthAgent(`/admin/owner-outreach-leads?limit=100${status}`),
+      callGrowthAgent('/admin/campaign-drafts?status=needs_approval&limit=100'),
+      callGrowthAgent(`/admin/campaign-draft-review-queue?status=${encodeURIComponent(draftStatus)}&limit=50`),
+      callGrowthAgent('/admin/claim-funnel-report?limit=25'),
+      callGrowthAgent('/admin/growth-autopilot-report?days=14'),
+      callGrowthAgent('/admin/weekly-growth-reports?limit=1'),
+    ]);
 
     state.counts = Object.fromEntries(countResults);
     state.leads = leadsPayload.leads || [];
+    state.draftReviewQueue = reviewQueuePayload.queue || null;
+    state.claimFunnelReport = claimFunnelPayload.report || null;
+    state.weeklyReport = weeklyReportsPayload.reports?.[0] || null;
     state.socialDrafts = (draftPayload.drafts || [])
       .filter((draft) => draft.channel === 'social_draft')
       .slice(0, 25);
@@ -522,6 +805,42 @@ async function generateGrowthAgentQueue() {
     await loadGrowthAgent();
   } catch (error) {
     setMessage(selectors.message, error.message || 'Queue generation failed.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function runDailyAutomation() {
+  setLoading(true);
+  setMessage(selectors.message, 'Running daily Growth Agent automation...');
+
+  try {
+    const payload = await callGrowthAgent('/admin/daily-growth-automation', {
+      method: 'POST',
+      body: {
+        collection: 'foodTrucks',
+        queue_limit: 25,
+        social_limit: 10,
+        autopilot_days: 7,
+        autopilot_daily_posts: 2,
+        platforms: selectedAutopilotPlatforms(),
+        city: String(selectors.autopilotCity?.value || '').trim() || undefined,
+        include_owner_tags: selectors.autopilotOwnerTags?.checked !== false,
+        actor: auth.currentUser?.email || 'growth-agent-console',
+      },
+    });
+    const summary = payload.run?.summary || {};
+    state.lastSync = payload.run?.sync || null;
+    state.lastQueue = {items: summary.queue_items || 0, real_sending_enabled: false};
+    state.lastSocialBatch = {drafts: summary.social_drafts || 0, real_sending_enabled: false};
+    state.lastAutopilotPlan = {drafts: summary.autopilot_drafts || 0, real_publishing_enabled: false};
+    setMessage(
+      selectors.message,
+      `Daily automation complete: ${summary.owner_outreach_drafts || 0} outreach drafts, ${summary.social_drafts || 0} social drafts, ${summary.autopilot_drafts || 0} scheduled drafts.`
+    );
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Daily automation failed.', true);
   } finally {
     setLoading(false);
   }
@@ -605,6 +924,36 @@ async function generateSocialDrafts() {
   }
 }
 
+function currentWeekBounds() {
+  const now = new Date();
+  const day = now.getDay() || 7;
+  const start = new Date(now);
+  start.setDate(now.getDate() - day + 1);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  const isoDate = (value) => value.toISOString().slice(0, 10);
+  return {week_start: isoDate(start), week_end: isoDate(end)};
+}
+
+async function generateWeeklyReport() {
+  setLoading(true);
+  setMessage(selectors.message, 'Generating weekly growth report...');
+
+  try {
+    const payload = await callGrowthAgent('/admin/weekly-growth-reports', {
+      method: 'POST',
+      body: currentWeekBounds(),
+    });
+    state.weeklyReport = payload.report || null;
+    setMessage(selectors.message, 'Weekly growth report generated.');
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Weekly report failed.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
 async function runDraftAction(draftId, action) {
   if (!draftId || !action) return;
 
@@ -632,6 +981,28 @@ async function runDraftAction(draftId, action) {
     setMessage(selectors.message, error.message || 'Draft action failed.', true);
   } finally {
     setLoading(false);
+  }
+}
+
+async function copyDraftCaption(draftId) {
+  const source = document.querySelector(`[data-caption-source="${CSS.escape(draftId)}"]`);
+  const text = source?.querySelector('p')?.innerText || source?.innerText || '';
+  if (!text.trim()) return;
+
+  try {
+    await navigator.clipboard.writeText(text.trim());
+    setMessage(selectors.message, 'Caption copied.');
+  } catch {
+    const textarea = document.createElement('textarea');
+    textarea.value = text.trim();
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    textarea.remove();
+    setMessage(selectors.message, 'Caption copied.');
   }
 }
 
@@ -667,6 +1038,14 @@ selectors.queue?.addEventListener('click', () => {
   void generateGrowthAgentQueue();
 });
 
+selectors.dailyAutomationRun?.addEventListener('click', () => {
+  void runDailyAutomation();
+});
+
+selectors.draftReviewRefresh?.addEventListener('click', () => {
+  void loadGrowthAgent();
+});
+
 selectors.autopilotGenerate?.addEventListener('click', () => {
   void generateGrowthAutopilotPlan();
 });
@@ -683,10 +1062,25 @@ selectors.socialRefresh?.addEventListener('click', () => {
   void loadGrowthAgent();
 });
 
+selectors.weeklyReportGenerate?.addEventListener('click', () => {
+  void generateWeeklyReport();
+});
+
 document.addEventListener('click', (event) => {
+  const copyButton = event.target.closest('[data-copy-caption]');
+  if (copyButton) {
+    void copyDraftCaption(copyButton.dataset.copyCaption || '');
+    return;
+  }
+
   const button = event.target.closest('[data-draft-action]');
   if (!button) return;
   void runDraftAction(button.dataset.draftId || '', button.dataset.draftAction || '');
+});
+
+selectors.draftReviewStatus?.addEventListener('change', (event) => {
+  state.selectedDraftStatus = event.target.value || 'needs_approval';
+  void loadGrowthAgent();
 });
 
 selectors.status?.addEventListener('change', (event) => {
@@ -702,7 +1096,13 @@ auth.onAuthStateChanged(async (user) => {
       selectors.sessionSummary.textContent = '';
     }
     state.socialDrafts = [];
+    state.draftReviewQueue = null;
+    state.claimFunnelReport = null;
+    state.weeklyReport = null;
     state.autopilotReport = null;
+    renderDraftReviewQueue();
+    renderClaimFunnel();
+    renderWeeklyReport();
     renderSocialDrafts();
     renderAutopilot();
     return;
