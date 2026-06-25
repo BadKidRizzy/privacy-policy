@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../../assets/site.css?v=1">
-  <link rel="stylesheet" href="../../assets/management-console.css?v=24">
+  <link rel="stylesheet" href="../../assets/management-console.css?v=25">
 </head>
 <body class="console-body growth-agent-page">
   <div class="console-shell">
@@ -78,6 +78,35 @@
         </div>
 
         <div class="growth-agent-grid growth-agent-grid--dashboard" data-growth-agent-metrics></div>
+
+        <section class="growth-agent-panel growth-agent-guide-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Operating Mode</p>
+              <h3>What The Agent Does</h3>
+              <p>The agent prepares growth work for review. Public posting, email sending, and social replies stay approval-gated.</p>
+            </div>
+          </div>
+
+          <div class="growth-agent-guide-grid">
+            <article>
+              <strong>1. Find Work</strong>
+              <span>Syncs trucks, claim leads, social inbox items, and growth metrics.</span>
+            </article>
+            <article>
+              <strong>2. Draft Content</strong>
+              <span>Creates posts, outreach, city digests, and suggested social replies.</span>
+            </article>
+            <article>
+              <strong>3. Human Review</strong>
+              <span>Approve, reject, copy, schedule, or mark work handled from this page.</span>
+            </article>
+            <article>
+              <strong>4. Track Results</strong>
+              <span>Uses tracking links and reports to show what is getting clicks and claims.</span>
+            </article>
+          </div>
+        </section>
 
         <section class="growth-agent-panel growth-agent-agent-panel">
           <div class="panel-heading">
@@ -180,6 +209,7 @@
           </div>
 
           <div class="growth-agent-grid growth-agent-grid--dashboard" data-social-inbox-counts></div>
+          <div class="social-inbox-setup" data-social-inbox-setup></div>
           <div class="social-inbox-list" data-social-inbox-list></div>
         </section>
 
@@ -393,6 +423,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script defer src="../../assets/growth-agent-console.js?v=8"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=9"></script>
 </body>
 </html>

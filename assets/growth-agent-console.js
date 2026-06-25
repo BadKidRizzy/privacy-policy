@@ -79,6 +79,7 @@ const selectors = {
   socialInboxPlatform: document.querySelector('[data-social-inbox-platform]'),
   socialInboxLoadedAt: document.querySelector('[data-social-inbox-loaded-at]'),
   socialInboxCounts: document.querySelector('[data-social-inbox-counts]'),
+  socialInboxSetup: document.querySelector('[data-social-inbox-setup]'),
   socialInboxList: document.querySelector('[data-social-inbox-list]'),
   claimFunnelSummary: document.querySelector('[data-claim-funnel-summary]'),
   claimFunnelRecommendations: document.querySelector('[data-claim-funnel-recommendations]'),
@@ -630,6 +631,7 @@ function socialReplyButtons(draft) {
 function renderSocialInbox() {
   const inbox = state.socialInbox || {};
   const counts = inbox.counts || {};
+  const setup = inbox.setup || {};
   const items = inbox.items || [];
 
   if (selectors.socialInboxCounts) {
@@ -653,6 +655,45 @@ function renderSocialInbox() {
     selectors.socialInboxLoadedAt.textContent = state.loadedAt
       ? `Loaded ${formatDate(state.loadedAt)}`
       : '';
+  }
+
+  if (selectors.socialInboxSetup) {
+    const setupRows = [
+      {
+        label: 'Meta Account',
+        ok: setup.meta_page_id_configured && setup.meta_ig_account_id_configured,
+        detail: setup.meta_page_id_configured && setup.meta_ig_account_id_configured
+          ? 'Facebook and Instagram IDs are configured.'
+          : 'Facebook Page or Instagram account ID is missing.',
+      },
+      {
+        label: 'Access Token',
+        ok: setup.meta_access_token_configured,
+        detail: setup.meta_access_token_configured
+          ? 'Meta token is attached to the backend.'
+          : 'Meta token is not attached yet, so sync cannot pull comments.',
+      },
+      {
+        label: 'Daily Bot',
+        ok: setup.daily_sync_enabled,
+        detail: setup.daily_sync_enabled
+          ? 'Daily automation will try to sync inbox work.'
+          : 'Daily inbox sync is turned off.',
+      },
+      {
+        label: 'Reply Mode',
+        ok: !setup.real_replies_enabled,
+        detail: setup.real_replies_enabled
+          ? 'Approved replies can be sent through the API.'
+          : 'Replies are draft/copy/mark-sent only.',
+      },
+    ];
+    selectors.socialInboxSetup.innerHTML = setupRows.map((row) => `
+      <article class="${escapeHtml(row.ok ? 'setup-card setup-card--ok' : 'setup-card setup-card--warn')}">
+        <strong>${escapeHtml(row.label)}</strong>
+        <span>${escapeHtml(row.detail)}</span>
+      </article>
+    `).join('');
   }
 
   if (!selectors.socialInboxList) return;
