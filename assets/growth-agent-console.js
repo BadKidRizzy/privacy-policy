@@ -223,9 +223,13 @@ function slugify(value) {
     .replace(/^-+|-+$/g, '') || 'truck';
 }
 
-function dynamicTruckUrl(truckId) {
+function dynamicTruckUrl(truckId, lead = null) {
   const url = new URL('/truck/', PUBLIC_SITE_BASE_URL);
   url.searchParams.set('id', truckId);
+  const truckName = lead?.truck_name || lead?.name || '';
+  const city = lead?.city || '';
+  if (truckName) url.searchParams.set('name', truckName);
+  if (city) url.searchParams.set('city', city);
   return url.toString();
 }
 
@@ -251,7 +255,7 @@ function isRawTruckIdPath(url, truckId) {
 
 function resolvePublicUrl(value, fallbackId = '', lead = null) {
   if (fallbackId) {
-    return dynamicTruckUrl(fallbackId);
+    return dynamicTruckUrl(fallbackId, lead);
   }
 
   if (value && !isRawTruckIdPath(value, fallbackId)) {
@@ -292,7 +296,8 @@ async function callGrowthAgent(path, options = {}) {
   }
 
   if (!response.ok) {
-    throw new Error(payload.error || `Growth Agent request failed with ${response.status}.`);
+    const providerMessage = payload.publish_result?.message;
+    throw new Error(providerMessage || payload.error || `Growth Agent request failed with ${response.status}.`);
   }
 
   return payload;
@@ -481,6 +486,22 @@ function draftPlatform(draft) {
   return platformFlag ? platformFlag.replace('platform:', '') : 'social';
 }
 
+function draftSelectedMedia(draft) {
+  return draft.selected_media_asset
+    || (draft.media_candidates || []).find((candidate) => candidate.status === 'selected')
+    || null;
+}
+
+function draftRequiresMediaBeforePublish(draft) {
+  return draftPlatform(draft) === 'instagram' && !draftSelectedMedia(draft);
+}
+
+function trackingUrlForDraft(draft) {
+  if (draft.tracking_url) return draft.tracking_url;
+  if (draft.tracking_slug) return `${GROWTH_AGENT_API_BASE_URL}/r/${draft.tracking_slug}`;
+  return '';
+}
+
 function draftActionButtons(draftOrSlot) {
   const draftId = draftOrSlot.id || draftOrSlot.draft_id;
   const status = String(draftOrSlot.status || '');
@@ -491,8 +512,15 @@ function draftActionButtons(draftOrSlot) {
   if (status === 'needs_approval') {
     buttons.push(['approve', 'Approve']);
   }
+  if (status === 'failed') {
+    buttons.push(['approve', 'Reapprove']);
+  }
   if (status === 'approved' && ['facebook', 'instagram'].includes(platform)) {
-    buttons.push(['publish', 'Post Now']);
+    if (draftRequiresMediaBeforePublish(draftOrSlot)) {
+      buttons.push(['media-required', 'Needs Image', true]);
+    } else {
+      buttons.push(['publish', 'Post Now']);
+    }
   }
   if (status !== 'rejected_by_user' && status !== 'published') {
     buttons.push(['reject', 'Reject']);
@@ -506,8 +534,8 @@ function draftActionButtons(draftOrSlot) {
 
   return `
     <div class="growth-agent-actions">
-      ${buttons.map(([action, label]) => `
-        <button class="row-action row-action--button" type="button" data-draft-action="${escapeHtml(action)}" data-draft-id="${escapeHtml(draftId)}">
+      ${buttons.map(([action, label, disabled]) => `
+        <button class="row-action row-action--button" type="button" data-draft-action="${escapeHtml(action)}" data-draft-id="${escapeHtml(draftId)}" ${disabled ? 'disabled aria-disabled="true" title="Select a media asset before publishing this Instagram draft."' : ''}>
           ${escapeHtml(label)}
         </button>
       `).join('')}
@@ -533,7 +561,7 @@ function contentFormatLabel(value) {
 function statusPillClass(status) {
   const normalized = String(status || '');
   if (normalized === 'published' || normalized === 'verified') return 'status-pill status-pill--success';
-  if (normalized.startsWith('rejected') || normalized === 'do_not_contact') return 'status-pill status-pill--danger';
+  if (normalized.startsWith('rejected') || normalized === 'failed' || normalized === 'do_not_contact') return 'status-pill status-pill--danger';
   if (normalized === 'needs_approval' || normalized === 'needs_review' || normalized === 'claim_started') return 'status-pill status-pill--warn';
   return 'status-pill';
 }
@@ -575,7 +603,7 @@ function mediaActionButtons(candidate) {
 
 function renderDraftMedia(draft) {
   const candidates = draft.media_candidates || [];
-  const selected = draft.selected_media_asset || candidates.find((candidate) => candidate.status === 'selected');
+  const selected = draftSelectedMedia(draft);
   const reviewCandidates = candidates.filter((candidate) => candidate.status !== 'selected').slice(0, 4);
 
   if (!selected && !reviewCandidates.length) {
@@ -694,7 +722,7 @@ function renderDraftReviewQueue() {
     const profileUrl = draft.profile_url
       ? resolvePublicUrl(draft.profile_url, draft.truck_id, draft)
       : (draft.truck_id ? resolvePublicUrl('', draft.truck_id, draft) : '#');
-    const trackingUrl = draft.tracking_url || `${GROWTH_AGENT_API_BASE_URL}/r/${draft.tracking_slug || ''}`;
+    const trackingUrl = trackingUrlForDraft(draft);
     const truckLabel = [draft.truck_name, draft.city].filter(Boolean).join(' / ')
       || (isCityDigest ? `${draft.city || 'City'} weekly digest` : 'No truck attached');
     const scheduleLabel = draft.scheduled_for ? formatDate(draft.scheduled_for) : 'Not scheduled';
@@ -716,7 +744,7 @@ function renderDraftReviewQueue() {
           <div class="growth-agent-actions">
             <button class="row-action row-action--button" type="button" data-copy-caption="${escapeHtml(draft.id)}">Copy Caption</button>
             <a class="row-action row-action--ghost" href="${escapeHtml(profileUrl)}" target="_blank" rel="noreferrer">${escapeHtml(profileLabel)}</a>
-            <a class="row-action row-action--ghost" href="${escapeHtml(trackingUrl)}" target="_blank" rel="noreferrer">Open Link</a>
+            ${trackingUrl ? `<a class="row-action row-action--ghost" href="${escapeHtml(trackingUrl)}" target="_blank" rel="noreferrer">Test App Link</a>` : ''}
           </div>
         </div>
         <div class="draft-review-card__copy" data-caption-source="${escapeHtml(draft.id)}">
@@ -1069,7 +1097,7 @@ function renderSocialDrafts() {
 
   selectors.socialDrafts.innerHTML = state.socialDrafts.map((draft) => {
     const platform = draftPlatform(draft);
-    const trackingUrl = draft.tracking_url || `${GROWTH_AGENT_API_BASE_URL}/r/${draft.tracking_slug || ''}`;
+    const trackingUrl = trackingUrlForDraft(draft);
 
     return `
       <tr>
@@ -1079,7 +1107,7 @@ function renderSocialDrafts() {
           <span class="growth-agent-draft-copy">${escapeHtml(draft.text || '')}</span>
         </td>
         <td><span class="status-pill">${escapeHtml(growthStatusLabel(draft.status))}</span></td>
-        <td><a class="row-action row-action--ghost" href="${escapeHtml(trackingUrl)}" target="_blank" rel="noreferrer">Open Link</a></td>
+        <td>${trackingUrl ? `<a class="row-action row-action--ghost" href="${escapeHtml(trackingUrl)}" target="_blank" rel="noreferrer">Test App Link</a>` : 'No tracking link'}</td>
         <td>${draftActionButtons(draft)}</td>
       </tr>
     `;
@@ -1141,7 +1169,7 @@ function renderAutopilot() {
           <td>${escapeHtml(slot.truck_name || 'Unknown truck')}</td>
           <td>${escapeHtml(slot.score ?? 0)}</td>
           <td><span class="status-pill">${escapeHtml(growthStatusLabel(slot.status))}</span></td>
-          <td><a class="row-action row-action--ghost" href="${escapeHtml(slot.tracking_url || '#')}" target="_blank" rel="noreferrer">Open Link</a></td>
+          <td>${slot.tracking_url ? `<a class="row-action row-action--ghost" href="${escapeHtml(slot.tracking_url)}" target="_blank" rel="noreferrer">Test App Link</a>` : 'No tracking link'}</td>
           <td>${draftActionButtons(slot)}</td>
         </tr>
       `).join('');
@@ -1365,7 +1393,7 @@ async function generateGrowthAutopilotPlan() {
       drafts: drafts.length,
       real_publishing_enabled: payload.plan?.real_publishing_enabled === true,
     };
-    setMessage(selectors.message, `Growth Autopilot created ${drafts.length} scheduled draft${drafts.length === 1 ? '' : 's'} for approval. Real publishing remains disabled.`);
+    setMessage(selectors.message, `Growth Autopilot created ${drafts.length} scheduled draft${drafts.length === 1 ? '' : 's'} for approval. Approved Facebook and Instagram drafts can be posted from the review queue.`);
     await loadGrowthAgent();
   } catch (error) {
     setMessage(selectors.message, error.message || 'Growth Autopilot generation failed.', true);
@@ -1396,7 +1424,7 @@ async function generateSocialDrafts() {
       drafts: drafts.length,
       real_publishing_enabled: payload.batch?.real_publishing_enabled === true,
     };
-    setMessage(selectors.message, `Created ${drafts.length} social draft${drafts.length === 1 ? '' : 's'} for approval. Real publishing remains disabled.`);
+    setMessage(selectors.message, `Created ${drafts.length} social draft${drafts.length === 1 ? '' : 's'} for approval. Approved Facebook and Instagram drafts can be posted from the review queue.`);
     await loadGrowthAgent();
   } catch (error) {
     setMessage(selectors.message, error.message || 'Social draft generation failed.', true);
@@ -1710,6 +1738,10 @@ async function updateSocialThreadStatus(threadId, status) {
 
 async function runDraftAction(draftId, action) {
   if (!draftId || !action) return;
+  if (action === 'media-required') {
+    setMessage(selectors.message, 'Select or approve an image before posting this Instagram draft.', true);
+    return;
+  }
 
   const body = {
     actor: auth.currentUser?.email || 'growth-agent-console',
@@ -1730,11 +1762,18 @@ async function runDraftAction(draftId, action) {
   setMessage(selectors.message, `${growthStatusLabel(action)} draft...`);
 
   try {
-    await callGrowthAgent(`/admin/campaign-drafts/${encodeURIComponent(draftId)}/${action}`, {
+    const payload = await callGrowthAgent(`/admin/campaign-drafts/${encodeURIComponent(draftId)}/${action}`, {
       method: 'POST',
       body,
     });
-    setMessage(selectors.message, `Draft ${growthStatusLabel(action).toLowerCase()} complete.`);
+    const publishResult = payload.publish_result || null;
+    if (publishResult && publishResult.ok === false) {
+      throw new Error(publishResult.message || 'Publishing failed.');
+    }
+    const publishMessage = publishResult?.message
+      ? `${publishResult.provider || 'Publisher'}: ${publishResult.message}`
+      : `Draft ${growthStatusLabel(action).toLowerCase()} complete.`;
+    setMessage(selectors.message, publishMessage);
     await loadGrowthAgent();
   } catch (error) {
     setMessage(selectors.message, error.message || 'Draft action failed.', true);
@@ -1974,7 +2013,7 @@ auth.onAuthStateChanged(async (user) => {
 
   setAuthenticatedView(true);
   if (selectors.sessionSummary) {
-    selectors.sessionSummary.textContent = `Signed in as ${user.email || 'admin'}. Real publishing and sending remain disabled by default.`;
+    selectors.sessionSummary.textContent = `Signed in as ${user.email || 'admin'}. Facebook and Instagram publishing is enabled for approved drafts only. Replies and outbound sending still require review.`;
   }
   await loadGrowthAgent();
 });

@@ -68,6 +68,32 @@ function getTruckId() {
   return '';
 }
 
+function getProfileParams() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    name: asText(params.get('name') || params.get('truckName') || params.get('truck')),
+    city: asText(params.get('city')),
+  };
+}
+
+function fallbackTruckFromParams() {
+  const profile = getProfileParams();
+  if (!profile.name && !profile.city) {
+    return null;
+  }
+
+  const cityLabel = profile.city ? ` in ${profile.city}` : '';
+  return {
+    id: state.truckId,
+    name: profile.name || 'Food truck',
+    city: profile.city,
+    currentAddress: profile.city,
+    description: `${profile.name || 'This food truck'} has a Food Truck Finder preview profile${cityLabel}. This profile is awaiting owner claim and is not marked live or verified yet.`,
+    cuisines: ['Food truck'],
+    isFallbackProfile: true,
+  };
+}
+
 function setView(view) {
   selectors.loadingView.hidden = view !== 'loading';
   selectors.errorView.hidden = view !== 'error';
@@ -215,6 +241,12 @@ function buildDirectionsUrl(truck) {
   }
 
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(asText(truck.currentAddress))}`;
+}
+
+function hasDirectionsTarget(truck) {
+  const latitude = Number(truck.latitude);
+  const longitude = Number(truck.longitude);
+  return (Number.isFinite(latitude) && Number.isFinite(longitude)) || Boolean(asText(truck.currentAddress));
 }
 
 function buildClaimUrl(truck) {
@@ -516,12 +548,17 @@ function renderTruck(truck) {
 
   selectors.truckImage.src = firstHttpUrl([truck.truckImage, truck.photoSourceUrl]) || FALLBACK_IMAGE;
   selectors.truckImage.alt = `${truck.name || 'Food truck'} photo`;
-  selectors.openState.textContent = truck.isOpen === true ? 'Open Now' : 'Food Truck';
+  selectors.openState.textContent = truck.isFallbackProfile
+    ? 'Profile awaiting owner claim'
+    : truck.isOpen === true
+      ? 'Open Now'
+      : 'Food Truck';
   selectors.openState.classList.toggle('status-badge--open', truck.isOpen === true);
   selectors.truckName.textContent = truck.name || 'Food Truck';
   selectors.truckDescription.textContent = truck.description || 'Menu, location, and updates from Food Truck Finder.';
   selectors.openApp.href = buildAppUrl(state.truckId);
-  selectors.directions.href = buildDirectionsUrl(truck);
+  selectors.directions.hidden = !hasDirectionsTarget(truck);
+  selectors.directions.href = selectors.directions.hidden ? '#' : buildDirectionsUrl(truck);
   selectors.truckAddress.textContent = truck.currentAddress || 'Address unavailable';
   selectors.shareText.textContent = formatSharePanelText(state.shareUrl);
   selectors.claimLink.href = buildClaimUrl(truck);
@@ -667,6 +704,11 @@ async function loadTruck() {
     const snapshot = await firebase.firestore().collection('foodTrucks').doc(state.truckId).get();
 
     if (!snapshot.exists) {
+      const fallbackTruck = fallbackTruckFromParams();
+      if (fallbackTruck) {
+        renderTruck(fallbackTruck);
+        return;
+      }
       setError('This truck could not be found.');
       return;
     }
@@ -674,6 +716,11 @@ async function loadTruck() {
     renderTruck({id: snapshot.id, ...snapshot.data()});
   } catch (error) {
     console.error('Truck page load failed:', error);
+    const fallbackTruck = fallbackTruckFromParams();
+    if (fallbackTruck) {
+      renderTruck(fallbackTruck);
+      return;
+    }
     setError('This truck page could not load. Try again in a moment.');
   }
 }
