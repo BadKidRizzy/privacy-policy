@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../../assets/site.css?v=1">
-  <link rel="stylesheet" href="../../assets/management-console.css?v=25">
+  <link rel="stylesheet" href="../../assets/management-console.css?v=26">
 </head>
 <body class="console-body growth-agent-page">
   <div class="console-shell">
@@ -150,6 +150,7 @@
               <p>Review full captions, owner outreach drafts, profile links, tracking links, and scheduled post status.</p>
             </div>
             <div class="panel-heading__actions">
+              <button class="button button--primary" type="button" data-media-generate>Find Media</button>
               <button class="button button--secondary" type="button" data-draft-review-refresh>Refresh Drafts</button>
             </div>
           </div>
@@ -170,6 +171,12 @@
           </div>
 
           <div class="growth-agent-grid growth-agent-grid--dashboard" data-draft-review-counts></div>
+          <div class="media-manager-summary" data-media-manager-summary>
+            <article class="setup-card setup-card--ok">
+              <strong>Media Review First</strong>
+              <span>The agent can select high-confidence existing truck/app photos. Outside images from social or Google stay as review candidates until approved.</span>
+            </article>
+          </div>
           <div class="growth-agent-review-list" data-draft-review-queue></div>
         </section>
 
@@ -423,6 +430,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script defer src="../../assets/growth-agent-console.js?v=9"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=10"></script>
 </body>
 </html>

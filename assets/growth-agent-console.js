@@ -43,6 +43,7 @@ const state = {
   lastQueue: null,
   lastSocialBatch: null,
   lastCityDigestBatch: null,
+  lastMediaBatch: null,
   lastAgentRun: null,
 };
 
@@ -73,6 +74,8 @@ const selectors = {
   draftReviewLoadedAt: document.querySelector('[data-draft-review-loaded-at]'),
   draftReviewCounts: document.querySelector('[data-draft-review-counts]'),
   draftReviewQueue: document.querySelector('[data-draft-review-queue]'),
+  mediaGenerate: document.querySelector('[data-media-generate]'),
+  mediaManagerSummary: document.querySelector('[data-media-manager-summary]'),
   socialInboxSync: document.querySelector('[data-social-inbox-sync]'),
   socialInboxRefresh: document.querySelector('[data-social-inbox-refresh]'),
   socialInboxStatus: document.querySelector('[data-social-inbox-status]'),
@@ -152,6 +155,7 @@ function setLoading(isLoading) {
     selectors.agentInstructionForm?.querySelector('button'),
     selectors.draftReviewRefresh,
     selectors.draftReviewStatus,
+    selectors.mediaGenerate,
     selectors.socialInboxSync,
     selectors.socialInboxRefresh,
     selectors.socialInboxStatus,
@@ -176,6 +180,7 @@ function setLoading(isLoading) {
     ...selectors.socialPlatforms,
     ...selectors.autopilotPlatforms,
     ...document.querySelectorAll('[data-draft-action]'),
+    ...document.querySelectorAll('[data-media-action]'),
     ...document.querySelectorAll('[data-social-reply-action]'),
     ...document.querySelectorAll('[data-social-thread-status]'),
     ...document.querySelectorAll('[data-agent-task-status]'),
@@ -324,6 +329,9 @@ function renderMetrics() {
   const agentCopy = state.lastAgentRun
     ? `Last agent run created ${formatCount(state.lastAgentRun.tasks || 0)} task${Number(state.lastAgentRun.tasks || 0) === 1 ? '' : 's'}.`
     : 'The autonomous agent creates briefings, tasks, and memories.';
+  const mediaCopy = state.lastMediaBatch
+    ? `Last media scan selected ${formatCount(state.lastMediaBatch.selected || 0)} existing asset${Number(state.lastMediaBatch.selected || 0) === 1 ? '' : 's'} and found ${formatCount(state.lastMediaBatch.needsReview || 0)} review candidate${Number(state.lastMediaBatch.needsReview || 0) === 1 ? '' : 's'}.`
+    : 'Media manager picks existing photos first and holds outside images for review.';
 
   selectors.metrics.innerHTML = `
     ${metricRows.map(([label, value]) => `
@@ -334,7 +342,7 @@ function renderMetrics() {
     `).join('')}
     <div class="growth-agent-card growth-agent-card--wide">
       <strong>Automation</strong>
-      <span>${escapeHtml(syncCopy)} ${escapeHtml(queueCopy)} ${escapeHtml(socialCopy)} ${escapeHtml(autopilotCopy)} ${escapeHtml(digestCopy)} ${escapeHtml(agentCopy)}</span>
+      <span>${escapeHtml(syncCopy)} ${escapeHtml(queueCopy)} ${escapeHtml(socialCopy)} ${escapeHtml(autopilotCopy)} ${escapeHtml(digestCopy)} ${escapeHtml(mediaCopy)} ${escapeHtml(agentCopy)}</span>
     </div>
   `;
 }
@@ -525,6 +533,104 @@ function statusPillClass(status) {
   return 'status-pill';
 }
 
+function mediaSourceLabel(value) {
+  const labels = {
+    existing_truck_photo: 'Truck photo',
+    existing_menu_photo: 'Menu photo',
+    app_profile_page: 'Profile screenshot',
+    owner_social_profile: 'Owner social',
+    google_image_result: 'Google image',
+  };
+  return labels[value] || growthStatusLabel(value || 'Media');
+}
+
+function mediaActionButtons(candidate) {
+  if (!candidate?.id) return '';
+  const status = String(candidate.status || '');
+  const buttons = [];
+  if (status !== 'selected' && status !== 'rejected') {
+    buttons.push(['select', 'Select']);
+  }
+  if (status === 'needs_review') {
+    buttons.push(['approve', 'Approve']);
+  }
+  if (status !== 'rejected') {
+    buttons.push(['reject', 'Reject']);
+  }
+  return `
+    <div class="growth-agent-actions">
+      ${buttons.map(([action, label]) => `
+        <button class="row-action row-action--button" type="button" data-media-action="${escapeHtml(action)}" data-media-id="${escapeHtml(candidate.id)}">
+          ${escapeHtml(label)}
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderDraftMedia(draft) {
+  const candidates = draft.media_candidates || [];
+  const selected = draft.selected_media_asset || candidates.find((candidate) => candidate.status === 'selected');
+  const reviewCandidates = candidates.filter((candidate) => candidate.status !== 'selected').slice(0, 4);
+
+  if (!selected && !reviewCandidates.length) {
+    return `
+      <div class="draft-media draft-media--empty">
+        <strong>No media attached yet</strong>
+        <span>Use Find Media to score existing photos and collect outside candidates for review.</span>
+      </div>
+    `;
+  }
+
+  const selectedMarkup = selected ? `
+    <article class="draft-media-selected">
+      <a href="${escapeHtml(selected.source_url)}" target="_blank" rel="noreferrer">
+        ${selected.thumbnail_url || selected.source_url
+          ? `<img src="${escapeHtml(selected.thumbnail_url || selected.source_url)}" alt="${escapeHtml(selected.alt_text || selected.title || 'Selected media')}">`
+          : '<span class="draft-media-placeholder">Selected</span>'}
+      </a>
+      <div>
+        <span class="${escapeHtml(statusPillClass(selected.status))}">${escapeHtml(growthStatusLabel(selected.status))}</span>
+        <strong>${escapeHtml(selected.title || mediaSourceLabel(selected.source_type))}</strong>
+        <small>${escapeHtml(mediaSourceLabel(selected.source_type))} · score ${escapeHtml(selected.quality_score ?? 0)}</small>
+        <small>${escapeHtml(selected.license_note || '')}</small>
+      </div>
+    </article>
+  ` : '';
+
+  const candidateMarkup = reviewCandidates.length ? `
+    <div class="draft-media-candidates">
+      ${reviewCandidates.map((candidate) => `
+        <article class="draft-media-candidate">
+          <a href="${escapeHtml(candidate.source_url)}" target="_blank" rel="noreferrer">
+            ${candidate.thumbnail_url
+              ? `<img src="${escapeHtml(candidate.thumbnail_url)}" alt="${escapeHtml(candidate.alt_text || candidate.title || 'Media candidate')}">`
+              : '<span class="draft-media-placeholder">Open</span>'}
+          </a>
+          <div>
+            <span class="${escapeHtml(statusPillClass(candidate.status))}">${escapeHtml(growthStatusLabel(candidate.status))}</span>
+            <strong>${escapeHtml(candidate.title || mediaSourceLabel(candidate.source_type))}</strong>
+            <small>${escapeHtml(mediaSourceLabel(candidate.source_type))} · score ${escapeHtml(candidate.quality_score ?? 0)}</small>
+            <small>${escapeHtml(candidate.license_note || '')}</small>
+            ${mediaActionButtons(candidate)}
+          </div>
+        </article>
+      `).join('')}
+    </div>
+  ` : '';
+
+  return `
+    <section class="draft-media">
+      <div class="draft-media__heading">
+        <strong>Media</strong>
+        ${draft.needs_media_review ? '<span class="status-pill status-pill--warn">Needs media review</span>' : '<span class="status-pill status-pill--success">Media ready</span>'}
+      </div>
+      ${selectedMarkup}
+      ${candidateMarkup}
+    </section>
+  `;
+}
+
 function renderDraftReviewQueue() {
   const queue = state.draftReviewQueue || {};
   const drafts = queue.drafts || [];
@@ -544,6 +650,22 @@ function renderDraftReviewQueue() {
         <span>${escapeHtml(label)}</span>
       </div>
     `).join('');
+  }
+
+  if (selectors.mediaManagerSummary) {
+    const batch = state.lastMediaBatch;
+    const draftMedia = drafts.flatMap((draft) => draft.media_candidates || []);
+    const selectedCount = draftMedia.filter((candidate) => candidate.status === 'selected').length;
+    const reviewCount = draftMedia.filter((candidate) => candidate.status === 'needs_review').length;
+    const summaryText = batch
+      ? `Last scan checked ${formatCount(batch.draftsScanned || 0)} drafts, selected ${formatCount(batch.selected || 0)} existing asset${Number(batch.selected || 0) === 1 ? '' : 's'}, and found ${formatCount(batch.needsReview || 0)} review candidate${Number(batch.needsReview || 0) === 1 ? '' : 's'}.`
+      : `Loaded drafts include ${formatCount(selectedCount)} selected media asset${selectedCount === 1 ? '' : 's'} and ${formatCount(reviewCount)} candidate${reviewCount === 1 ? '' : 's'} needing review.`;
+    selectors.mediaManagerSummary.innerHTML = `
+      <article class="setup-card setup-card--ok">
+        <strong>Media Review First</strong>
+        <span>${escapeHtml(summaryText)} Outside images are candidates only until reviewed.</span>
+      </article>
+    `;
   }
 
   if (selectors.draftReviewLoadedAt) {
@@ -596,6 +718,7 @@ function renderDraftReviewQueue() {
           ${subject}
           <p>${escapeHtml(draft.text || '').replace(/\n/g, '<br>')}</p>
         </div>
+        ${renderDraftMedia(draft)}
         ${draft.media_brief ? `<details class="draft-review-card__brief"><summary>Media and reviewer notes</summary><p>${escapeHtml(draft.media_brief).replace(/\n/g, '<br>')}</p></details>` : ''}
         ${draft.rejection_reason ? `<p class="draft-review-card__reason">Rejected: ${escapeHtml(draft.rejection_reason)}</p>` : ''}
         <div class="draft-review-card__footer">
@@ -1375,6 +1498,70 @@ async function runAgentBrain() {
   }
 }
 
+async function generateMediaAssets() {
+  setLoading(true);
+  setMessage(selectors.message, 'Finding media for review drafts...');
+
+  try {
+    const payload = await callGrowthAgent('/admin/media-assets/generate', {
+      method: 'POST',
+      body: {
+        collection: 'foodTrucks',
+        status: state.selectedDraftStatus || 'needs_approval',
+        limit: 50,
+        include_external: true,
+        actor: auth.currentUser?.email || 'growth-agent-console',
+      },
+    });
+    const media = payload.media || {};
+    state.lastMediaBatch = {
+      draftsScanned: media.drafts_scanned || 0,
+      generated: media.candidates?.length || 0,
+      selected: media.selected?.length || 0,
+      needsReview: media.needs_review?.length || 0,
+      skipped: media.skipped?.length || 0,
+    };
+    setMessage(
+      selectors.message,
+      `Media scan complete: ${state.lastMediaBatch.selected} selected existing asset${state.lastMediaBatch.selected === 1 ? '' : 's'}, ${state.lastMediaBatch.needsReview} candidate${state.lastMediaBatch.needsReview === 1 ? '' : 's'} needing review.`
+    );
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Media scan failed.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function runMediaAction(candidateId, action) {
+  if (!candidateId || !action) return;
+  const body = {
+    actor: auth.currentUser?.email || 'growth-agent-console',
+  };
+
+  if (action === 'reject') {
+    const reason = window.prompt('Why reject this media candidate?');
+    if (!reason || !reason.trim()) return;
+    body.review_note = reason.trim();
+  }
+
+  setLoading(true);
+  setMessage(selectors.message, `${growthStatusLabel(action)} media candidate...`);
+
+  try {
+    await callGrowthAgent(`/admin/media-assets/${encodeURIComponent(candidateId)}/${action}`, {
+      method: 'POST',
+      body,
+    });
+    setMessage(selectors.message, `Media candidate ${growthStatusLabel(action).toLowerCase()} complete.`);
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Media action failed.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
 async function saveAgentInstruction(event) {
   event.preventDefault();
   const value = String(selectors.agentInstruction?.value || '').trim();
@@ -1644,6 +1831,10 @@ selectors.draftReviewRefresh?.addEventListener('click', () => {
   void loadGrowthAgent();
 });
 
+selectors.mediaGenerate?.addEventListener('click', () => {
+  void generateMediaAssets();
+});
+
 selectors.socialInboxSync?.addEventListener('click', () => {
   void syncSocialInbox();
 });
@@ -1713,6 +1904,15 @@ document.addEventListener('click', (event) => {
     return;
   }
 
+  const mediaButton = event.target.closest('[data-media-action]');
+  if (mediaButton) {
+    void runMediaAction(
+      mediaButton.dataset.mediaId || '',
+      mediaButton.dataset.mediaAction || ''
+    );
+    return;
+  }
+
   const button = event.target.closest('[data-draft-action]');
   if (!button) return;
   void runDraftAction(button.dataset.draftId || '', button.dataset.draftAction || '');
@@ -1750,6 +1950,7 @@ auth.onAuthStateChanged(async (user) => {
     state.agentMemories = [];
     state.lastAgentRun = null;
     state.lastCityDigestBatch = null;
+    state.lastMediaBatch = null;
     renderAgentPanel();
     renderDraftReviewQueue();
     renderSocialInbox();

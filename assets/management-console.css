@@ -727,7 +727,8 @@
 }
 
 .growth-agent-guide-grid,
-.social-inbox-setup {
+.social-inbox-setup,
+.media-manager-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 10px;
@@ -1095,6 +1096,100 @@
 .draft-review-card__brief p {
   margin-top: 10px;
   color: var(--muted);
+}
+
+.draft-media {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(31, 23, 19, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.draft-media--empty {
+  border-style: dashed;
+}
+
+.draft-media--empty span,
+.draft-media-candidate small,
+.draft-media-selected small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.draft-media__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.draft-media__heading strong,
+.draft-media--empty strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.draft-media-selected,
+.draft-media-candidate {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+}
+
+.draft-media-candidates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.draft-media-candidate {
+  padding: 10px;
+  border: 1px solid rgba(31, 23, 19, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.draft-media-selected img,
+.draft-media-candidate img,
+.draft-media-placeholder {
+  display: block;
+  width: 92px;
+  aspect-ratio: 4 / 3;
+  border: 1px solid rgba(31, 23, 19, 0.12);
+  border-radius: 10px;
+  background: rgba(15, 124, 130, 0.08);
+  object-fit: cover;
+}
+
+.draft-media-placeholder {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.draft-media-selected div,
+.draft-media-candidate div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.draft-media-selected strong,
+.draft-media-candidate strong {
+  color: var(--ink);
+  font-size: 0.88rem;
+  line-height: 1.28;
+  overflow-wrap: anywhere;
 }
 
 .social-inbox-list {
