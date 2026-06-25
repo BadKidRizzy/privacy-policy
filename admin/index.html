@@ -76,6 +76,40 @@
 
         <div class="metric-grid" data-metrics></div>
 
+        <section class="growth-agent-panel" data-growth-agent-panel>
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Growth Agent</p>
+              <h3>Owner Outreach Queue</h3>
+              <p>Review unclaimed truck leads, run the daily outreach queue, and keep Firestore truck data synced into the Growth Agent.</p>
+            </div>
+            <div class="panel-heading__actions">
+              <span data-growth-agent-loaded-at></span>
+              <button class="button button--secondary" type="button" data-growth-agent-refresh>Refresh Growth Agent</button>
+              <button class="button button--secondary" type="button" data-growth-agent-sync>Sync Trucks</button>
+              <button class="button button--primary" type="button" data-growth-agent-queue>Generate Queue</button>
+            </div>
+          </div>
+
+          <div class="growth-agent-grid" data-growth-agent-metrics></div>
+          <p class="console-message" data-growth-agent-message></p>
+
+          <div class="growth-agent-table-wrap">
+            <table class="growth-agent-table">
+              <thead>
+                <tr>
+                  <th>Truck</th>
+                  <th>Status</th>
+                  <th>Contact</th>
+                  <th>Priority</th>
+                  <th>Profile</th>
+                </tr>
+              </thead>
+              <tbody data-growth-agent-leads></tbody>
+            </table>
+          </div>
+        </section>
+
         <nav class="console-tabs" aria-label="Management sections">
           <button type="button" class="is-active" data-tab="owners">Owners</button>
           <button type="button" data-tab="trucks">Trucks</button>
@@ -182,40 +216,6 @@
             No records match the current search.
           </div>
         </div>
-
-        <section class="growth-agent-panel" data-growth-agent-panel>
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Growth Agent</p>
-              <h3>Owner Outreach Queue</h3>
-              <p>Review unclaimed truck leads, run the daily outreach queue, and keep Firestore truck data synced into the Growth Agent.</p>
-            </div>
-            <div class="panel-heading__actions">
-              <span data-growth-agent-loaded-at></span>
-              <button class="button button--secondary" type="button" data-growth-agent-refresh>Refresh Growth Agent</button>
-              <button class="button button--secondary" type="button" data-growth-agent-sync>Sync Trucks</button>
-              <button class="button button--primary" type="button" data-growth-agent-queue>Generate Queue</button>
-            </div>
-          </div>
-
-          <div class="growth-agent-grid" data-growth-agent-metrics></div>
-          <p class="console-message" data-growth-agent-message></p>
-
-          <div class="growth-agent-table-wrap">
-            <table class="growth-agent-table">
-              <thead>
-                <tr>
-                  <th>Truck</th>
-                  <th>Status</th>
-                  <th>Contact</th>
-                  <th>Priority</th>
-                  <th>Profile</th>
-                </tr>
-              </thead>
-              <tbody data-growth-agent-leads></tbody>
-            </table>
-          </div>
-        </section>
       </section>
     </main>
   </div>
