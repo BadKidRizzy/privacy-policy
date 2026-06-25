@@ -535,6 +535,115 @@
   border-radius: 20px;
 }
 
+.growth-agent-panel {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--paper-strong);
+  box-shadow: var(--shadow);
+}
+
+.growth-agent-panel .panel-heading__actions [data-growth-agent-loaded-at] {
+  flex-basis: 100%;
+  order: -1;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.4;
+  text-align: right;
+}
+
+.growth-agent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.growth-agent-card {
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  min-height: 82px;
+  padding: 14px 16px;
+  border: 1px solid rgba(31, 23, 19, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.growth-agent-card--wide {
+  grid-column: span 2;
+}
+
+.growth-agent-card strong {
+  color: var(--ink);
+  font-size: 1.35rem;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.growth-agent-card span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.42;
+}
+
+.growth-agent-table-wrap {
+  width: 100%;
+  overflow: auto;
+  border: 1px solid rgba(31, 23, 19, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.growth-agent-table {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+}
+
+.growth-agent-table th,
+.growth-agent-table td {
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.growth-agent-table th {
+  background: rgba(255, 253, 249, 0.98);
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.growth-agent-table td {
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.42;
+}
+
+.growth-agent-table td strong,
+.growth-agent-table td span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.growth-agent-table td span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.growth-agent-empty {
+  color: var(--muted);
+  font-weight: 800;
+  text-align: center;
+}
+
 .table-wrap {
   width: 100%;
   overflow: auto;
@@ -1300,6 +1409,10 @@ summary.record-section__heading::-webkit-details-marker {
     text-align: left;
   }
 
+  .growth-agent-panel .panel-heading__actions [data-growth-agent-loaded-at] {
+    text-align: left;
+  }
+
   .console-toolbar__actions {
     grid-template-columns: 1fr;
   }
@@ -1326,6 +1439,10 @@ summary.record-section__heading::-webkit-details-marker {
   .truck-detail-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .growth-agent-card--wide {
+    grid-column: auto;
+  }
 }
 
 @media (max-width: 620px) {
@@ -1342,6 +1459,7 @@ summary.record-section__heading::-webkit-details-marker {
 
   .metric-grid,
   .metric-strip,
+  .growth-agent-grid,
   .record-section__grid,
   .seed-required-summary,
   .truck-controls,

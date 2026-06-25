@@ -36,6 +36,14 @@ const state = {
   truckSort: 'recently_updated',
   bulkPreview: null,
   selected: null,
+  growthAgent: {
+    loading: false,
+    loadedAt: '',
+    counts: {},
+    leads: [],
+    lastSync: null,
+    lastQueue: null,
+  },
 };
 
 const selectors = {
@@ -100,6 +108,14 @@ const selectors = {
   previewBulk: document.querySelector('[data-preview-bulk]'),
   importBulk: document.querySelector('[data-import-bulk]'),
   closeBulkDialog: Array.from(document.querySelectorAll('[data-close-bulk-dialog]')),
+  growthAgentPanel: document.querySelector('[data-growth-agent-panel]'),
+  growthAgentLoadedAt: document.querySelector('[data-growth-agent-loaded-at]'),
+  growthAgentMetrics: document.querySelector('[data-growth-agent-metrics]'),
+  growthAgentLeads: document.querySelector('[data-growth-agent-leads]'),
+  growthAgentMessage: document.querySelector('[data-growth-agent-message]'),
+  growthAgentRefresh: document.querySelector('[data-growth-agent-refresh]'),
+  growthAgentSync: document.querySelector('[data-growth-agent-sync]'),
+  growthAgentQueue: document.querySelector('[data-growth-agent-queue]'),
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -123,7 +139,17 @@ const SEED_IMAGE_MAX_DIMENSION = 1800;
 const SEED_CALLABLE_MAX_PAYLOAD_BYTES = 8 * 1024 * 1024;
 const INITIAL_BULK_ROW_COUNT = 5;
 const PUBLIC_TRUCK_SHARE_BASE_URL = 'https://www.ftf-foodtruckfinder.com/truck/';
+const GROWTH_AGENT_API_BASE_URL = 'https://food-truck-growth-agent-xmel35gaya-uc.a.run.app';
 const LIST_FIELD_NAMES = new Set(['socialLinks', 'cuisines', 'tags', 'seedWarnings']);
+const GROWTH_AGENT_STATUSES = [
+  'needs_review',
+  'not_contacted',
+  'contacted',
+  'claim_started',
+  'claimed',
+  'verified',
+  'do_not_contact',
+];
 
 const tabConfig = {
   owners: {
@@ -1151,6 +1177,223 @@ function renderAll() {
   renderTable();
 }
 
+function setGrowthAgentLoading(isLoading) {
+  state.growthAgent.loading = isLoading;
+  [
+    selectors.growthAgentRefresh,
+    selectors.growthAgentSync,
+    selectors.growthAgentQueue,
+  ].forEach((button) => {
+    if (button) button.disabled = isLoading;
+  });
+}
+
+async function callGrowthAgent(path, options = {}) {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('Sign in before opening Growth Agent data.');
+  }
+
+  const token = await user.getIdToken();
+  const response = await fetch(`${GROWTH_AGENT_API_BASE_URL}${path}`, {
+    method: options.method || 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+  const text = await response.text();
+  let payload = {};
+
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      payload = {error: text};
+    }
+  }
+
+  if (!response.ok) {
+    throw new Error(payload.error || `Growth Agent request failed with ${response.status}.`);
+  }
+
+  return payload;
+}
+
+function growthStatusLabel(status) {
+  return String(status || 'unknown')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function renderGrowthAgentMetrics() {
+  if (!selectors.growthAgentMetrics) return;
+
+  const counts = state.growthAgent.counts || {};
+  const metricRows = [
+    ['Needs Review', counts.needs_review || 0],
+    ['Not Contacted', counts.not_contacted || 0],
+    ['Contacted', counts.contacted || 0],
+    ['Claims Started', counts.claim_started || 0],
+    ['Verified', counts.verified || 0],
+  ];
+  const syncCopy = state.growthAgent.lastSync
+    ? `Sync imported ${formatCount(state.growthAgent.lastSync.imported || 0)} and found ${formatCount(state.growthAgent.lastSync.existing || 0)} existing.`
+    : 'Truck sync runs daily at 6:00 AM.';
+  const queueCopy = state.growthAgent.lastQueue
+    ? `Last queue generated ${formatCount(state.growthAgent.lastQueue.items || 0)} review items.`
+    : 'Outreach queue runs daily at 6:15 AM.';
+
+  selectors.growthAgentMetrics.innerHTML = `
+    ${metricRows.map(([label, value]) => `
+      <div class="growth-agent-card">
+        <strong>${escapeHtml(formatCount(value))}</strong>
+        <span>${escapeHtml(label)}</span>
+      </div>
+    `).join('')}
+    <div class="growth-agent-card growth-agent-card--wide">
+      <strong>Automation</strong>
+      <span>${escapeHtml(syncCopy)} ${escapeHtml(queueCopy)}</span>
+    </div>
+  `;
+}
+
+function renderGrowthAgentLeads() {
+  if (!selectors.growthAgentLeads) return;
+
+  const leads = state.growthAgent.leads || [];
+  if (!leads.length) {
+    selectors.growthAgentLeads.innerHTML = `
+      <tr>
+        <td colspan="5" class="growth-agent-empty">No Growth Agent leads loaded.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  selectors.growthAgentLeads.innerHTML = leads.map((lead) => {
+    const contact = [
+      lead.owner_email,
+      lead.owner_phone,
+      lead.owner_social_handle,
+    ].filter(Boolean).join(' / ') || 'Needs contact research';
+    const profileUrl = lead.profile_url || `${PUBLIC_TRUCK_SHARE_BASE_URL}${encodeURIComponent(lead.truck_id || '')}/`;
+
+    return `
+      <tr>
+        <td>
+          <strong>${escapeHtml(lead.truck_name || 'Unnamed truck')}</strong>
+          <span>${escapeHtml(lead.city || lead.truck_id || '')}</span>
+        </td>
+        <td><span class="status-pill">${escapeHtml(growthStatusLabel(lead.outreach_status))}</span></td>
+        <td>${escapeHtml(contact)}</td>
+        <td>${escapeHtml(lead.priority_score ?? 0)}</td>
+        <td><a class="row-action row-action--ghost" href="${escapeHtml(profileUrl)}" target="_blank" rel="noreferrer">Open Profile</a></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderGrowthAgentPanel() {
+  renderGrowthAgentMetrics();
+  renderGrowthAgentLeads();
+
+  if (selectors.growthAgentLoadedAt) {
+    selectors.growthAgentLoadedAt.textContent = state.growthAgent.loadedAt
+      ? `Growth Agent loaded ${formatDate(state.growthAgent.loadedAt)}`
+      : '';
+  }
+}
+
+function resetGrowthAgentState(message = '') {
+  state.growthAgent = {
+    loading: false,
+    loadedAt: '',
+    counts: {},
+    leads: [],
+    lastSync: null,
+    lastQueue: null,
+  };
+  setGrowthAgentLoading(false);
+  setMessage(selectors.growthAgentMessage, message);
+  renderGrowthAgentPanel();
+}
+
+async function loadGrowthAgent() {
+  if (!selectors.growthAgentPanel) return;
+
+  setGrowthAgentLoading(true);
+  setMessage(selectors.growthAgentMessage, 'Loading Growth Agent data...');
+
+  try {
+    const countResults = await Promise.all(
+      GROWTH_AGENT_STATUSES.map(async (status) => {
+        const payload = await callGrowthAgent(`/admin/owner-outreach-leads?status=${encodeURIComponent(status)}&limit=500`);
+        return [status, payload.leads?.length || 0];
+      })
+    );
+    const leadsPayload = await callGrowthAgent('/admin/owner-outreach-leads?limit=25');
+
+    state.growthAgent.counts = Object.fromEntries(countResults);
+    state.growthAgent.leads = leadsPayload.leads || [];
+    state.growthAgent.loadedAt = new Date().toISOString();
+    setMessage(selectors.growthAgentMessage, 'Growth Agent data loaded.');
+    renderGrowthAgentPanel();
+  } catch (error) {
+    setMessage(selectors.growthAgentMessage, error.message || 'Unable to load Growth Agent data.', true);
+  } finally {
+    setGrowthAgentLoading(false);
+  }
+}
+
+async function syncGrowthAgentTrucks() {
+  setGrowthAgentLoading(true);
+  setMessage(selectors.growthAgentMessage, 'Syncing Firestore trucks into Growth Agent...');
+
+  try {
+    const payload = await callGrowthAgent('/admin/sync-firestore-trucks', {
+      method: 'POST',
+      body: {
+        collection: 'foodTrucks',
+        public_base_url: 'https://www.ftf-foodtruckfinder.com',
+      },
+    });
+    state.growthAgent.lastSync = payload.sync || null;
+    setMessage(selectors.growthAgentMessage, 'Truck sync complete. Reloading Growth Agent data...');
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.growthAgentMessage, error.message || 'Truck sync failed.', true);
+  } finally {
+    setGrowthAgentLoading(false);
+  }
+}
+
+async function generateGrowthAgentQueue() {
+  setGrowthAgentLoading(true);
+  setMessage(selectors.growthAgentMessage, 'Generating reviewable owner outreach queue...');
+
+  try {
+    const payload = await callGrowthAgent('/admin/daily-owner-outreach-queue', {
+      method: 'POST',
+      body: {
+        limit: 25,
+        actor: auth.currentUser?.email || 'management-console',
+      },
+    });
+    state.growthAgent.lastQueue = {
+      items: payload.items?.length || 0,
+      real_sending_enabled: payload.real_sending_enabled === true,
+    };
+    setMessage(selectors.growthAgentMessage, `Queue generated ${state.growthAgent.lastQueue.items} item${state.growthAgent.lastQueue.items === 1 ? '' : 's'}. Real sending remains disabled.`);
+    await loadGrowthAgent();
+  } catch (error) {
+    setMessage(selectors.growthAgentMessage, error.message || 'Queue generation failed.', true);
+  } finally {
+    setGrowthAgentLoading(false);
+  }
+}
+
 function clearCurrentSearchAndFilters() {
   state.searchByTab[state.activeTab] = '';
 
@@ -1191,9 +1434,11 @@ async function loadSnapshot() {
       : `Loaded ${formatCount(totalTrucks)} truck profiles.`;
     selectors.sessionSummary.textContent = `Signed in as ${auth.currentUser?.email || state.admin?.email || 'admin'}. ${truckLoadSummary}`;
     renderAll();
+    void loadGrowthAgent();
   } catch (error) {
     selectors.app.hidden = true;
     setAuthenticatedView(false);
+    resetGrowthAgentState();
     setMessage(selectors.authMessage, error.message || 'Unable to load management data.', true);
   } finally {
     state.loading = false;
@@ -2500,6 +2745,15 @@ selectors.signOut?.addEventListener('click', async () => {
 });
 
 selectors.refresh?.addEventListener('click', loadSnapshot);
+selectors.growthAgentRefresh?.addEventListener('click', () => {
+  void loadGrowthAgent();
+});
+selectors.growthAgentSync?.addEventListener('click', () => {
+  void syncGrowthAgentTrucks();
+});
+selectors.growthAgentQueue?.addEventListener('click', () => {
+  void generateGrowthAgentQueue();
+});
 selectors.createRecord?.addEventListener('click', openCreateDialog);
 selectors.seedTruck?.addEventListener('click', openSeedTruckDialog);
 selectors.bulkImport?.addEventListener('click', openBulkImportDialog);
@@ -2616,6 +2870,7 @@ auth.onAuthStateChanged(async (user) => {
     selectors.app.hidden = true;
     setAuthenticatedView(false);
     selectors.sessionSummary.textContent = '';
+    resetGrowthAgentState();
     return;
   }
 
