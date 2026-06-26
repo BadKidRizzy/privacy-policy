@@ -546,6 +546,10 @@
   box-shadow: var(--shadow);
 }
 
+.growth-agent-panel[hidden] {
+  display: none !important;
+}
+
 .growth-agent-panel__body {
   display: grid;
   gap: 16px;
@@ -597,7 +601,7 @@
   box-shadow: 0 10px 24px rgba(31, 23, 19, 0.08);
 }
 
-.growth-agent-quick-nav {
+.growth-agent-tabs {
   position: sticky;
   top: 64px;
   z-index: 11;
@@ -613,25 +617,44 @@
   backdrop-filter: blur(12px);
 }
 
-.growth-agent-quick-nav a {
+.growth-agent-tabs button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 34px;
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--ink);
+  cursor: pointer;
+  font: inherit;
   font-size: 0.82rem;
   font-weight: 900;
-  text-decoration: none;
   background: rgba(255, 255, 255, 0.78);
 }
 
-.growth-agent-quick-nav a:hover,
-.growth-agent-quick-nav a:focus-visible {
+.growth-agent-tabs button:hover,
+.growth-agent-tabs button:focus-visible {
   border-color: rgba(15, 124, 130, 0.34);
   color: var(--cool);
   outline: none;
+}
+
+.growth-agent-tabs button.is-active {
+  border-color: rgba(31, 23, 19, 0.78);
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(31, 23, 19, 0.12);
+}
+
+.growth-agent-tabs button[aria-busy="true"]::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-left: 8px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.66;
 }
 
 .growth-agent-workflow {
@@ -731,9 +754,20 @@
   overflow-wrap: anywhere;
 }
 
-.growth-agent-guide-panel,
-.growth-agent-agent-panel {
+.growth-agent-guide-panel {
   order: 8;
+}
+
+.growth-agent-agent-panel {
+  order: 0;
+}
+
+.growth-agent-autopilot-panel {
+  order: 1;
+}
+
+.growth-agent-city-digest-panel {
+  order: 2;
 }
 
 .growth-agent-panel .panel-heading__actions [data-growth-agent-loaded-at] {

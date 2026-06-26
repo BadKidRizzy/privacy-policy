@@ -19,10 +19,21 @@ const GROWTH_AGENT_STATUSES = [
   'verified',
   'do_not_contact',
 ];
+const GROWTH_AGENT_TABS = ['review', 'claims', 'social', 'automation', 'reports', 'guide'];
+const GROWTH_AGENT_TAB_LABELS = {
+  review: 'Review',
+  claims: 'Claims',
+  social: 'Social',
+  automation: 'Automation',
+  reports: 'Reports',
+  guide: 'Guide',
+};
 
 const state = {
   loading: false,
   loadedAt: '',
+  activeTab: 'review',
+  loadedTabs: {},
   selectedStatus: 'needs_review',
   selectedDraftStatus: 'needs_approval',
   selectedSocialInboxStatus: 'needs_review',
@@ -65,6 +76,9 @@ const selectors = {
   sync: document.querySelector('[data-growth-agent-sync]'),
   queue: document.querySelector('[data-growth-agent-queue]'),
   dailyAutomationRun: document.querySelector('[data-daily-automation-run]'),
+  tabs: document.querySelector('[data-growth-agent-tabs]'),
+  tabButtons: Array.from(document.querySelectorAll('[data-growth-agent-tab]')),
+  tabPanels: Array.from(document.querySelectorAll('[data-growth-agent-tab-panel]')),
   agentRun: document.querySelector('[data-agent-run]'),
   agentBriefing: document.querySelector('[data-agent-briefing]'),
   agentTasks: document.querySelector('[data-agent-tasks]'),
@@ -152,6 +166,7 @@ function setLoading(isLoading) {
     selectors.sync,
     selectors.queue,
     selectors.dailyAutomationRun,
+    ...selectors.tabButtons,
     selectors.agentRun,
     selectors.agentInstruction,
     selectors.agentInstructionForm?.querySelector('button'),
@@ -191,7 +206,8 @@ function setLoading(isLoading) {
   });
 }
 
-const PANEL_STORAGE_PREFIX = 'ftf-growth-agent-panel:';
+const PANEL_STORAGE_PREFIX = 'ftf-growth-agent-panel:v2:';
+const TAB_STORAGE_KEY = 'ftf-growth-agent-active-tab';
 
 function storageGet(key) {
   try {
@@ -212,6 +228,41 @@ function storageSet(key, value) {
 function panelKey(panel, index) {
   const heading = panel.querySelector('.panel-heading h3')?.textContent || `panel-${index}`;
   return panel.dataset.panelKey || panel.id || slugify(heading) || `panel-${index}`;
+}
+
+function validGrowthTab(tab) {
+  return GROWTH_AGENT_TABS.includes(tab) ? tab : 'review';
+}
+
+function growthTabFromHash() {
+  const hash = window.location.hash;
+  if (!hash || hash.length < 2) return '';
+  const panel = document.getElementById(hash.slice(1));
+  return panel?.dataset?.growthAgentTabPanel || '';
+}
+
+function setActiveGrowthTab(tab, {load = true, persist = true} = {}) {
+  const nextTab = validGrowthTab(tab);
+  state.activeTab = nextTab;
+
+  selectors.tabButtons.forEach((button) => {
+    const isActive = button.dataset.growthAgentTab === nextTab;
+    button.classList.toggle('is-active', isActive);
+    button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    button.setAttribute('tabindex', isActive ? '0' : '-1');
+  });
+
+  selectors.tabPanels.forEach((panel) => {
+    panel.hidden = panel.dataset.growthAgentTabPanel !== nextTab;
+  });
+
+  if (persist) {
+    storageSet(TAB_STORAGE_KEY, nextTab);
+  }
+
+  if (load && auth.currentUser) {
+    void loadGrowthAgent({tab: nextTab});
+  }
 }
 
 function setPanelCollapsed(panel, collapsed, {persist = true} = {}) {
@@ -243,7 +294,16 @@ function expandPanelForHash() {
     : target?.closest?.('.growth-agent-panel');
   if (!panel) return;
 
+  if (panel.dataset.growthAgentTabPanel && panel.hidden) {
+    setActiveGrowthTab(panel.dataset.growthAgentTabPanel, {load: true});
+  }
   setPanelCollapsed(panel, false);
+}
+
+function initGrowthAgentTabs() {
+  const hashTab = growthTabFromHash();
+  const savedTab = storageGet(TAB_STORAGE_KEY);
+  setActiveGrowthTab(hashTab || savedTab || 'review', {load: false, persist: false});
 }
 
 function initCollapsiblePanels() {
@@ -1319,7 +1379,10 @@ function renderAll() {
   renderAutopilot();
   renderLeads();
   renderSocialDrafts();
+  renderLoadedAt();
+}
 
+function renderLoadedAt() {
   if (selectors.loadedAt) {
     selectors.loadedAt.textContent = state.loadedAt
       ? `Loaded ${formatDate(state.loadedAt)}`
@@ -1327,64 +1390,161 @@ function renderAll() {
   }
 }
 
-async function loadGrowthAgent() {
+function setActiveTabBusy(isBusy) {
+  selectors.tabButtons.forEach((button) => {
+    if (button.dataset.growthAgentTab === state.activeTab) {
+      if (isBusy) {
+        button.setAttribute('aria-busy', 'true');
+      } else {
+        button.removeAttribute('aria-busy');
+      }
+    }
+  });
+}
+
+function invalidateGrowthCache(...tabs) {
+  if (!tabs.length) {
+    state.loadedTabs = {};
+    return;
+  }
+
+  tabs.forEach((tab) => {
+    delete state.loadedTabs[tab];
+  });
+}
+
+async function loadMetricCounts(force = false) {
+  if (!force && state.loadedTabs.metrics) return;
+
+  const countResults = await Promise.all(
+    GROWTH_AGENT_STATUSES.map(async (status) => {
+      const payload = await callGrowthAgent(`/admin/owner-outreach-leads?status=${encodeURIComponent(status)}&limit=500`);
+      return [status, payload.leads?.length || 0];
+    })
+  );
+  state.counts = Object.fromEntries(countResults);
+  state.loadedTabs.metrics = true;
+  renderMetrics();
+}
+
+async function loadReviewTab(force = false) {
+  if (!force && state.loadedTabs.review) return;
+
+  const draftStatus = state.selectedDraftStatus || 'needs_approval';
+  const reviewQueuePayload = await callGrowthAgent(`/admin/campaign-draft-review-queue?status=${encodeURIComponent(draftStatus)}&limit=50`);
+  state.draftReviewQueue = reviewQueuePayload.queue || null;
+  state.loadedTabs.review = true;
+  renderDraftReviewQueue();
+}
+
+async function loadClaimsTab(force = false) {
+  if (!force && state.loadedTabs.claims) return;
+
+  const status = state.selectedStatus === 'all' ? '' : `&status=${encodeURIComponent(state.selectedStatus)}`;
+  const [leadsPayload, claimFunnelPayload] = await Promise.all([
+    callGrowthAgent(`/admin/owner-outreach-leads?limit=100${status}`),
+    callGrowthAgent('/admin/claim-funnel-report?limit=25'),
+  ]);
+  state.leads = leadsPayload.leads || [];
+  state.claimFunnelReport = claimFunnelPayload.report || null;
+  state.loadedTabs.claims = true;
+  renderClaimFunnel();
+  renderLeads();
+}
+
+async function loadSocialTab(force = false) {
+  if (!force && state.loadedTabs.social) return;
+
+  const inboxStatus = state.selectedSocialInboxStatus === 'all' ? '' : `&status=${encodeURIComponent(state.selectedSocialInboxStatus)}`;
+  const inboxPlatform = state.selectedSocialInboxPlatform === 'all' ? '' : `&platform=${encodeURIComponent(state.selectedSocialInboxPlatform)}`;
+  const [socialInboxPayload, draftPayload] = await Promise.all([
+    callGrowthAgent(`/admin/social-inbox?limit=50${inboxStatus}${inboxPlatform}`),
+    callGrowthAgent('/admin/campaign-drafts?status=needs_approval&limit=100'),
+  ]);
+  state.socialInbox = socialInboxPayload.inbox || null;
+  state.socialDrafts = (draftPayload.drafts || [])
+    .filter((draft) => draft.channel === 'social_draft')
+    .slice(0, 25);
+  state.loadedTabs.social = true;
+  renderSocialInbox();
+  renderSocialDrafts();
+}
+
+async function loadAutomationTab(force = false) {
+  if (!force && state.loadedTabs.automation) return;
+
+  const [
+    agentBriefingsPayload,
+    agentTasksPayload,
+    agentMemoriesPayload,
+    autopilotPayload,
+  ] = await Promise.all([
+    callGrowthAgent('/admin/agent-briefings?limit=1'),
+    callGrowthAgent('/admin/agent-tasks?status=open&limit=20'),
+    callGrowthAgent('/admin/agent-memories?limit=20'),
+    callGrowthAgent('/admin/growth-autopilot-report?days=14'),
+  ]);
+  state.agentBriefing = agentBriefingsPayload.briefings?.[0] || null;
+  state.agentTasks = agentTasksPayload.tasks || [];
+  state.agentMemories = agentMemoriesPayload.memories || [];
+  state.autopilotReport = autopilotPayload.report || null;
+  state.loadedTabs.automation = true;
+  renderAgentPanel();
+  renderAutopilot();
+  renderCityDigestSummary();
+}
+
+async function loadReportsTab(force = false) {
+  if (!force && state.loadedTabs.reports) return;
+
+  const weeklyReportsPayload = await callGrowthAgent('/admin/weekly-growth-reports?limit=1');
+  state.weeklyReport = weeklyReportsPayload.reports?.[0] || null;
+  state.loadedTabs.reports = true;
+  renderWeeklyReport();
+}
+
+async function loadGrowthTab(tab, force = false) {
+  if (tab === 'review') {
+    await loadReviewTab(force);
+    return;
+  }
+  if (tab === 'claims') {
+    await loadClaimsTab(force);
+    return;
+  }
+  if (tab === 'social') {
+    await loadSocialTab(force);
+    return;
+  }
+  if (tab === 'automation') {
+    await loadAutomationTab(force);
+    return;
+  }
+  if (tab === 'reports') {
+    await loadReportsTab(force);
+    return;
+  }
+}
+
+async function loadGrowthAgent({force = false, tab = state.activeTab, refreshMetrics = false} = {}) {
+  const activeTab = validGrowthTab(tab);
+  setActiveGrowthTab(activeTab, {load: false});
   setLoading(true);
-  setMessage(selectors.message, 'Loading Growth Agent data...');
+  setActiveTabBusy(true);
+  setMessage(selectors.message, `Loading ${GROWTH_AGENT_TAB_LABELS[activeTab]}...`);
 
   try {
-    const countResults = await Promise.all(
-      GROWTH_AGENT_STATUSES.map(async (status) => {
-        const payload = await callGrowthAgent(`/admin/owner-outreach-leads?status=${encodeURIComponent(status)}&limit=500`);
-        return [status, payload.leads?.length || 0];
-      })
-    );
-    const status = state.selectedStatus === 'all' ? '' : `&status=${encodeURIComponent(state.selectedStatus)}`;
-    const draftStatus = state.selectedDraftStatus || 'needs_approval';
-    const inboxStatus = state.selectedSocialInboxStatus === 'all' ? '' : `&status=${encodeURIComponent(state.selectedSocialInboxStatus)}`;
-    const inboxPlatform = state.selectedSocialInboxPlatform === 'all' ? '' : `&platform=${encodeURIComponent(state.selectedSocialInboxPlatform)}`;
-    const [
-      leadsPayload,
-      draftPayload,
-      reviewQueuePayload,
-      socialInboxPayload,
-      claimFunnelPayload,
-      agentBriefingsPayload,
-      agentTasksPayload,
-      agentMemoriesPayload,
-      autopilotPayload,
-      weeklyReportsPayload,
-    ] = await Promise.all([
-      callGrowthAgent(`/admin/owner-outreach-leads?limit=100${status}`),
-      callGrowthAgent('/admin/campaign-drafts?status=needs_approval&limit=100'),
-      callGrowthAgent(`/admin/campaign-draft-review-queue?status=${encodeURIComponent(draftStatus)}&limit=50`),
-      callGrowthAgent(`/admin/social-inbox?limit=50${inboxStatus}${inboxPlatform}`),
-      callGrowthAgent('/admin/claim-funnel-report?limit=25'),
-      callGrowthAgent('/admin/agent-briefings?limit=1'),
-      callGrowthAgent('/admin/agent-tasks?status=open&limit=20'),
-      callGrowthAgent('/admin/agent-memories?limit=20'),
-      callGrowthAgent('/admin/growth-autopilot-report?days=14'),
-      callGrowthAgent('/admin/weekly-growth-reports?limit=1'),
+    await Promise.all([
+      loadMetricCounts(refreshMetrics || !state.loadedTabs.metrics),
+      loadGrowthTab(activeTab, force),
     ]);
-
-    state.counts = Object.fromEntries(countResults);
-    state.leads = leadsPayload.leads || [];
-    state.draftReviewQueue = reviewQueuePayload.queue || null;
-    state.socialInbox = socialInboxPayload.inbox || null;
-    state.claimFunnelReport = claimFunnelPayload.report || null;
-    state.agentBriefing = agentBriefingsPayload.briefings?.[0] || null;
-    state.agentTasks = agentTasksPayload.tasks || [];
-    state.agentMemories = agentMemoriesPayload.memories || [];
-    state.weeklyReport = weeklyReportsPayload.reports?.[0] || null;
-    state.socialDrafts = (draftPayload.drafts || [])
-      .filter((draft) => draft.channel === 'social_draft')
-      .slice(0, 25);
-    state.autopilotReport = autopilotPayload.report || null;
     state.loadedAt = new Date().toISOString();
-    setMessage(selectors.message, 'Growth Agent data loaded.');
-    renderAll();
+    renderLoadedAt();
+    setMessage(selectors.message, `${GROWTH_AGENT_TAB_LABELS[activeTab]} loaded.`);
   } catch (error) {
     setMessage(selectors.message, error.message || 'Unable to load Growth Agent data.', true);
   } finally {
+    setActiveTabBusy(false);
     setLoading(false);
   }
 }
@@ -1405,7 +1565,8 @@ async function syncGrowthAgentTrucks() {
     state.lastReconcile = payload.reconcile || null;
     state.lastDraftReconcile = payload.draft_reconcile || null;
     setMessage(selectors.message, 'Truck sync complete. Reloading Growth Agent data...');
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Truck sync failed.', true);
   } finally {
@@ -1430,7 +1591,8 @@ async function generateGrowthAgentQueue() {
       real_sending_enabled: payload.real_sending_enabled === true,
     };
     setMessage(selectors.message, `Queue generated ${state.lastQueue.items} item${state.lastQueue.items === 1 ? '' : 's'}. Real sending remains disabled.`);
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Queue generation failed.', true);
   } finally {
@@ -1482,7 +1644,8 @@ async function runDailyAutomation() {
       selectors.message,
       `Daily automation complete: ${summary.owner_outreach_drafts || 0} outreach drafts, ${summary.social_drafts || 0} social drafts, ${summary.autopilot_drafts || 0} scheduled drafts, ${summary.city_digest_packs || 0} city digest packs, ${summary.agent_tasks || 0} agent tasks.`
     );
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Daily automation failed.', true);
   } finally {
@@ -1529,7 +1692,8 @@ async function generateGrowthAutopilotPlan() {
       real_publishing_enabled: payload.plan?.real_publishing_enabled === true,
     };
     setMessage(selectors.message, `Growth Autopilot created ${drafts.length} scheduled draft${drafts.length === 1 ? '' : 's'} for approval. Approved Facebook and Instagram drafts can be posted from the review queue.`);
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Growth Autopilot generation failed.', true);
   } finally {
@@ -1560,7 +1724,8 @@ async function generateSocialDrafts() {
       real_publishing_enabled: payload.batch?.real_publishing_enabled === true,
     };
     setMessage(selectors.message, `Created ${drafts.length} social draft${drafts.length === 1 ? '' : 's'} for approval. Approved Facebook and Instagram drafts can be posted from the review queue.`);
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Social draft generation failed.', true);
   } finally {
@@ -1590,7 +1755,8 @@ async function generateWeeklyReport() {
     });
     state.weeklyReport = payload.report || null;
     setMessage(selectors.message, 'Weekly growth report generated.');
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Weekly report failed.', true);
   } finally {
@@ -1632,7 +1798,8 @@ async function generateWeeklyCityDigests() {
       selectors.message,
       `Created ${state.lastCityDigestBatch.packs} city digest pack${state.lastCityDigestBatch.packs === 1 ? '' : 's'} with ${state.lastCityDigestBatch.drafts} approval drafts.`
     );
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Weekly city digest generation failed.', true);
   } finally {
@@ -1658,7 +1825,8 @@ async function runAgentBrain() {
       briefings: run.briefing ? 1 : 0,
     };
     setMessage(selectors.message, `Agent briefing complete: ${state.lastAgentRun.tasks} new task${state.lastAgentRun.tasks === 1 ? '' : 's'} and ${state.lastAgentRun.memories} updated memor${state.lastAgentRun.memories === 1 ? 'y' : 'ies'}.`);
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Autonomous agent run failed.', true);
   } finally {
@@ -1693,7 +1861,8 @@ async function generateMediaAssets() {
       selectors.message,
       `Media scan complete: ${state.lastMediaBatch.selected} selected existing asset${state.lastMediaBatch.selected === 1 ? '' : 's'}, ${state.lastMediaBatch.needsReview} candidate${state.lastMediaBatch.needsReview === 1 ? '' : 's'} needing review.`
     );
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Media scan failed.', true);
   } finally {
@@ -1722,7 +1891,8 @@ async function runMediaAction(candidateId, action) {
       body,
     });
     setMessage(selectors.message, `Media candidate ${growthStatusLabel(action).toLowerCase()} complete.`);
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Media action failed.', true);
   } finally {
@@ -1756,7 +1926,8 @@ async function saveAgentInstruction(event) {
     });
     if (selectors.agentInstruction) selectors.agentInstruction.value = '';
     setMessage(selectors.message, 'Instruction saved to agent memory.');
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Unable to save instruction.', true);
   } finally {
@@ -1778,7 +1949,8 @@ async function updateAgentTaskStatus(taskId, status) {
       },
     });
     setMessage(selectors.message, `Agent task marked ${growthStatusLabel(status).toLowerCase()}.`);
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Unable to update agent task.', true);
   } finally {
@@ -1807,7 +1979,8 @@ async function syncSocialInbox() {
       selectors.message,
       `Social inbox synced: ${sync.messages?.length || 0} message${(sync.messages?.length || 0) === 1 ? '' : 's'} and ${sync.reply_drafts?.length || 0} reply draft${(sync.reply_drafts?.length || 0) === 1 ? '' : 's'}.${suffix}`
     );
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Social inbox sync failed.', true);
   } finally {
@@ -1841,7 +2014,8 @@ async function runSocialReplyAction(draftId, action) {
       body,
     });
     setMessage(selectors.message, `Social reply ${growthStatusLabel(action).toLowerCase()} complete.`);
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Social reply action failed.', true);
   } finally {
@@ -1863,7 +2037,8 @@ async function updateSocialThreadStatus(threadId, status) {
       },
     });
     setMessage(selectors.message, `Social thread marked ${growthStatusLabel(status).toLowerCase()}.`);
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Unable to update social thread.', true);
   } finally {
@@ -1916,7 +2091,8 @@ async function runDraftAction(draftId, action) {
       }
       finalMessage = 'Draft approved. Showing Approved / Ready drafts so you can post it now.';
     }
-    await loadGrowthAgent();
+    invalidateGrowthCache();
+    await loadGrowthAgent({force: true, refreshMetrics: true});
     setMessage(selectors.message, finalMessage);
   } catch (error) {
     setMessage(selectors.message, error.message || 'Draft action failed.', true);
@@ -1983,7 +2159,8 @@ async function copySocialReply(draftId) {
 function socialInboxFilterChanged() {
   state.selectedSocialInboxStatus = selectors.socialInboxStatus?.value || 'needs_review';
   state.selectedSocialInboxPlatform = selectors.socialInboxPlatform?.value || 'all';
-  void loadGrowthAgent();
+  invalidateGrowthCache('social');
+  void loadGrowthAgent({force: true, tab: 'social'});
 }
 
 selectors.loginForm?.addEventListener('submit', async (event) => {
@@ -2007,7 +2184,8 @@ selectors.signOut?.addEventListener('click', async () => {
 });
 
 selectors.refresh?.addEventListener('click', () => {
-  void loadGrowthAgent();
+  invalidateGrowthCache();
+  void loadGrowthAgent({force: true, refreshMetrics: true});
 });
 
 selectors.sync?.addEventListener('click', () => {
@@ -2030,8 +2208,14 @@ selectors.agentInstructionForm?.addEventListener('submit', (event) => {
   void saveAgentInstruction(event);
 });
 
+selectors.tabs?.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-growth-agent-tab]');
+  if (!button) return;
+  setActiveGrowthTab(button.dataset.growthAgentTab || 'review');
+});
+
 selectors.draftReviewRefresh?.addEventListener('click', () => {
-  void loadGrowthAgent();
+  void loadGrowthAgent({force: true, tab: 'review'});
 });
 
 selectors.mediaGenerate?.addEventListener('click', () => {
@@ -2043,7 +2227,7 @@ selectors.socialInboxSync?.addEventListener('click', () => {
 });
 
 selectors.socialInboxRefresh?.addEventListener('click', () => {
-  void loadGrowthAgent();
+  void loadGrowthAgent({force: true, tab: 'social'});
 });
 
 selectors.autopilotGenerate?.addEventListener('click', () => {
@@ -2051,7 +2235,7 @@ selectors.autopilotGenerate?.addEventListener('click', () => {
 });
 
 selectors.autopilotRefresh?.addEventListener('click', () => {
-  void loadGrowthAgent();
+  void loadGrowthAgent({force: true, tab: 'automation'});
 });
 
 selectors.socialGenerate?.addEventListener('click', () => {
@@ -2059,7 +2243,7 @@ selectors.socialGenerate?.addEventListener('click', () => {
 });
 
 selectors.socialRefresh?.addEventListener('click', () => {
-  void loadGrowthAgent();
+  void loadGrowthAgent({force: true, tab: 'social'});
 });
 
 selectors.weeklyReportGenerate?.addEventListener('click', () => {
@@ -2092,7 +2276,8 @@ document.addEventListener('click', (event) => {
     if (selectors.draftReviewStatus) {
       selectors.draftReviewStatus.value = status;
     }
-    void loadGrowthAgent();
+    invalidateGrowthCache('review');
+    void loadGrowthAgent({force: true, tab: 'review'});
     return;
   }
 
@@ -2154,7 +2339,8 @@ document.addEventListener('click', (event) => {
 
 selectors.draftReviewStatus?.addEventListener('change', (event) => {
   state.selectedDraftStatus = event.target.value || 'needs_approval';
-  void loadGrowthAgent();
+  invalidateGrowthCache('review');
+  void loadGrowthAgent({force: true, tab: 'review'});
 });
 
 selectors.socialInboxStatus?.addEventListener('change', socialInboxFilterChanged);
@@ -2163,12 +2349,14 @@ selectors.socialInboxPlatform?.addEventListener('change', socialInboxFilterChang
 
 selectors.status?.addEventListener('change', (event) => {
   state.selectedStatus = event.target.value || 'needs_review';
-  void loadGrowthAgent();
+  invalidateGrowthCache('claims');
+  void loadGrowthAgent({force: true, tab: 'claims'});
 });
 
 window.addEventListener('hashchange', expandPanelForHash);
 
 initCollapsiblePanels();
+initGrowthAgentTabs();
 
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
@@ -2204,5 +2392,6 @@ auth.onAuthStateChanged(async (user) => {
   if (selectors.sessionSummary) {
     selectors.sessionSummary.textContent = `Signed in as ${user.email || 'admin'}. Facebook and Instagram publishing is enabled for approved drafts only. Replies and outbound sending still require review.`;
   }
-  await loadGrowthAgent();
+  invalidateGrowthCache();
+  await loadGrowthAgent({force: true, refreshMetrics: true});
 });

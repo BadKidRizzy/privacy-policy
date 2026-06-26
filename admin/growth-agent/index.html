@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../../assets/site.css?v=1">
-  <link rel="stylesheet" href="../../assets/management-console.css?v=29">
+  <link rel="stylesheet" href="../../assets/management-console.css?v=30">
 </head>
 <body class="console-body growth-agent-page">
   <div class="console-shell">
@@ -86,50 +86,16 @@
           <span>Production Food Truck Finder Firestore: food-truck-finder-prod / foodTrucks. Generated work still stays in review until approved.</span>
         </div>
 
-        <section class="growth-agent-workflow" aria-label="Growth Agent workflow">
-          <article>
-            <span>1</span>
-            <div>
-              <strong>Review drafts</strong>
-              <p>Approve, reject, schedule, or post generated captions and outreach.</p>
-              <a href="#draft-review">Open queue</a>
-            </div>
-          </article>
-          <article>
-            <span>2</span>
-            <div>
-              <strong>Check claims</strong>
-              <p>Watch owner claim requests and proof status.</p>
-              <a href="#claim-funnel">View claims</a>
-            </div>
-          </article>
-          <article>
-            <span>3</span>
-            <div>
-              <strong>Run automation</strong>
-              <p>Generate daily outreach, social drafts, city digests, and reports.</p>
-              <a href="#automation">Open automation</a>
-            </div>
-          </article>
-          <article>
-            <span>4</span>
-            <div>
-              <strong>Inspect leads</strong>
-              <p>Confirm claimable trucks, profiles, and owner contact data.</p>
-              <a href="#owner-leads">Open leads</a>
-            </div>
-          </article>
-        </section>
-
-        <nav class="growth-agent-quick-nav" aria-label="Growth Agent sections">
-          <a href="#draft-review">Review Drafts</a>
-          <a href="#claim-funnel">Claims</a>
-          <a href="#owner-leads">Owner Leads</a>
-          <a href="#automation">Automation</a>
-          <a href="#reports">Reports</a>
+        <nav class="growth-agent-tabs" data-growth-agent-tabs aria-label="Growth Agent sections" role="tablist">
+          <button type="button" role="tab" data-growth-agent-tab="review">Review</button>
+          <button type="button" role="tab" data-growth-agent-tab="claims">Claims</button>
+          <button type="button" role="tab" data-growth-agent-tab="social">Social</button>
+          <button type="button" role="tab" data-growth-agent-tab="automation">Automation</button>
+          <button type="button" role="tab" data-growth-agent-tab="reports">Reports</button>
+          <button type="button" role="tab" data-growth-agent-tab="guide">Guide</button>
         </nav>
 
-        <section class="growth-agent-panel growth-agent-guide-panel" data-panel-key="guide" data-panel-default="closed">
+        <section class="growth-agent-panel growth-agent-guide-panel" data-panel-key="guide" data-panel-default="open" data-growth-agent-tab-panel="guide">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Operating Mode</p>
@@ -158,7 +124,7 @@
           </div>
         </section>
 
-        <section class="growth-agent-panel growth-agent-agent-panel" data-panel-key="agent" data-panel-default="closed">
+        <section class="growth-agent-panel growth-agent-agent-panel" data-panel-key="agent" data-panel-default="open" data-growth-agent-tab-panel="automation">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Autonomous Agent</p>
@@ -192,7 +158,7 @@
           </div>
         </section>
 
-        <section class="growth-agent-panel growth-agent-review-panel" id="draft-review" data-panel-key="draft-review" data-panel-default="open">
+        <section class="growth-agent-panel growth-agent-review-panel" id="draft-review" data-panel-key="draft-review" data-panel-default="open" data-growth-agent-tab-panel="review">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Approval Queue</p>
@@ -231,7 +197,7 @@
           <div class="growth-agent-review-list" data-draft-review-queue></div>
         </section>
 
-        <section class="growth-agent-panel growth-agent-social-inbox-panel" id="social-inbox" data-panel-key="social-inbox" data-panel-default="closed">
+        <section class="growth-agent-panel growth-agent-social-inbox-panel" id="social-inbox" data-panel-key="social-inbox" data-panel-default="open" data-growth-agent-tab-panel="social">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Social Inbox</p>
@@ -271,7 +237,7 @@
           <div class="social-inbox-list" data-social-inbox-list></div>
         </section>
 
-        <section class="growth-agent-panel growth-agent-claim-panel" id="claim-funnel" data-panel-key="claim-funnel" data-panel-default="open">
+        <section class="growth-agent-panel growth-agent-claim-panel" id="claim-funnel" data-panel-key="claim-funnel" data-panel-default="open" data-growth-agent-tab-panel="claims">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Claim Funnel</p>
@@ -285,7 +251,7 @@
           <div class="claim-funnel-board" data-claim-funnel-leads></div>
         </section>
 
-        <section class="growth-agent-panel growth-agent-autopilot-panel" id="automation" data-panel-key="automation" data-panel-default="closed">
+        <section class="growth-agent-panel growth-agent-autopilot-panel" id="automation" data-panel-key="automation" data-panel-default="open" data-growth-agent-tab-panel="automation">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Growth Autopilot</p>
@@ -345,7 +311,7 @@
           </div>
         </section>
 
-        <section class="growth-agent-panel growth-agent-weekly-panel" id="reports" data-panel-key="reports" data-panel-default="closed">
+        <section class="growth-agent-panel growth-agent-weekly-panel" id="reports" data-panel-key="reports" data-panel-default="open" data-growth-agent-tab-panel="reports">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Growth Report</p>
@@ -362,7 +328,7 @@
           <div class="weekly-growth-lists" data-weekly-report-lists></div>
         </section>
 
-        <section class="growth-agent-panel growth-agent-city-digest-panel" id="city-digests" data-panel-key="city-digests" data-panel-default="closed">
+        <section class="growth-agent-panel growth-agent-city-digest-panel" id="city-digests" data-panel-key="city-digests" data-panel-default="open" data-growth-agent-tab-panel="automation">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Weekly Content</p>
@@ -392,7 +358,7 @@
           <div class="growth-agent-grid growth-agent-grid--dashboard" data-city-digest-summary></div>
         </section>
 
-        <section class="growth-agent-panel growth-agent-social-panel" id="social-drafts" data-panel-key="social-drafts" data-panel-default="closed">
+        <section class="growth-agent-panel growth-agent-social-panel" id="social-drafts" data-panel-key="social-drafts" data-panel-default="open" data-growth-agent-tab-panel="social">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Social Growth</p>
@@ -442,7 +408,7 @@
           </div>
         </section>
 
-        <section class="growth-agent-panel growth-agent-leads-panel" id="owner-leads" data-panel-key="owner-leads" data-panel-default="closed">
+        <section class="growth-agent-panel growth-agent-leads-panel" id="owner-leads" data-panel-key="owner-leads" data-panel-default="open" data-growth-agent-tab-panel="claims">
           <div class="panel-heading">
             <div>
               <p class="eyebrow">Owner Leads</p>
@@ -489,6 +455,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script defer src="../../assets/growth-agent-console.js?v=16"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=17"></script>
 </body>
 </html>
