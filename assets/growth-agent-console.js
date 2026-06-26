@@ -21,8 +21,8 @@ const GROWTH_AGENT_STATUSES = [
 ];
 const GROWTH_AGENT_TABS = ['review', 'claims', 'social', 'automation', 'reports', 'guide'];
 const GROWTH_AGENT_TAB_LABELS = {
-  review: 'Review',
-  claims: 'Claims',
+  review: 'Drafts',
+  claims: 'Truck Leads',
   social: 'Social',
   automation: 'Automation',
   reports: 'Reports',
@@ -265,6 +265,41 @@ function setActiveGrowthTab(tab, {load = true, persist = true} = {}) {
   }
 }
 
+function totalLeadCount() {
+  return Object.values(state.counts || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+}
+
+function reviewDraftCount() {
+  const counts = state.draftReviewQueue?.counts || {};
+  return [
+    counts.needs_approval,
+    counts.approved,
+    counts.scheduled,
+    counts.published,
+    counts.failed,
+    counts.rejected,
+  ].reduce((sum, value) => sum + Number(value || 0), 0);
+}
+
+function updateTabLabels() {
+  selectors.tabButtons.forEach((button) => {
+    const tab = button.dataset.growthAgentTab || '';
+    let label = GROWTH_AGENT_TAB_LABELS[tab] || tab;
+
+    if (tab === 'claims') {
+      const leads = totalLeadCount();
+      if (leads) label = `${label} (${formatCount(leads)})`;
+    }
+
+    if (tab === 'review') {
+      const drafts = reviewDraftCount();
+      if (drafts) label = `${label} (${formatCount(drafts)})`;
+    }
+
+    button.textContent = label;
+  });
+}
+
 function setPanelCollapsed(panel, collapsed, {persist = true} = {}) {
   const button = panel.querySelector('[data-panel-collapse]');
   const body = panel.querySelector('.growth-agent-panel__body');
@@ -466,7 +501,7 @@ function renderMetrics() {
   if (!selectors.metrics) return;
 
   const counts = state.counts || {};
-  const total = Object.values(counts).reduce((sum, value) => sum + Number(value || 0), 0);
+  const total = totalLeadCount();
   const metricRows = [
     ['Needs Review', counts.needs_review || 0],
     ['Not Contacted', counts.not_contacted || 0],
@@ -517,6 +552,7 @@ function renderMetrics() {
       <span>${escapeHtml(syncCopy)} ${escapeHtml(queueCopy)} ${escapeHtml(socialCopy)} ${escapeHtml(autopilotCopy)} ${escapeHtml(digestCopy)} ${escapeHtml(mediaCopy)} ${escapeHtml(agentCopy)}</span>
     </div>
   `;
+  updateTabLabels();
 }
 
 function agentSuggestedActionLabel(value) {
@@ -879,16 +915,22 @@ function renderDraftReviewQueue() {
     const draftMedia = drafts.flatMap((draft) => draft.media_candidates || []);
     const selectedCount = draftMedia.filter((candidate) => candidate.status === 'selected').length;
     const reviewCount = draftMedia.filter((candidate) => candidate.status === 'needs_review').length;
+    const leads = totalLeadCount();
     const summaryText = batch
       ? `Last scan checked ${formatCount(batch.draftsScanned || 0)} drafts, selected ${formatCount(batch.selected || 0)} existing asset${Number(batch.selected || 0) === 1 ? '' : 's'}, and found ${formatCount(batch.needsReview || 0)} review candidate${Number(batch.needsReview || 0) === 1 ? '' : 's'}.`
       : `Loaded drafts include ${formatCount(selectedCount)} selected media asset${selectedCount === 1 ? '' : 's'} and ${formatCount(reviewCount)} candidate${reviewCount === 1 ? '' : 's'} needing review.`;
     selectors.mediaManagerSummary.innerHTML = `
+      <article class="setup-card">
+        <strong>Drafts Are Not All Trucks</strong>
+        <span>This tab shows generated captions and outreach waiting for approval. ${leads ? `${escapeHtml(formatCount(leads))} truck lead${leads === 1 ? '' : 's'} are in Truck Leads.` : 'Open Truck Leads to see the full truck pool.'}</span>
+      </article>
       <article class="setup-card setup-card--ok">
         <strong>Media Review First</strong>
         <span>${escapeHtml(summaryText)} Outside images are candidates only until reviewed.</span>
       </article>
     `;
   }
+  updateTabLabels();
 
   if (selectors.draftReviewLoadedAt) {
     selectors.draftReviewLoadedAt.textContent = state.loadedAt

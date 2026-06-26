@@ -87,8 +87,8 @@
         </div>
 
         <nav class="growth-agent-tabs" data-growth-agent-tabs aria-label="Growth Agent sections" role="tablist">
-          <button type="button" role="tab" data-growth-agent-tab="review">Review</button>
-          <button type="button" role="tab" data-growth-agent-tab="claims">Claims</button>
+          <button type="button" role="tab" data-growth-agent-tab="review">Drafts</button>
+          <button type="button" role="tab" data-growth-agent-tab="claims">Truck Leads</button>
           <button type="button" role="tab" data-growth-agent-tab="social">Social</button>
           <button type="button" role="tab" data-growth-agent-tab="automation">Automation</button>
           <button type="button" role="tab" data-growth-agent-tab="reports">Reports</button>
@@ -163,7 +163,7 @@
             <div>
               <p class="eyebrow">Approval Queue</p>
               <h3>Draft Review Queue</h3>
-              <p>Review full captions, owner outreach drafts, profile links, tracking links, and scheduled post status.</p>
+              <p>This is generated work waiting for approval, not the full truck list. Open Truck Leads to see claimable trucks from the production app database.</p>
             </div>
             <div class="panel-heading__actions">
               <button class="button button--primary" type="button" data-media-generate>Find Media</button>
@@ -240,9 +240,9 @@
         <section class="growth-agent-panel growth-agent-claim-panel" id="claim-funnel" data-panel-key="claim-funnel" data-panel-default="open" data-growth-agent-tab-panel="claims">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">Claim Funnel</p>
+              <p class="eyebrow">Truck Leads</p>
               <h3>Owner Claim Dashboard</h3>
-              <p>Track new claims, pending proof, verified trucks, rejected claims, and leads that need more information.</p>
+              <p>Review claimable trucks from the production app database, then track claim status, proof, and verification.</p>
             </div>
           </div>
 
@@ -411,9 +411,9 @@
         <section class="growth-agent-panel growth-agent-leads-panel" id="owner-leads" data-panel-key="owner-leads" data-panel-default="open" data-growth-agent-tab-panel="claims">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">Owner Leads</p>
+              <p class="eyebrow">Truck Leads</p>
               <h3>Truck Outreach Leads</h3>
-              <p>Review claimable trucks, contact status, priority, and public profile previews.</p>
+              <p>This is the larger pool of claimable trucks. Drafts are generated from these leads when you run queue or automation actions.</p>
             </div>
           </div>
 
@@ -455,6 +455,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script defer src="../../assets/growth-agent-console.js?v=17"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=18"></script>
 </body>
 </html>
