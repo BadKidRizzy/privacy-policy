@@ -692,6 +692,53 @@ function draftPlatform(draft) {
   return platformFlag ? platformFlag.replace('platform:', '') : 'social';
 }
 
+function draftRiskFlagValue(draft, prefix) {
+  const flag = (draft.risk_flags || []).find((item) => String(item).startsWith(prefix));
+  return flag ? String(flag).slice(prefix.length) : '';
+}
+
+function draftTagSourceMarkup(draft) {
+  if (!(draft.risk_flags || []).includes('owner_tag_included')) return '';
+  const source = draftRiskFlagValue(draft, 'owner_tag_source:');
+  const confidence = draftRiskFlagValue(draft, 'owner_tag_confidence:');
+  const labels = {
+    approved_candidate: 'Tag source: approved handle candidate',
+    prod_social_link: 'Tag source: production truck social link',
+    lead_social_handle: 'Tag source: saved lead social handle',
+  };
+  const label = labels[source] || 'Tag source: approved or saved handle';
+  const suffix = confidence ? ` · confidence ${confidence}` : '';
+  return `<p class="draft-review-card__tag">${escapeHtml(label + suffix)}</p>`;
+}
+
+function draftPublisherResponse(draft) {
+  const raw = draft.publisher_response;
+  if (!raw) return '';
+  if (typeof raw === 'object') {
+    const provider = raw.provider ? `${raw.provider}: ` : '';
+    return `${provider}${raw.message || JSON.stringify(raw)}`;
+  }
+  const text = String(raw || '').trim();
+  if (!text) return '';
+  try {
+    const payload = JSON.parse(text);
+    const provider = payload.provider ? `${payload.provider}: ` : '';
+    let message = payload.message || text;
+    if (/HTTP Error 403: Forbidden/i.test(message) && provider.includes('meta-facebook')) {
+      message = `${message}. Check that the Meta Page token has Facebook Page publishing permission.`;
+    }
+    return `${provider}${message}`;
+  } catch {
+    return text;
+  }
+}
+
+function draftPublisherErrorMarkup(draft) {
+  const response = draftPublisherResponse(draft);
+  if (!response) return '';
+  return `<p class="draft-review-card__reason">Publisher error: ${escapeHtml(response)}</p>`;
+}
+
 function draftSelectedMedia(draft) {
   return draft.selected_media_asset
     || (draft.media_candidates || []).find((candidate) => candidate.status === 'selected')
@@ -1012,8 +1059,10 @@ function renderDraftReviewQueue() {
           ${subject}
           <p>${escapeHtml(draft.text || '').replace(/\n/g, '<br>')}</p>
         </div>
+        ${draftTagSourceMarkup(draft)}
         ${renderDraftMedia(draft)}
         ${draft.media_brief ? `<details class="draft-review-card__brief"><summary>Media and reviewer notes</summary><p>${escapeHtml(draft.media_brief).replace(/\n/g, '<br>')}</p></details>` : ''}
+        ${draftPublisherErrorMarkup(draft)}
         ${draft.rejection_reason ? `<p class="draft-review-card__reason">Rejected: ${escapeHtml(draft.rejection_reason)}</p>` : ''}
         <div class="draft-review-card__footer">
           ${draftActionButtons(draft)}

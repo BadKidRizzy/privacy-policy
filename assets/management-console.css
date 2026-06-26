@@ -1321,6 +1321,14 @@
   line-height: 1.45;
 }
 
+.draft-review-card__tag {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 .draft-review-card__header .growth-agent-actions {
   justify-content: flex-end;
 }
