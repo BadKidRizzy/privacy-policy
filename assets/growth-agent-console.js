@@ -19,13 +19,14 @@ const GROWTH_AGENT_STATUSES = [
   'verified',
   'do_not_contact',
 ];
-const GROWTH_AGENT_TABS = ['review', 'claims', 'social', 'automation', 'reports', 'guide'];
+const GROWTH_AGENT_TABS = ['review', 'claims', 'social', 'automation', 'reports', 'attribution', 'guide'];
 const GROWTH_AGENT_TAB_LABELS = {
   review: 'Drafts',
   claims: 'Truck Leads',
   social: 'Social',
   automation: 'Automation',
   reports: 'Reports',
+  attribution: 'Attribution',
   guide: 'Guide',
 };
 
@@ -45,6 +46,8 @@ const state = {
   socialInbox: null,
   claimFunnelReport: null,
   weeklyReport: null,
+  attributionPerformance: null,
+  attributionEvents: [],
   agentBriefing: null,
   agentTasks: [],
   agentMemories: [],
@@ -59,6 +62,7 @@ const state = {
   lastCityDigestBatch: null,
   lastMediaBatch: null,
   lastAgentRun: null,
+  lastAttributionRun: null,
 };
 
 const selectors = {
@@ -109,6 +113,11 @@ const selectors = {
   weeklyReportSummary: document.querySelector('[data-weekly-report-summary]'),
   weeklyReportRecommendations: document.querySelector('[data-weekly-report-recommendations]'),
   weeklyReportLists: document.querySelector('[data-weekly-report-lists]'),
+  attributionLearningRun: document.querySelector('[data-attribution-learning-run]'),
+  attributionRefresh: document.querySelector('[data-attribution-refresh]'),
+  attributionSummary: document.querySelector('[data-attribution-summary]'),
+  attributionInsights: document.querySelector('[data-attribution-insights]'),
+  attributionRows: document.querySelector('[data-attribution-rows]'),
   cityDigestGenerate: document.querySelector('[data-city-digest-generate]'),
   cityDigestCities: document.querySelector('[data-city-digest-cities]'),
   cityDigestCityCount: document.querySelector('[data-city-digest-city-count]'),
@@ -181,6 +190,8 @@ function setLoading(isLoading) {
     selectors.socialInboxStatus,
     selectors.socialInboxPlatform,
     selectors.weeklyReportGenerate,
+    selectors.attributionLearningRun,
+    selectors.attributionRefresh,
     selectors.cityDigestGenerate,
     selectors.cityDigestCities,
     selectors.cityDigestCityCount,
@@ -542,6 +553,9 @@ function renderMetrics() {
   const mediaCopy = state.lastMediaBatch
     ? `Last media scan selected ${formatCount(state.lastMediaBatch.selected || 0)} existing asset${Number(state.lastMediaBatch.selected || 0) === 1 ? '' : 's'} and found ${formatCount(state.lastMediaBatch.needsReview || 0)} review candidate${Number(state.lastMediaBatch.needsReview || 0) === 1 ? '' : 's'}.`
     : 'Media manager picks existing photos first and holds outside images for review.';
+  const attributionCopy = state.lastAttributionRun
+    ? `Last attribution learning run updated ${formatCount(state.lastAttributionRun.memories || 0)} memor${Number(state.lastAttributionRun.memories || 0) === 1 ? 'y' : 'ies'} and created ${formatCount(state.lastAttributionRun.tasks || 0)} task${Number(state.lastAttributionRun.tasks || 0) === 1 ? '' : 's'}.`
+    : 'Attribution learning ties clicks to app actions and claim outcomes.';
 
   selectors.metrics.innerHTML = `
     ${metricRows.map(([label, value]) => `
@@ -552,7 +566,7 @@ function renderMetrics() {
     `).join('')}
     <div class="growth-agent-card growth-agent-card--wide">
       <strong>Automation</strong>
-      <span>${escapeHtml(syncCopy)} ${escapeHtml(queueCopy)} ${escapeHtml(socialCopy)} ${escapeHtml(autopilotCopy)} ${escapeHtml(digestCopy)} ${escapeHtml(mediaCopy)} ${escapeHtml(agentCopy)}</span>
+      <span>${escapeHtml(syncCopy)} ${escapeHtml(queueCopy)} ${escapeHtml(socialCopy)} ${escapeHtml(autopilotCopy)} ${escapeHtml(digestCopy)} ${escapeHtml(mediaCopy)} ${escapeHtml(attributionCopy)} ${escapeHtml(agentCopy)}</span>
     </div>
   `;
   updateTabLabels();
@@ -1375,6 +1389,94 @@ function renderWeeklyReport() {
   `;
 }
 
+function renderAttributionPerformance() {
+  const performance = state.attributionPerformance || {};
+  const summary = performance.summary || {};
+  const eventCounts = summary.event_counts || {};
+  const topSources = performance.top_sources || [];
+  const topCampaigns = performance.top_campaigns || [];
+  const rows = performance.top_rows || [];
+
+  if (selectors.attributionSummary) {
+    const summaryRows = [
+      ['Tracked Clicks', summary.tracking_clicks || 0],
+      ['Downstream Actions', summary.engaged_actions || 0],
+      ['App Installs', eventCounts.app_install || 0],
+      ['App Opens', eventCounts.app_open || 0],
+      ['Saved Trucks', eventCounts.favorite_truck_added || 0],
+      ['Claims', eventCounts.claim_submitted || 0],
+    ];
+    selectors.attributionSummary.innerHTML = summaryRows.map(([label, value]) => `
+      <div class="growth-agent-card">
+        <strong>${escapeHtml(formatCount(value))}</strong>
+        <span>${escapeHtml(label)}</span>
+      </div>
+    `).join('');
+  }
+
+  if (selectors.attributionInsights) {
+    const source = topSources.find((item) => item.source !== 'unknown' && Number(item.score || 0) > 0);
+    const campaign = topCampaigns.find((item) => item.campaign !== 'unknown' && Number(item.score || 0) > 0);
+    const insights = [];
+    if (source) {
+      insights.push({
+        title: 'Strongest Source',
+        detail: `${source.source} has ${formatCount(source.clicks || 0)} tracked clicks and score ${formatCount(source.score || 0)}.`,
+      });
+    }
+    if (campaign) {
+      insights.push({
+        title: 'Strongest Campaign',
+        detail: `${campaign.campaign} is the top tracked campaign by downstream attribution score.`,
+      });
+    }
+    if ((summary.tracking_clicks || 0) > 0 && !(summary.engaged_actions || 0)) {
+      insights.push({
+        title: 'Needs App Events',
+        detail: 'Clicks are being tracked, but app-side events are not connected yet.',
+      });
+    }
+    if (state.lastAttributionRun) {
+      insights.push({
+        title: 'Last Learning Run',
+        detail: `${formatCount(state.lastAttributionRun.memories || 0)} memories updated and ${formatCount(state.lastAttributionRun.tasks || 0)} tasks created.`,
+      });
+    }
+    selectors.attributionInsights.innerHTML = insights.length
+      ? insights.map((item) => `
+        <article class="growth-agent-recommendation">
+          <strong>${escapeHtml(item.title)}</strong>
+          <span>${escapeHtml(item.detail)}</span>
+        </article>
+      `).join('')
+      : `
+        <article class="growth-agent-recommendation">
+          <strong>No attribution signals yet</strong>
+          <span>Use tracking links in posts and send app-side events to start learning.</span>
+        </article>
+      `;
+  }
+
+  if (selectors.attributionRows) {
+    selectors.attributionRows.innerHTML = rows.length
+      ? rows.map((row) => `
+        <tr>
+          <td>${escapeHtml(row.source || row.platform || 'unknown')}</td>
+          <td>${escapeHtml(row.campaign || row.channel || 'unknown')}</td>
+          <td><code>${escapeHtml(row.slug || '')}</code></td>
+          <td>${escapeHtml(formatCount(row.clicks || 0))}</td>
+          <td>${escapeHtml(formatCount(row.engaged_actions || 0))}</td>
+          <td>${escapeHtml(formatCount(row.score || 0))}</td>
+        </tr>
+      `).join('')
+      : `
+        <tr>
+          <td colspan="6" class="growth-agent-empty">No attribution rows yet. Use campaign tracking links and app events to populate this table.</td>
+        </tr>
+      `;
+  }
+}
+
 function renderCityDigestSummary() {
   if (!selectors.cityDigestSummary) return;
 
@@ -1494,6 +1596,7 @@ function renderAll() {
   renderSocialInbox();
   renderClaimFunnel();
   renderWeeklyReport();
+  renderAttributionPerformance();
   renderCityDigestSummary();
   renderAutopilot();
   renderLeads();
@@ -1628,6 +1731,19 @@ async function loadReportsTab(force = false) {
   renderWeeklyReport();
 }
 
+async function loadAttributionTab(force = false) {
+  if (!force && state.loadedTabs.attribution) return;
+
+  const [performancePayload, eventsPayload] = await Promise.all([
+    callGrowthAgent('/admin/attribution-performance?limit=25'),
+    callGrowthAgent('/admin/attribution-events?limit=25'),
+  ]);
+  state.attributionPerformance = performancePayload.performance || null;
+  state.attributionEvents = eventsPayload.events || [];
+  state.loadedTabs.attribution = true;
+  renderAttributionPerformance();
+}
+
 async function loadGrowthTab(tab, force = false) {
   if (tab === 'review') {
     await loadReviewTab(force);
@@ -1647,6 +1763,10 @@ async function loadGrowthTab(tab, force = false) {
   }
   if (tab === 'reports') {
     await loadReportsTab(force);
+    return;
+  }
+  if (tab === 'attribution') {
+    await loadAttributionTab(force);
     return;
   }
 }
@@ -1884,6 +2004,35 @@ async function generateWeeklyReport() {
     await loadGrowthAgent({force: true, refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Weekly report failed.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function runAttributionLearning() {
+  setLoading(true);
+  setMessage(selectors.message, 'Running attribution learning loop...');
+
+  try {
+    const payload = await callGrowthAgent('/admin/attribution-learning-run', {
+      method: 'POST',
+      body: {
+        actor: auth.currentUser?.email || 'growth-agent-console',
+      },
+    });
+    const run = payload.run || {};
+    state.lastAttributionRun = {
+      memories: run.memories?.length || 0,
+      tasks: run.tasks?.length || 0,
+    };
+    setMessage(
+      selectors.message,
+      `Attribution learning complete: ${state.lastAttributionRun.memories} memor${state.lastAttributionRun.memories === 1 ? 'y' : 'ies'} updated and ${state.lastAttributionRun.tasks} task${state.lastAttributionRun.tasks === 1 ? '' : 's'} created.`
+    );
+    invalidateGrowthCache('attribution', 'automation', 'reports');
+    await loadGrowthAgent({force: true, tab: 'attribution', refreshMetrics: true});
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Attribution learning failed.', true);
   } finally {
     setLoading(false);
   }
@@ -2375,6 +2524,14 @@ selectors.weeklyReportGenerate?.addEventListener('click', () => {
   void generateWeeklyReport();
 });
 
+selectors.attributionLearningRun?.addEventListener('click', () => {
+  void runAttributionLearning();
+});
+
+selectors.attributionRefresh?.addEventListener('click', () => {
+  void loadGrowthAgent({force: true, tab: 'attribution'});
+});
+
 selectors.cityDigestGenerate?.addEventListener('click', () => {
   void generateWeeklyCityDigests();
 });
@@ -2510,11 +2667,14 @@ auth.onAuthStateChanged(async (user) => {
     state.socialInbox = null;
     state.claimFunnelReport = null;
     state.weeklyReport = null;
+    state.attributionPerformance = null;
+    state.attributionEvents = [];
     state.autopilotReport = null;
     state.agentBriefing = null;
     state.agentTasks = [];
     state.agentMemories = [];
     state.lastAgentRun = null;
+    state.lastAttributionRun = null;
     state.lastCityDigestBatch = null;
     state.lastMediaBatch = null;
     renderAgentPanel();
@@ -2522,6 +2682,7 @@ auth.onAuthStateChanged(async (user) => {
     renderSocialInbox();
     renderClaimFunnel();
     renderWeeklyReport();
+    renderAttributionPerformance();
     renderCityDigestSummary();
     renderSocialDrafts();
     renderAutopilot();

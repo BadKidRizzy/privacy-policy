@@ -92,6 +92,7 @@
           <button type="button" role="tab" data-growth-agent-tab="social">Social</button>
           <button type="button" role="tab" data-growth-agent-tab="automation">Automation</button>
           <button type="button" role="tab" data-growth-agent-tab="reports">Reports</button>
+          <button type="button" role="tab" data-growth-agent-tab="attribution">Attribution</button>
           <button type="button" role="tab" data-growth-agent-tab="guide">Guide</button>
         </nav>
 
@@ -341,6 +342,38 @@
           <div class="weekly-growth-lists" data-weekly-report-lists></div>
         </section>
 
+        <section class="growth-agent-panel growth-agent-attribution-panel" id="attribution" data-panel-key="attribution" data-panel-default="open" data-growth-agent-tab-panel="attribution">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Learning Loop</p>
+              <h3>Attribution Performance</h3>
+              <p>Connect tracked clicks to app opens, installs, saved trucks, directions, and claims so the agent learns which campaigns deserve more work.</p>
+            </div>
+            <div class="panel-heading__actions">
+              <button class="button button--primary" type="button" data-attribution-learning-run>Run Learning Loop</button>
+              <button class="button button--secondary" type="button" data-attribution-refresh>Refresh Attribution</button>
+            </div>
+          </div>
+
+          <div class="growth-agent-grid growth-agent-grid--dashboard" data-attribution-summary></div>
+          <div class="growth-agent-recommendations" data-attribution-insights></div>
+          <div class="growth-agent-table-wrap">
+            <table class="growth-agent-table growth-agent-table--drafts">
+              <thead>
+                <tr>
+                  <th>Source</th>
+                  <th>Campaign</th>
+                  <th>Slug</th>
+                  <th>Clicks</th>
+                  <th>Actions</th>
+                  <th>Score</th>
+                </tr>
+              </thead>
+              <tbody data-attribution-rows></tbody>
+            </table>
+          </div>
+        </section>
+
         <section class="growth-agent-panel growth-agent-city-digest-panel" id="city-digests" data-panel-key="city-digests" data-panel-default="open" data-growth-agent-tab-panel="automation">
           <div class="panel-heading">
             <div>
@@ -468,6 +501,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script defer src="../../assets/growth-agent-console.js?v=21"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=22"></script>
 </body>
 </html>
