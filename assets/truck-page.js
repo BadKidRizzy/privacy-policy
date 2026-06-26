@@ -68,32 +68,6 @@ function getTruckId() {
   return '';
 }
 
-function getProfileParams() {
-  const params = new URLSearchParams(window.location.search);
-  return {
-    name: asText(params.get('name') || params.get('truckName') || params.get('truck')),
-    city: asText(params.get('city')),
-  };
-}
-
-function fallbackTruckFromParams() {
-  const profile = getProfileParams();
-  if (!profile.name && !profile.city) {
-    return null;
-  }
-
-  const cityLabel = profile.city ? ` in ${profile.city}` : '';
-  return {
-    id: state.truckId,
-    name: profile.name || 'Food truck',
-    city: profile.city,
-    currentAddress: profile.city,
-    description: `${profile.name || 'This food truck'} has a Food Truck Finder preview profile${cityLabel}. This profile is awaiting owner claim and is not marked live or verified yet.`,
-    cuisines: ['Food truck'],
-    isFallbackProfile: true,
-  };
-}
-
 function setView(view) {
   selectors.loadingView.hidden = view !== 'loading';
   selectors.errorView.hidden = view !== 'error';
@@ -247,6 +221,24 @@ function hasDirectionsTarget(truck) {
   const latitude = Number(truck.latitude);
   const longitude = Number(truck.longitude);
   return (Number.isFinite(latitude) && Number.isFinite(longitude)) || Boolean(asText(truck.currentAddress));
+}
+
+function isPublicAppTruck(truck) {
+  const name = asText(truck?.name);
+  const ownerId = asText(truck?.ownerId);
+  const latitude = Number(truck?.latitude);
+  const longitude = Number(truck?.longitude);
+
+  return Boolean(name)
+    && Boolean(ownerId)
+    && Number.isFinite(latitude)
+    && latitude >= -90
+    && latitude <= 90
+    && Number.isFinite(longitude)
+    && longitude >= -180
+    && longitude <= 180
+    && truck?.isMapHidden !== true
+    && truck?.archived !== true;
 }
 
 function buildClaimUrl(truck) {
@@ -704,23 +696,19 @@ async function loadTruck() {
     const snapshot = await firebase.firestore().collection('foodTrucks').doc(state.truckId).get();
 
     if (!snapshot.exists) {
-      const fallbackTruck = fallbackTruckFromParams();
-      if (fallbackTruck) {
-        renderTruck(fallbackTruck);
-        return;
-      }
       setError('This truck could not be found.');
       return;
     }
 
-    renderTruck({id: snapshot.id, ...snapshot.data()});
-  } catch (error) {
-    console.error('Truck page load failed:', error);
-    const fallbackTruck = fallbackTruckFromParams();
-    if (fallbackTruck) {
-      renderTruck(fallbackTruck);
+    const truck = {id: snapshot.id, ...snapshot.data()};
+    if (!isPublicAppTruck(truck)) {
+      setError('This truck page is not available right now.');
       return;
     }
+
+    renderTruck(truck);
+  } catch (error) {
+    console.error('Truck page load failed:', error);
     setError('This truck page could not load. Try again in a moment.');
   }
 }

@@ -42,6 +42,7 @@ const state = {
   lastSync: null,
   lastQueue: null,
   lastReconcile: null,
+  lastDraftReconcile: null,
   lastSocialBatch: null,
   lastCityDigestBatch: null,
   lastMediaBatch: null,
@@ -419,6 +420,9 @@ function renderMetrics() {
         `Sync imported ${formatCount(state.lastSync.imported || 0)} and found ${formatCount(state.lastSync.existing || 0)} existing.`,
         state.lastReconcile
           ? `${formatCount(state.lastReconcile.blocked || 0)} stale app-truck lead${Number(state.lastReconcile.blocked || 0) === 1 ? '' : 's'} blocked.`
+          : '',
+        state.lastDraftReconcile
+          ? `${formatCount(state.lastDraftReconcile.rejected || 0)} stale draft${Number(state.lastDraftReconcile.rejected || 0) === 1 ? '' : 's'} rejected.`
           : '',
       ].filter(Boolean).join(' ')
     : 'Truck sync runs daily at 6:00 AM.';
@@ -1399,6 +1403,7 @@ async function syncGrowthAgentTrucks() {
     });
     state.lastSync = payload.sync || null;
     state.lastReconcile = payload.reconcile || null;
+    state.lastDraftReconcile = payload.draft_reconcile || null;
     setMessage(selectors.message, 'Truck sync complete. Reloading Growth Agent data...');
     await loadGrowthAgent();
   } catch (error) {
@@ -1458,6 +1463,7 @@ async function runDailyAutomation() {
     const summary = payload.run?.summary || {};
     state.lastSync = payload.run?.sync || null;
     state.lastReconcile = payload.run?.reconcile || null;
+    state.lastDraftReconcile = payload.run?.draft_reconcile || null;
     state.lastQueue = {items: summary.queue_items || 0, real_sending_enabled: false};
     state.lastSocialBatch = {drafts: summary.social_drafts || 0, real_sending_enabled: false};
     state.lastAutopilotPlan = {drafts: summary.autopilot_drafts || 0, real_publishing_enabled: false};
