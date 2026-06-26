@@ -695,6 +695,30 @@ function draftSelectedMedia(draft) {
     || null;
 }
 
+function isLikelyImageUrl(value) {
+  const text = String(value || '').trim();
+  if (!text) return false;
+  try {
+    const url = new URL(text, window.location.origin);
+    const host = url.hostname.toLowerCase();
+    const path = url.pathname.toLowerCase();
+    if (/\.(jpg|jpeg|png|webp|gif)$/i.test(path)) return true;
+    if (url.search.toLowerCase().includes('alt=media') && (host.includes('firebasestorage.googleapis.com') || host.includes('storage.googleapis.com'))) return true;
+    if (host === 'picsum.photos') return true;
+    return host === 'images.squarespace-cdn.com' || host === 'cdn.prod.website-files.com';
+  } catch {
+    return false;
+  }
+}
+
+function mediaPreviewMarkup(candidate, fallbackText = 'Open Source') {
+  const url = candidate.thumbnail_url || candidate.source_url;
+  if (isLikelyImageUrl(url)) {
+    return `<img src="${escapeHtml(url)}" alt="${escapeHtml(candidate.alt_text || candidate.title || 'Media candidate')}" data-media-preview-image>`;
+  }
+  return `<span class="draft-media-placeholder">${escapeHtml(fallbackText)}</span>`;
+}
+
 function draftRequiresMediaBeforePublish(draft) {
   return draftPlatform(draft) === 'instagram' && !draftSelectedMedia(draft);
 }
@@ -828,7 +852,9 @@ function draftNextStep(draft) {
 function renderDraftMedia(draft) {
   const candidates = draft.media_candidates || [];
   const selected = draftSelectedMedia(draft);
-  const reviewCandidates = candidates.filter((candidate) => candidate.status !== 'selected').slice(0, 4);
+  const reviewCandidates = candidates
+    .filter((candidate) => candidate.status !== 'selected' && candidate.status !== 'rejected')
+    .slice(0, 4);
 
   if (!selected && !reviewCandidates.length) {
     return `
@@ -842,9 +868,7 @@ function renderDraftMedia(draft) {
   const selectedMarkup = selected ? `
     <article class="draft-media-selected">
       <a href="${escapeHtml(selected.source_url)}" target="_blank" rel="noreferrer">
-        ${selected.thumbnail_url || selected.source_url
-          ? `<img src="${escapeHtml(selected.thumbnail_url || selected.source_url)}" alt="${escapeHtml(selected.alt_text || selected.title || 'Selected media')}">`
-          : '<span class="draft-media-placeholder">Selected</span>'}
+        ${mediaPreviewMarkup(selected, 'Selected')}
       </a>
       <div>
         <span class="${escapeHtml(statusPillClass(selected.status))}">${escapeHtml(growthStatusLabel(selected.status))}</span>
@@ -860,9 +884,7 @@ function renderDraftMedia(draft) {
       ${reviewCandidates.map((candidate) => `
         <article class="draft-media-candidate">
           <a href="${escapeHtml(candidate.source_url)}" target="_blank" rel="noreferrer">
-            ${candidate.thumbnail_url
-              ? `<img src="${escapeHtml(candidate.thumbnail_url)}" alt="${escapeHtml(candidate.alt_text || candidate.title || 'Media candidate')}">`
-              : '<span class="draft-media-placeholder">Open</span>'}
+            ${mediaPreviewMarkup(candidate)}
           </a>
           <div>
             <span class="${escapeHtml(statusPillClass(candidate.status))}">${escapeHtml(growthStatusLabel(candidate.status))}</span>
@@ -2378,6 +2400,15 @@ document.addEventListener('click', (event) => {
   if (!button) return;
   void runDraftAction(button.dataset.draftId || '', button.dataset.draftAction || '');
 });
+
+document.addEventListener('error', (event) => {
+  const image = event.target;
+  if (!(image instanceof HTMLImageElement) || !image.matches('[data-media-preview-image]')) return;
+  const placeholder = document.createElement('span');
+  placeholder.className = 'draft-media-placeholder';
+  placeholder.textContent = 'Open Source';
+  image.replaceWith(placeholder);
+}, true);
 
 selectors.draftReviewStatus?.addEventListener('change', (event) => {
   state.selectedDraftStatus = event.target.value || 'needs_approval';
