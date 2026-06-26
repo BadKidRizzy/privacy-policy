@@ -36,6 +36,7 @@ const state = {
   loadedTabs: {},
   selectedStatus: 'needs_review',
   selectedDraftStatus: 'needs_approval',
+  selectedDraftPlatform: 'all',
   selectedSocialInboxStatus: 'needs_review',
   selectedSocialInboxPlatform: 'all',
   counts: {},
@@ -87,6 +88,7 @@ const selectors = {
   agentInstruction: document.querySelector('[data-agent-instruction]'),
   draftReviewRefresh: document.querySelector('[data-draft-review-refresh]'),
   draftReviewStatus: document.querySelector('[data-draft-review-status]'),
+  draftReviewPlatform: document.querySelector('[data-draft-review-platform]'),
   draftReviewLoadedAt: document.querySelector('[data-draft-review-loaded-at]'),
   draftReviewCounts: document.querySelector('[data-draft-review-counts]'),
   draftReviewQueue: document.querySelector('[data-draft-review-queue]'),
@@ -172,6 +174,7 @@ function setLoading(isLoading) {
     selectors.agentInstructionForm?.querySelector('button'),
     selectors.draftReviewRefresh,
     selectors.draftReviewStatus,
+    selectors.draftReviewPlatform,
     selectors.mediaGenerate,
     selectors.socialInboxSync,
     selectors.socialInboxRefresh,
@@ -963,8 +966,11 @@ function renderDraftReviewQueue() {
   if (!selectors.draftReviewQueue) return;
 
   if (!drafts.length) {
+    const platformLabel = state.selectedDraftPlatform && state.selectedDraftPlatform !== 'all'
+      ? ` for ${state.selectedDraftPlatform.toUpperCase()}`
+      : '';
     selectors.draftReviewQueue.innerHTML = `
-      <div class="growth-agent-empty growth-agent-empty--card">No drafts match this status.</div>
+      <div class="growth-agent-empty growth-agent-empty--card">No drafts match this status${escapeHtml(platformLabel)}.</div>
     `;
     return;
   }
@@ -1495,7 +1501,13 @@ async function loadReviewTab(force = false) {
   if (!force && state.loadedTabs.review) return;
 
   const draftStatus = state.selectedDraftStatus || 'needs_approval';
-  const reviewQueuePayload = await callGrowthAgent(`/admin/campaign-draft-review-queue?status=${encodeURIComponent(draftStatus)}&limit=50`);
+  const draftPlatform = state.selectedDraftPlatform || 'all';
+  const params = new URLSearchParams({
+    status: draftStatus,
+    platform: draftPlatform,
+    limit: '50',
+  });
+  const reviewQueuePayload = await callGrowthAgent(`/admin/campaign-draft-review-queue?${params.toString()}`);
   state.draftReviewQueue = reviewQueuePayload.queue || null;
   state.loadedTabs.review = true;
   renderDraftReviewQueue();
@@ -2412,6 +2424,12 @@ document.addEventListener('error', (event) => {
 
 selectors.draftReviewStatus?.addEventListener('change', (event) => {
   state.selectedDraftStatus = event.target.value || 'needs_approval';
+  invalidateGrowthCache('review');
+  void loadGrowthAgent({force: true, tab: 'review'});
+});
+
+selectors.draftReviewPlatform?.addEventListener('change', (event) => {
+  state.selectedDraftPlatform = event.target.value || 'all';
   invalidateGrowthCache('review');
   void loadGrowthAgent({force: true, tab: 'review'});
 });
