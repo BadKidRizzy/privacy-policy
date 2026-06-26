@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../../assets/site.css?v=1">
-  <link rel="stylesheet" href="../../assets/management-console.css?v=31">
+  <link rel="stylesheet" href="../../assets/management-console.css?v=32">
 </head>
 <body class="console-body growth-agent-page">
   <div class="console-shell">
@@ -90,6 +90,7 @@
           <button type="button" role="tab" data-growth-agent-tab="review">Drafts</button>
           <button type="button" role="tab" data-growth-agent-tab="claims">Truck Leads</button>
           <button type="button" role="tab" data-growth-agent-tab="social">Social</button>
+          <button type="button" role="tab" data-growth-agent-tab="strategy">Strategy</button>
           <button type="button" role="tab" data-growth-agent-tab="automation">Automation</button>
           <button type="button" role="tab" data-growth-agent-tab="reports">Reports</button>
           <button type="button" role="tab" data-growth-agent-tab="attribution">Attribution</button>
@@ -249,6 +250,42 @@
           <div class="growth-agent-grid growth-agent-grid--dashboard" data-social-inbox-counts></div>
           <div class="social-inbox-setup" data-social-inbox-setup></div>
           <div class="social-inbox-list" data-social-inbox-list></div>
+        </section>
+
+        <section class="growth-agent-panel growth-agent-strategy-panel" id="social-strategy" data-panel-key="social-strategy" data-panel-default="open" data-growth-agent-tab-panel="strategy">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Brand Growth</p>
+              <h3>Social Strategy Planner</h3>
+              <p>Generate the agent's brand positioning, audience psychology, content pillars, 30-day content plan, post hooks, and monetization path.</p>
+            </div>
+            <div class="panel-heading__actions">
+              <button class="button button--primary" type="button" data-social-strategy-generate>Create Strategy</button>
+              <button class="button button--secondary" type="button" data-social-strategy-drafts>Create 30-Day Drafts</button>
+            </div>
+          </div>
+
+          <div class="growth-agent-filterbar growth-agent-filterbar--social">
+            <label>
+              Competitors
+              <input type="text" placeholder="Optional, comma separated" data-social-strategy-competitors>
+            </label>
+            <label>
+              Growth Goals
+              <input type="text" placeholder="Downloads, claims, followers" data-social-strategy-goals>
+            </label>
+            <div class="growth-agent-platforms" aria-label="Strategy social platforms">
+              <label><input type="checkbox" value="instagram" checked data-social-strategy-platform> Instagram</label>
+              <label><input type="checkbox" value="facebook" checked data-social-strategy-platform> Facebook</label>
+              <label><input type="checkbox" value="tiktok" checked data-social-strategy-platform> TikTok</label>
+              <label><input type="checkbox" value="x" checked data-social-strategy-platform> X</label>
+            </div>
+          </div>
+
+          <div class="growth-agent-grid growth-agent-grid--dashboard" data-social-strategy-summary></div>
+          <div class="social-strategy-board" data-social-strategy-board>
+            <div class="growth-agent-empty growth-agent-empty--card">Create a strategy to see the agent's social plan here.</div>
+          </div>
         </section>
 
         <section class="growth-agent-panel growth-agent-claim-panel" id="claim-funnel" data-panel-key="claim-funnel" data-panel-default="open" data-growth-agent-tab-panel="claims">
@@ -501,6 +538,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script defer src="../../assets/growth-agent-console.js?v=22"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=23"></script>
 </body>
 </html>

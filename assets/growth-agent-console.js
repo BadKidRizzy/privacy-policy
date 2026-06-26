@@ -19,11 +19,12 @@ const GROWTH_AGENT_STATUSES = [
   'verified',
   'do_not_contact',
 ];
-const GROWTH_AGENT_TABS = ['review', 'claims', 'social', 'automation', 'reports', 'attribution', 'guide'];
+const GROWTH_AGENT_TABS = ['review', 'claims', 'social', 'strategy', 'automation', 'reports', 'attribution', 'guide'];
 const GROWTH_AGENT_TAB_LABELS = {
   review: 'Drafts',
   claims: 'Truck Leads',
   social: 'Social',
+  strategy: 'Strategy',
   automation: 'Automation',
   reports: 'Reports',
   attribution: 'Attribution',
@@ -52,6 +53,7 @@ const state = {
   agentTasks: [],
   agentMemories: [],
   socialDrafts: [],
+  socialStrategyPlan: null,
   autopilotReport: null,
   lastAutopilotPlan: null,
   lastSync: null,
@@ -130,6 +132,13 @@ const selectors = {
   socialOwnerTags: document.querySelector('[data-social-owner-tags]'),
   socialPlatforms: Array.from(document.querySelectorAll('[data-social-platform]')),
   socialDrafts: document.querySelector('[data-social-drafts]'),
+  socialStrategyGenerate: document.querySelector('[data-social-strategy-generate]'),
+  socialStrategyDrafts: document.querySelector('[data-social-strategy-drafts]'),
+  socialStrategyCompetitors: document.querySelector('[data-social-strategy-competitors]'),
+  socialStrategyGoals: document.querySelector('[data-social-strategy-goals]'),
+  socialStrategyPlatforms: Array.from(document.querySelectorAll('[data-social-strategy-platform]')),
+  socialStrategySummary: document.querySelector('[data-social-strategy-summary]'),
+  socialStrategyBoard: document.querySelector('[data-social-strategy-board]'),
   autopilotGenerate: document.querySelector('[data-autopilot-generate]'),
   autopilotRefresh: document.querySelector('[data-autopilot-refresh]'),
   autopilotCity: document.querySelector('[data-autopilot-city]'),
@@ -202,6 +211,10 @@ function setLoading(isLoading) {
     selectors.socialCity,
     selectors.socialLimit,
     selectors.socialOwnerTags,
+    selectors.socialStrategyGenerate,
+    selectors.socialStrategyDrafts,
+    selectors.socialStrategyCompetitors,
+    selectors.socialStrategyGoals,
     selectors.autopilotGenerate,
     selectors.autopilotRefresh,
     selectors.autopilotCity,
@@ -209,6 +222,7 @@ function setLoading(isLoading) {
     selectors.autopilotDailyPosts,
     selectors.autopilotOwnerTags,
     ...selectors.socialPlatforms,
+    ...selectors.socialStrategyPlatforms,
     ...selectors.autopilotPlatforms,
     ...document.querySelectorAll('[data-draft-action]'),
     ...document.querySelectorAll('[data-media-action]'),
@@ -581,6 +595,7 @@ function agentSuggestedActionLabel(value) {
   if (text.includes('public-seo-pages')) return 'Create SEO pages';
   if (text.includes('app-store-experiment-briefs')) return 'Create store experiment briefs';
   if (text.includes('weekly-growth-reports')) return 'Review weekly report';
+  if (text.includes('social-strategy-plan')) return 'Review social strategy';
   return text || 'No action attached';
 }
 
@@ -599,6 +614,150 @@ function memoryPreview(memory) {
     return value;
   }
   return value;
+}
+
+function parseMemoryValue(memory) {
+  try {
+    return JSON.parse(memory?.value || '');
+  } catch {
+    return memory?.value || '';
+  }
+}
+
+function strategySectionsFromMemories(memories) {
+  const sections = {};
+  (memories || []).forEach((memory) => {
+    const key = String(memory?.key || '');
+    if (!key.startsWith('strategy:')) return;
+    sections[key.replace('strategy:', '')] = parseMemoryValue(memory);
+  });
+  return sections;
+}
+
+function strategyListMarkup(values) {
+  const items = Array.isArray(values) ? values : [];
+  if (!items.length) return '<p>No items recorded yet.</p>';
+  return `<ul>${items.slice(0, 8).map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+}
+
+function strategyObjectListMarkup(values, titleKey = 'name', detailKey = 'purpose') {
+  const items = Array.isArray(values) ? values : [];
+  if (!items.length) return '<p>No items recorded yet.</p>';
+  return items.slice(0, 6).map((item) => `
+    <article class="social-strategy-item">
+      <strong>${escapeHtml(item?.[titleKey] || item?.topic || item?.post_idea || 'Strategy item')}</strong>
+      <span>${escapeHtml(item?.[detailKey] || item?.why_it_connects || item?.core_message_angle || item?.insight || '')}</span>
+    </article>
+  `).join('');
+}
+
+function renderSocialStrategy() {
+  if (!selectors.socialStrategySummary && !selectors.socialStrategyBoard) return;
+
+  const plan = state.socialStrategyPlan || {};
+  const sections = plan.sections || strategySectionsFromMemories(plan.memories || []);
+  const fullStrategy = sections.full_social_media_strategy || {};
+  const audience = plan.audience_psychology || sections.audience_psychology_breakdown || {};
+  const authority = plan.authority_positioning || sections.authority_positioning_plan || {};
+  const pillars = plan.content_pillars || sections.content_pillars_that_convert || [];
+  const calendar = plan.content_calendar || sections['30_day_content_plan'] || [];
+  const hooks = plan.stop_scroll_posts || sections.posts_that_stop_the_scroll || [];
+  const monetization = plan.monetization_strategy || sections.audience_monetization_strategy || {};
+  const briefing = plan.briefing || null;
+  const drafts = plan.drafts || [];
+  const memoryCount = plan.memories?.length || Object.keys(sections).length;
+
+  if (selectors.socialStrategySummary) {
+    const rows = [
+      ['Strategy Sections', memoryCount],
+      ['Content Pillars', pillars.length || 0],
+      ['Calendar Days', calendar.length || 0],
+      ['Hook Examples', hooks.length || 0],
+      ['Drafts Created', drafts.length || 0],
+      ['Growth Goals', (fullStrategy.growth_goals || plan.growth_goals || []).length || 0],
+    ];
+    selectors.socialStrategySummary.innerHTML = rows.map(([label, value]) => `
+      <div class="growth-agent-card">
+        <strong>${escapeHtml(formatCount(value))}</strong>
+        <span>${escapeHtml(label)}</span>
+      </div>
+    `).join('');
+  }
+
+  if (!selectors.socialStrategyBoard) return;
+  if (!Object.keys(sections).length && !briefing) {
+    selectors.socialStrategyBoard.innerHTML = `
+      <div class="growth-agent-empty growth-agent-empty--card">Create a strategy to see the agent's social plan here.</div>
+    `;
+    return;
+  }
+
+  selectors.socialStrategyBoard.innerHTML = `
+    <article class="social-strategy-card social-strategy-card--wide">
+      <span class="status-pill">Full Social Media Strategy</span>
+      <h4>${escapeHtml(fullStrategy.business_name || 'Food Truck Finder')}</h4>
+      <p>${escapeHtml(fullStrategy.brand_positioning?.one_liner || plan.brand_positioning?.one_liner || briefing?.summary || '')}</p>
+      <div class="social-strategy-split">
+        <div>
+          <strong>Competitors</strong>
+          ${strategyListMarkup(fullStrategy.competitors || plan.competitors || [])}
+        </div>
+        <div>
+          <strong>Growth Goals</strong>
+          ${strategyListMarkup(fullStrategy.growth_goals || plan.growth_goals || [])}
+        </div>
+      </div>
+    </article>
+
+    <article class="social-strategy-card">
+      <span class="status-pill">Audience Psychology</span>
+      <h4>Frustrations, Desires, Habits</h4>
+      <strong>Frustrations</strong>
+      ${strategyListMarkup(audience.frustrations || [])}
+      <strong>Scroll-Stopping Angles</strong>
+      ${strategyListMarkup(audience.scroll_stopping_angles || [])}
+    </article>
+
+    <article class="social-strategy-card">
+      <span class="status-pill">Authority Positioning</span>
+      <h4>${escapeHtml(authority.authority_role || 'Local food truck discovery guide')}</h4>
+      <p>${escapeHtml(authority.voice || '')}</p>
+      ${strategyListMarkup(authority.trust_rules || [])}
+    </article>
+
+    <article class="social-strategy-card social-strategy-card--wide">
+      <span class="status-pill">Content Pillars That Convert</span>
+      <h4>Five Pillars</h4>
+      <div class="social-strategy-item-grid">
+        ${strategyObjectListMarkup(pillars, 'name', 'purpose')}
+      </div>
+    </article>
+
+    <article class="social-strategy-card social-strategy-card--wide">
+      <span class="status-pill">30-Day Content Plan</span>
+      <h4>Next Calendar Ideas</h4>
+      <div class="social-strategy-item-grid">
+        ${strategyObjectListMarkup(calendar.slice(0, 6), 'post_idea', 'core_message_angle')}
+      </div>
+    </article>
+
+    <article class="social-strategy-card">
+      <span class="status-pill">Posts That Stop The Scroll</span>
+      <h4>Hook Examples</h4>
+      <div class="social-strategy-item-grid">
+        ${strategyObjectListMarkup(hooks, 'hook', 'cta')}
+      </div>
+    </article>
+
+    <article class="social-strategy-card">
+      <span class="status-pill">Audience Monetization</span>
+      <h4>Future Offers</h4>
+      <p>${escapeHtml(monetization.current_focus || '')}</p>
+      <div class="social-strategy-item-grid">
+        ${strategyObjectListMarkup(monetization.future_offers || [], 'offer', 'value')}
+      </div>
+    </article>
+  `;
 }
 
 function renderAgentPanel() {
@@ -1598,6 +1757,7 @@ function renderAll() {
   renderWeeklyReport();
   renderAttributionPerformance();
   renderCityDigestSummary();
+  renderSocialStrategy();
   renderAutopilot();
   renderLeads();
   renderSocialDrafts();
@@ -1698,6 +1858,19 @@ async function loadSocialTab(force = false) {
   renderSocialDrafts();
 }
 
+async function loadStrategyTab(force = false) {
+  if (!force && state.loadedTabs.strategy) return;
+
+  const memoriesPayload = await callGrowthAgent('/admin/agent-memories?limit=100');
+  const memories = (memoriesPayload.memories || []).filter((memory) => String(memory.key || '').startsWith('strategy:'));
+  state.socialStrategyPlan = {
+    memories,
+    sections: strategySectionsFromMemories(memories),
+  };
+  state.loadedTabs.strategy = true;
+  renderSocialStrategy();
+}
+
 async function loadAutomationTab(force = false) {
   if (!force && state.loadedTabs.automation) return;
 
@@ -1755,6 +1928,10 @@ async function loadGrowthTab(tab, force = false) {
   }
   if (tab === 'social') {
     await loadSocialTab(force);
+    return;
+  }
+  if (tab === 'strategy') {
+    await loadStrategyTab(force);
     return;
   }
   if (tab === 'automation') {
@@ -1905,11 +2082,61 @@ function selectedSocialPlatforms() {
   return platforms.length ? platforms : ['instagram', 'facebook', 'tiktok', 'x'];
 }
 
+function selectedStrategyPlatforms() {
+  const platforms = selectors.socialStrategyPlatforms
+    .filter((input) => input.checked)
+    .map((input) => input.value);
+  return platforms.length ? platforms : ['instagram', 'facebook', 'tiktok', 'x'];
+}
+
 function selectedAutopilotPlatforms() {
   const platforms = selectors.autopilotPlatforms
     .filter((input) => input.checked)
     .map((input) => input.value);
   return platforms.length ? platforms : ['instagram', 'facebook', 'tiktok', 'x'];
+}
+
+function csvInputValues(input) {
+  return String(input?.value || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+async function generateSocialStrategy(createDrafts = false) {
+  setLoading(true);
+  setMessage(
+    selectors.message,
+    createDrafts ? 'Creating 30-day review drafts from social strategy...' : 'Generating social strategy plan...'
+  );
+
+  try {
+    const payload = await callGrowthAgent('/admin/social-strategy-plan', {
+      method: 'POST',
+      body: {
+        competitors: csvInputValues(selectors.socialStrategyCompetitors),
+        growth_goals: csvInputValues(selectors.socialStrategyGoals),
+        platforms: selectedStrategyPlatforms(),
+        create_drafts: createDrafts,
+        actor: auth.currentUser?.email || 'growth-agent-console',
+      },
+    });
+    const plan = payload.plan || null;
+    state.socialStrategyPlan = plan;
+    setMessage(
+      selectors.message,
+      createDrafts
+        ? `Social strategy created ${plan?.drafts?.length || 0} review draft${(plan?.drafts?.length || 0) === 1 ? '' : 's'}. Open Drafts to approve or post.`
+        : 'Social strategy saved to agent memory.'
+    );
+    invalidateGrowthCache('strategy', 'automation', 'review');
+    state.loadedTabs.strategy = true;
+    renderSocialStrategy();
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Social strategy generation failed.', true);
+  } finally {
+    setLoading(false);
+  }
 }
 
 async function generateGrowthAutopilotPlan() {
@@ -2518,6 +2745,14 @@ selectors.socialGenerate?.addEventListener('click', () => {
 
 selectors.socialRefresh?.addEventListener('click', () => {
   void loadGrowthAgent({force: true, tab: 'social'});
+});
+
+selectors.socialStrategyGenerate?.addEventListener('click', () => {
+  void generateSocialStrategy(false);
+});
+
+selectors.socialStrategyDrafts?.addEventListener('click', () => {
+  void generateSocialStrategy(true);
 });
 
 selectors.weeklyReportGenerate?.addEventListener('click', () => {
