@@ -90,6 +90,7 @@
 
           <div class="get-app-actions" id="download">
             <a
+              id="app-store"
               class="button button--primary"
               href="https://apps.apple.com/us/app/ftf-food-truck-finder/id6742719545"
               target="_blank"
@@ -98,6 +99,7 @@
               Download on the App Store
             </a>
             <a
+              id="play-store"
               class="button button--secondary"
               href="https://play.google.com/store/apps/details?id=com.innoryzen.foodtruckfinder"
               target="_blank"
@@ -158,5 +160,28 @@
       </div>
     </footer>
   </div>
+  <script src="../assets/attribution.js?v=1"></script>
+  <script>
+    (function () {
+      var attribution = window.FTFAttribution;
+      if (!attribution) return;
+
+      attribution.decorateLinks('#app-store, #play-store, a[href="../open/"]');
+
+      var appStore = document.getElementById('app-store');
+      var playStore = document.getElementById('play-store');
+      [appStore, playStore].forEach(function (link) {
+        if (!link) return;
+        link.addEventListener('click', function () {
+          attribution.track('app_store_click', {
+            metadata: {
+              destination: link.id === 'app-store' ? 'ios_app_store' : 'android_play_store',
+              source: 'get_app_page',
+            },
+          });
+        });
+      });
+    })();
+  </script>
 </body>
 </html>

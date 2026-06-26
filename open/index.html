@@ -185,16 +185,24 @@
     <div class="footer">Best experience is in the Food Truck Finder app.</div>
   </main>
   
+<script src="../assets/attribution.js?v=1"></script>
 <script>
   (function () {
     var params = new URLSearchParams(window.location.search);
     var truckId = params.get('truck');
     var truckName = params.get('name');
+    var attribution = window.FTFAttribution;
+    var attributionContext = attribution ? attribution.getContext() : null;
     var launchToken = String(Date.now());
+    var appParams = new URLSearchParams({ launch: launchToken });
+    if (attributionContext && attributionContext.slug) {
+      appParams.set('ftf_attribution_slug', attributionContext.slug);
+      appParams.set('tracking_slug', attributionContext.slug);
+    }
 
     var appUrl = truckId
-      ? 'foodtruckfinder:///truck/' + encodeURIComponent(truckId) + '?launch=' + encodeURIComponent(launchToken)
-      : 'foodtruckfinder:///?launch=' + encodeURIComponent(launchToken);
+      ? 'foodtruckfinder:///truck/' + encodeURIComponent(truckId) + '?' + appParams.toString()
+      : 'foodtruckfinder:///?' + appParams.toString();
 
       var message = document.getElementById('message');
       var status = document.getElementById('status');
@@ -204,6 +212,15 @@
       }
 
       openApp.href = appUrl;
+      if (attribution) {
+        attribution.decorateLinks('#app-store, #play-store');
+        document.getElementById('app-store')?.addEventListener('click', function () {
+          attribution.track('app_store_click', {metadata: {destination: 'ios_app_store', source: 'open_page'}});
+        });
+        document.getElementById('play-store')?.addEventListener('click', function () {
+          attribution.track('app_store_click', {metadata: {destination: 'android_play_store', source: 'open_page'}});
+        });
+      }
 
       setTimeout(function () {
         window.location.href = appUrl;

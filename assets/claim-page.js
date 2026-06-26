@@ -11,6 +11,7 @@
   const statusBox = form.querySelector('[data-claim-status]');
   const submitButton = form.querySelector('[data-claim-submit]');
   const emailFallback = form.querySelector('[data-claim-email-fallback]');
+  const attribution = window.FTFAttribution;
 
   function setStatus(node, message, tone) {
     if (!node) return;
@@ -64,6 +65,17 @@
     if (truck || city || profile) {
       setStatus(searchStatus, 'We prefilled the claim form from the truck profile link.', 'success');
     }
+
+    attribution?.track('claim_started', {
+      city,
+      metadata: {
+        truck_name: truck || null,
+        profile_url: profile ? absoluteProfileUrl(profile) : null,
+        source: 'claim_form',
+      },
+      dedupeKey: [truck, city, profile].filter(Boolean).join(':') || 'claim-form',
+      dedupeWindowMs: 60 * 60 * 1000,
+    });
   }
 
   function updateEmailFallback() {
@@ -242,6 +254,18 @@
       if (!response.ok || !result.ok) {
         throw new Error(result.error || 'Claim submission failed.');
       }
+
+      await attribution?.track('claim_submitted', {
+        truckId: payload.selectedTruckId || undefined,
+        city: payload.city,
+        metadata: {
+          claim_request_id: result.claimRequestId || null,
+          truck_name: payload.truckName,
+          truck_profile_url: payload.truckProfileUrl || null,
+          source: 'claim_form',
+        },
+        dedupeKey: result.claimRequestId || payload.selectedTruckId || payload.truckName || 'claim-submit',
+      });
 
       const params = new URLSearchParams({
         claim: result.claimRequestId || '',

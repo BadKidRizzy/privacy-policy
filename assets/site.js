@@ -45,3 +45,25 @@ const year = document.getElementById('year');
 if (year) {
   year.textContent = String(new Date().getFullYear());
 }
+
+(function () {
+  function applyAttribution() {
+    const attribution = window.FTFAttribution;
+    if (!attribution) return;
+    attribution.captureFromLocation();
+    attribution.decorateLinks(
+      'a[href*="claim-your-food-truck"], a[href*="/open/"], a[href*="/get-app/"]'
+    );
+  }
+
+  if (window.FTFAttribution) {
+    applyAttribution();
+    return;
+  }
+
+  const script = document.createElement('script');
+  script.src = '/assets/attribution.js?v=1';
+  script.async = true;
+  script.addEventListener('load', applyAttribution);
+  document.head.appendChild(script);
+})();
