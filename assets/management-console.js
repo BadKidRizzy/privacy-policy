@@ -141,9 +141,9 @@ const tabConfig = {
     description: 'Review truck profiles, public visibility, missing details, and owner access.',
     collection: 'foodTrucks',
     filter: () => true,
-    columns: ['Truck', 'Owner', 'Location', 'Public Status', 'Profile Health', 'Updated', 'Actions'],
+    columns: ['Truck', 'Owner', 'Phone', 'Location', 'Public Status', 'Profile Health', 'Updated', 'Actions'],
     searchLabel: 'Search Trucks',
-    searchPlaceholder: 'Search truck, owner email, location, cuisine, tag...',
+    searchPlaceholder: 'Search truck, phone, owner email, location, cuisine, tag...',
     createLabel: 'Create Truck',
   },
   foodies: {
@@ -1029,6 +1029,7 @@ function renderTruckRow(record) {
         <strong>${escapeHtml(owner?.name || record.ownerEmail || 'Unknown owner')}</strong>
         <span class="muted-cell">${escapeHtml(getOwnerDetail(record, owner))}</span>
       </td>
+      <td class="truck-phone-cell">${escapeHtml(record.businessPhone || 'No phone')}</td>
       <td class="truck-address-cell">${escapeHtml(record.currentAddress || 'No address')}</td>
       <td>${renderTruckVisibility(record)}</td>
       <td>${renderTruckHealth(record)}</td>
