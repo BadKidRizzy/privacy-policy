@@ -399,6 +399,7 @@ function buildClaimUrl(truck) {
   url.searchParams.set('truck', truckName);
   if (city) url.searchParams.set('city', city);
   if (state.publicShareUrl) url.searchParams.set('profile', state.publicShareUrl);
+  url.hash = 'claim-form';
   return url.toString();
 }
 
