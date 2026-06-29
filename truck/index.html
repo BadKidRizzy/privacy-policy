@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;650;750;850&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/truck-page.css?v=17">
+  <link rel="stylesheet" href="../assets/truck-page.css?v=18">
 </head>
 <body>
   <div class="truck-shell" data-page-shell>
@@ -146,38 +146,41 @@
               </div>
             </section>
 
-            <section class="section-panel app-download-panel">
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Get The App</p>
-                  <h2>Follow Trucks In Real Time</h2>
-                </div>
-              </div>
-              <p class="panel-copy">Save favorites, open profiles faster, and get better live location updates.</p>
-              <div class="store-actions">
-                <a class="button button--primary" href="https://apps.apple.com/us/app/ftf-food-truck-finder/id6742719545" target="_blank" rel="noreferrer">App Store</a>
-                <a class="button button--ghost" href="https://play.google.com/store/apps/details?id=com.innoryzen.foodtruckfinder" target="_blank" rel="noreferrer">Google Play</a>
-              </div>
-            </section>
-
-            <section class="section-panel claim-panel" aria-labelledby="claim-listing-title">
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Owners</p>
-                  <h2 id="claim-listing-title">Own this truck?</h2>
-                </div>
-                <span class="claim-time">2 min</span>
-              </div>
-              <p class="panel-copy">Claim this listing so you can keep the menu, photos, location, and customer links accurate.</p>
-              <ul class="claim-checklist" aria-label="Claim request checklist">
-                <li>Use your Owner account email</li>
-                <li>Include your name and phone number</li>
-                <li>Add a website, social page, or other proof</li>
-              </ul>
-              <a class="button button--primary button--full" data-claim-link href="mailto:Foodtruckfinderinfo@gmail.com?subject=Owner%20Claim%20Request&body=Hi%20Food%20Truck%20Finder%20team%2C%0A%0AI%20would%20like%20to%20claim%20a%20truck%20listing.%0A%0ATruck%20name%3A%0ATruck%20ID%3A%0A%0AMy%20name%3A%0APhone%20number%3A%0AProof%20of%20ownership%20or%20official%20link%3A">Start Claim</a>
-              <p class="claim-note">We review claims manually so the wrong person cannot take over a truck.</p>
-            </section>
           </aside>
+        </section>
+
+        <section class="conversion-grid" aria-label="Download and claim actions">
+          <section class="section-panel app-download-panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Get The App</p>
+                <h2>Save this truck for later.</h2>
+              </div>
+            </div>
+            <p class="panel-copy">Follow favorite trucks, reopen profiles quickly, and keep your food truck list in one place.</p>
+            <div class="store-actions">
+              <a class="button button--primary" href="https://apps.apple.com/us/app/ftf-food-truck-finder/id6742719545" target="_blank" rel="noreferrer">App Store</a>
+              <a class="button button--ghost" href="https://play.google.com/store/apps/details?id=com.innoryzen.foodtruckfinder" target="_blank" rel="noreferrer">Google Play</a>
+            </div>
+          </section>
+
+          <section class="section-panel claim-panel" aria-labelledby="claim-listing-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Owners</p>
+                <h2 id="claim-listing-title">Own this truck?</h2>
+              </div>
+              <span class="claim-time">2 min</span>
+            </div>
+            <p class="panel-copy">Send a claim request so we can verify you and connect this profile to your owner tools.</p>
+            <ul class="claim-checklist" aria-label="Claim request checklist">
+              <li>No referral code needed to request a claim</li>
+              <li>Use an email where our team can reach you</li>
+              <li>Add a website, social page, or other proof</li>
+            </ul>
+            <a class="button button--primary button--full" data-claim-link href="mailto:Foodtruckfinderinfo@gmail.com?subject=Owner%20Claim%20Request&body=Hi%20Food%20Truck%20Finder%20team%2C%0A%0AI%20would%20like%20to%20claim%20a%20truck%20listing.%0A%0ATruck%20name%3A%0ATruck%20ID%3A%0A%0AMy%20name%3A%0APhone%20number%3A%0AProof%20of%20ownership%20or%20official%20link%3A">Start Claim Request</a>
+            <p class="claim-note">After review, we help connect the truck to the correct owner account. If the app asks for a referral code, submit this claim first.</p>
+          </section>
         </section>
       </article>
     </main>
@@ -186,17 +189,17 @@
   <div class="modal-backdrop" data-claim-modal role="dialog" aria-modal="true" aria-labelledby="claim-modal-title" aria-describedby="claim-modal-description" hidden>
     <div class="claim-modal">
       <p class="eyebrow">Claim This Listing</p>
-      <h2 id="claim-modal-title">Connect this truck to your Owner account</h2>
-      <p class="panel-copy" id="claim-modal-description">Use the same email in the app and in this claim email. That lets us verify the owner and attach the listing faster.</p>
+      <h2 id="claim-modal-title">Request access to this truck profile</h2>
+      <p class="panel-copy" id="claim-modal-description">You do not need a referral code to send the claim request. We review the proof first, then help connect the right Owner account.</p>
       <div class="claim-summary" data-claim-summary>Listing details will be added to the email automatically.</div>
       <ol class="claim-steps">
         <li>
-          <strong>Create or confirm your Owner account.</strong>
-          <span>Open the Food Truck Finder app, choose Owner, and use the email you will send this request from.</span>
+          <strong>Submit the claim form.</strong>
+          <span>We prefill the truck name and profile link. You add your contact info and proof.</span>
         </li>
         <li>
-          <strong>Submit the pre-filled claim form.</strong>
-          <span>We prefill the truck name, page link, and address. You only fill in your contact info and proof.</span>
+          <strong>We verify ownership.</strong>
+          <span>After review, we connect the profile to the correct Owner account or follow up if we need more info.</span>
         </li>
       </ol>
       <div class="modal-actions">
@@ -210,6 +213,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-  <script defer src="../assets/truck-page.js?v=15"></script>
+  <script defer src="../assets/truck-page.js?v=16"></script>
 </body>
 </html>

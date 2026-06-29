@@ -9,6 +9,94 @@ const firebaseConfig = {
 
 const FALLBACK_IMAGE = '../assets/media/seed/food-truck-photo-pending.png';
 const MENU_PREVIEW_LIMIT = 8;
+const STATE_NAMES = {
+  alabama: 'AL',
+  alaska: 'AK',
+  arizona: 'AZ',
+  arkansas: 'AR',
+  california: 'CA',
+  colorado: 'CO',
+  connecticut: 'CT',
+  delaware: 'DE',
+  'district of columbia': 'DC',
+  florida: 'FL',
+  georgia: 'GA',
+  hawaii: 'HI',
+  idaho: 'ID',
+  illinois: 'IL',
+  indiana: 'IN',
+  iowa: 'IA',
+  kansas: 'KS',
+  kentucky: 'KY',
+  louisiana: 'LA',
+  maine: 'ME',
+  maryland: 'MD',
+  massachusetts: 'MA',
+  michigan: 'MI',
+  minnesota: 'MN',
+  mississippi: 'MS',
+  missouri: 'MO',
+  montana: 'MT',
+  nebraska: 'NE',
+  nevada: 'NV',
+  'new hampshire': 'NH',
+  'new jersey': 'NJ',
+  'new mexico': 'NM',
+  'new york': 'NY',
+  'north carolina': 'NC',
+  'north dakota': 'ND',
+  ohio: 'OH',
+  oklahoma: 'OK',
+  oregon: 'OR',
+  pennsylvania: 'PA',
+  'rhode island': 'RI',
+  'south carolina': 'SC',
+  'south dakota': 'SD',
+  tennessee: 'TN',
+  texas: 'TX',
+  utah: 'UT',
+  vermont: 'VT',
+  virginia: 'VA',
+  washington: 'WA',
+  'west virginia': 'WV',
+  wisconsin: 'WI',
+  wyoming: 'WY',
+};
+const STREET_SUFFIXES = new Set([
+  'aly',
+  'alley',
+  'ave',
+  'avenue',
+  'blvd',
+  'boulevard',
+  'cir',
+  'circle',
+  'ct',
+  'court',
+  'dr',
+  'drive',
+  'hwy',
+  'highway',
+  'ln',
+  'lane',
+  'pkwy',
+  'parkway',
+  'pl',
+  'place',
+  'rd',
+  'road',
+  'rte',
+  'route',
+  'sq',
+  'square',
+  'st',
+  'street',
+  'ter',
+  'terrace',
+  'trl',
+  'trail',
+  'way',
+]);
 
 const selectors = {
   loadingView: document.querySelector('[data-loading-view]'),
@@ -81,6 +169,69 @@ function setError(message) {
 
 function asText(value) {
   return String(value ?? '').trim();
+}
+
+function cleanLocationPart(value) {
+  return asText(value).replace(/\s+/g, ' ').replace(/^,+|,+$/g, '').trim();
+}
+
+function stateFromText(value) {
+  const raw = cleanLocationPart(value);
+  if (!raw) return '';
+
+  const parts = raw.split(',').map(cleanLocationPart).filter(Boolean);
+  for (let index = parts.length - 1; index >= 0; index -= 1) {
+    const part = parts[index];
+    const stateMatch = part.match(/^([A-Za-z]{2})(?:\s+\d{5}(?:-\d{4})?)?$/);
+    if (stateMatch) return stateMatch[1].toUpperCase();
+    const state = STATE_NAMES[part.toLowerCase()];
+    if (state) return state;
+  }
+
+  const normalized = ` ${raw.toLowerCase().replace(/[^a-z]+/g, ' ').trim()} `;
+  return Object.entries(STATE_NAMES).find(([name]) => normalized.includes(` ${name} `))?.[1] || '';
+}
+
+function stripStreetPrefix(value) {
+  const cleaned = cleanLocationPart(value).replace(/(?:\s+|^)\d{5}(?:-\d{4})?$/, '').trim();
+  if (!cleaned) return '';
+
+  const tokens = cleaned.split(' ');
+  for (let index = 0; index < tokens.length - 1; index += 1) {
+    const normalized = tokens[index].toLowerCase().replace(/\./g, '');
+    const hasStreetNumber = tokens.slice(0, index).some((token) => /\d/.test(token));
+    if (STREET_SUFFIXES.has(normalized) && hasStreetNumber) {
+      return tokens.slice(index + 1).join(' ').trim();
+    }
+  }
+
+  return cleaned;
+}
+
+function cityFromText(value) {
+  const raw = cleanLocationPart(value);
+  if (!raw) return '';
+
+  const parts = raw.split(',').map(cleanLocationPart).filter(Boolean);
+  const lastPart = (parts[parts.length - 1] || '').toLowerCase();
+  const hasCountrySuffix = ['usa', 'us', 'united states', 'united states of america'].includes(lastPart);
+  const candidate = hasCountrySuffix && parts.length >= 3
+    ? parts[parts.length - 3]
+    : parts.length >= 3
+      ? parts[parts.length - 2]
+      : parts[0];
+  return stripStreetPrefix(candidate);
+}
+
+function compactLocationLabel(truck) {
+  const state = stateFromText(truck.currentAddress) || stateFromText(truck.state) || stateFromText(truck.city);
+  const city = cityFromText(truck.city) || cityFromText(truck.currentAddress);
+
+  if (city && state && city.toUpperCase() !== state) {
+    return `${city}, ${state}`;
+  }
+
+  return city || state || '';
 }
 
 function asArray(value) {
@@ -243,7 +394,7 @@ function isPublicAppTruck(truck) {
 
 function buildClaimUrl(truck) {
   const truckName = truck.name || 'my truck';
-  const city = truck.city || truck.currentAddress || '';
+  const city = compactLocationLabel(truck) || truck.city || truck.currentAddress || '';
   const url = new URL('/claim-your-food-truck/', window.location.origin);
   url.searchParams.set('truck', truckName);
   if (city) url.searchParams.set('city', city);
@@ -252,12 +403,15 @@ function buildClaimUrl(truck) {
 }
 
 function formatClaimSummary(truck) {
+  const location = compactLocationLabel(truck);
   const parts = [
     truck.name || 'This truck',
-    truck.currentAddress,
+    location,
   ].filter(Boolean);
 
-  return `You are claiming: ${parts.join(' - ')}`;
+  return parts.length > 1
+    ? `You are claiming: ${parts[0]} in ${parts[1]}`
+    : `You are claiming: ${parts[0]}`;
 }
 
 function openClaimModal(event) {
