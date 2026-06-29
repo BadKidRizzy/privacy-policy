@@ -140,7 +140,7 @@
 
     .stats {
       display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
+      grid-template-columns: repeat(8, minmax(0, 1fr));
       gap: 10px;
       margin-bottom: 16px;
     }
@@ -184,6 +184,18 @@
       gap: 8px;
       border-right: 1px solid var(--line);
       padding-right: 14px;
+    }
+
+    .contact-checks {
+      display: grid;
+      gap: 10px;
+      justify-items: center;
+    }
+
+    .contact-check {
+      display: grid;
+      gap: 6px;
+      justify-items: center;
     }
 
     .reach-toggle {
@@ -540,7 +552,7 @@
     }
 
     .stats {
-      grid-template-columns: repeat(7, minmax(128px, 1fr));
+      grid-template-columns: repeat(8, minmax(128px, 1fr));
       gap: 12px;
       margin-bottom: 18px;
     }
@@ -592,6 +604,10 @@
       gap: 10px;
       border-right-color: var(--line);
       padding-right: 16px;
+    }
+
+    .contact-checks {
+      gap: 12px;
     }
 
     .reach-toggle {
@@ -744,6 +760,20 @@
         border-bottom: 1px solid var(--line);
         padding: 0 0 14px;
       }
+
+      .contact-checks {
+        display: flex;
+        flex-wrap: wrap;
+        grid-column: 1 / -1;
+        gap: 12px;
+        justify-items: start;
+      }
+
+      .contact-check {
+        grid-template-columns: auto auto;
+        align-items: center;
+        justify-items: start;
+      }
     }
 
     @media (max-width: 760px) {
@@ -783,14 +813,14 @@
           <span class="title-divider" aria-hidden="true"></span>
           <div class="title-copy">
             <h1>Marketing Call Console</h1>
-            <p class="subtle">Live truck outreach list with phone numbers, social links, audit notes, and browser-saved called checkmarks.</p>
+            <p class="subtle">Live truck outreach list with phone numbers, social links, audit notes, and browser-saved called and texted checkmarks.</p>
           </div>
         </div>
         <div class="topbar-actions">
           <a class="button" href="../">Admin Home</a>
           <a class="button" href="../growth-agent/">Growth Agent</a>
           <a class="button" href="./owner-outreach-2026-06-29.csv">CSV</a>
-          <button class="primary" type="button" id="exportStatus">Export Call Status</button>
+          <button class="primary" type="button" id="exportStatus">Export Contact Status</button>
         </div>
       </div>
       <div class="toolbar">
@@ -809,6 +839,11 @@
           <option value="">All call status</option>
           <option value="reached">Called</option>
           <option value="not_reached">Not called</option>
+        </select>
+        <select id="textedFilter" aria-label="Filter by text status">
+          <option value="">All text status</option>
+          <option value="texted">Texted</option>
+          <option value="not_texted">Not texted</option>
         </select>
         <select id="phoneAuditFilter" aria-label="Filter by phone audit status">
           <option value="">All phone audits</option>
@@ -843,6 +878,7 @@
         <div class="stat"><strong id="visibleCount">0</strong><span>Visible</span></div>
         <div class="stat"><strong id="readyCount">0</strong><span>Ready</span></div>
         <div class="stat"><strong id="reachedCount">0</strong><span>Called</span></div>
+        <div class="stat"><strong id="textedCount">0</strong><span>Texted</span></div>
         <div class="stat"><strong id="phoneVerifiedCount">0</strong><span>Phones verified</span></div>
         <div class="stat"><strong id="sentCount">0</strong><span>Sent</span></div>
         <div class="stat"><strong id="claimedCount">0</strong><span>Claimed</span></div>
@@ -885,6 +921,7 @@
       search: document.getElementById('search'),
       statusFilter: document.getElementById('statusFilter'),
       reachedFilter: document.getElementById('reachedFilter'),
+      textedFilter: document.getElementById('textedFilter'),
       phoneAuditFilter: document.getElementById('phoneAuditFilter'),
       menuFilter: document.getElementById('menuFilter'),
       contactFilter: document.getElementById('contactFilter'),
@@ -935,11 +972,15 @@
       return typeof reachedOut === 'boolean' ? reachedOut : row.reachedOut === true;
     }
 
+    function getTexted(row) {
+      const texted = getRowState(row).texted;
+      return typeof texted === 'boolean' ? texted : row.texted === true;
+    }
+
     function setStatus(row, status) {
       statusState[row.truckId] = {
         ...getRowState(row),
         status,
-        reachedOut: status === 'sent' ? true : getReachedOut(row),
         updatedAt: new Date().toISOString(),
       };
       saveStatus();
@@ -951,6 +992,17 @@
         ...getRowState(row),
         reachedOut,
         reachedOutAt: reachedOut ? new Date().toISOString() : null,
+        updatedAt: new Date().toISOString(),
+      };
+      saveStatus();
+      render();
+    }
+
+    function setTexted(row, texted) {
+      statusState[row.truckId] = {
+        ...getRowState(row),
+        texted,
+        textedAt: texted ? new Date().toISOString() : null,
         updatedAt: new Date().toISOString(),
       };
       saveStatus();
@@ -978,6 +1030,9 @@
         && (!controls.reachedFilter.value
           || (controls.reachedFilter.value === 'reached' && getReachedOut(row))
           || (controls.reachedFilter.value === 'not_reached' && !getReachedOut(row)))
+        && (!controls.textedFilter.value
+          || (controls.textedFilter.value === 'texted' && getTexted(row))
+          || (controls.textedFilter.value === 'not_texted' && !getTexted(row)))
         && (!controls.phoneAuditFilter.value || getPhoneAuditStatus(row) === controls.phoneAuditFilter.value)
         && (!controls.menuFilter.value || row.menuStatus === controls.menuFilter.value)
         && (!controls.contactFilter.value || row.contactType === controls.contactFilter.value);
@@ -1067,9 +1122,28 @@
       }
     }
 
+    function buildContactToggle(active, activeLabel, inactiveLabel, activeAria, inactiveAria, activeTitle, inactiveTitle, handler) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'contact-check';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'reach-toggle';
+      button.textContent = active ? '✓' : '';
+      button.setAttribute('aria-pressed', String(active));
+      button.setAttribute('aria-label', active ? activeAria : inactiveAria);
+      button.title = active ? activeTitle : inactiveTitle;
+      button.addEventListener('click', handler);
+      const label = document.createElement('span');
+      label.className = 'reach-label';
+      label.textContent = active ? activeLabel : inactiveLabel;
+      wrapper.append(button, label);
+      return wrapper;
+    }
+
     function renderCard(row) {
       const status = getStatus(row);
       const reachedOut = getReachedOut(row);
+      const texted = getTexted(row);
       const phoneAuditStatus = getPhoneAuditStatus(row);
       const card = document.createElement('article');
       card.className = 'card';
@@ -1077,18 +1151,31 @@
 
       const outreachColumn = document.createElement('div');
       outreachColumn.className = 'outreach-column';
-      const reachedButton = document.createElement('button');
-      reachedButton.type = 'button';
-      reachedButton.className = 'reach-toggle';
-      reachedButton.textContent = reachedOut ? '✓' : '';
-      reachedButton.setAttribute('aria-pressed', String(reachedOut));
-      reachedButton.setAttribute('aria-label', reachedOut ? 'Mark not called' : 'Mark called');
-      reachedButton.title = reachedOut ? 'Called' : 'Not called yet';
-      reachedButton.addEventListener('click', () => setReachedOut(row, !reachedOut));
-      const reachedLabel = document.createElement('span');
-      reachedLabel.className = 'reach-label';
-      reachedLabel.textContent = reachedOut ? 'Called' : 'Not called';
-      outreachColumn.append(reachedButton, reachedLabel);
+      const contactChecks = document.createElement('div');
+      contactChecks.className = 'contact-checks';
+      contactChecks.append(
+        buildContactToggle(
+          reachedOut,
+          'Called',
+          'Not called',
+          'Mark not called',
+          'Mark called',
+          'Called',
+          'Not called yet',
+          () => setReachedOut(row, !reachedOut)
+        ),
+        buildContactToggle(
+          texted,
+          'Texted',
+          'Not texted',
+          'Mark not texted',
+          'Mark texted',
+          'Texted',
+          'Not texted yet',
+          () => setTexted(row, !texted)
+        )
+      );
+      outreachColumn.append(contactChecks);
 
       const body = document.createElement('div');
       const title = document.createElement('h2');
@@ -1100,6 +1187,7 @@
       meta.append(
         buildPill(statusLabels[status] || status, status === 'opted_out' ? 'danger' : ''),
         buildPill(reachedOut ? 'Called' : 'Not called', reachedOut ? '' : 'warn'),
+        buildPill(texted ? 'Texted' : 'Not texted', texted ? '' : 'warn'),
         buildPill(phoneAuditLabels[phoneAuditStatus] || phoneAuditStatus, phoneAuditVariant(phoneAuditStatus)),
         buildPill(menuLabels[row.menuStatus] || row.menuStatus, row.menuStatus === 'menu_photo_only' ? 'warn' : ''),
         buildPill(row.businessPhone || 'No phone')
@@ -1260,6 +1348,7 @@
       document.getElementById('visibleCount').textContent = visibleRows.length;
       document.getElementById('readyCount').textContent = outreachRows.filter((row) => getStatus(row) === 'ready').length;
       document.getElementById('reachedCount').textContent = outreachRows.filter((row) => getReachedOut(row)).length;
+      document.getElementById('textedCount').textContent = outreachRows.filter((row) => getTexted(row)).length;
       document.getElementById('phoneVerifiedCount').textContent = outreachRows.filter((row) => getPhoneAuditStatus(row) === 'verified_on_current_source').length;
       document.getElementById('sentCount').textContent = outreachRows.filter((row) => getStatus(row) === 'sent').length;
       document.getElementById('claimedCount').textContent = outreachRows.filter((row) => getStatus(row) === 'claimed').length;
@@ -1288,7 +1377,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'ftf-marketing-call-status.json';
+      link.download = 'ftf-marketing-contact-status.json';
       link.click();
       URL.revokeObjectURL(url);
     });
