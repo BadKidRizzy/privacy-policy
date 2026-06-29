@@ -12,6 +12,7 @@
   const submitButton = form.querySelector('[data-claim-submit]');
   const emailFallback = form.querySelector('[data-claim-email-fallback]');
   const attribution = window.FTFAttribution;
+  const claimStartStorageKey = 'ftf_claim_started_notified';
 
   function setStatus(node, message, tone) {
     if (!node) return;
@@ -42,6 +43,45 @@
     } catch {
       return raw;
     }
+  }
+
+  function claimStartedAlreadyNotified() {
+    try {
+      return sessionStorage.getItem(claimStartStorageKey) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  function markClaimStartedNotified() {
+    try {
+      sessionStorage.setItem(claimStartStorageKey, 'true');
+    } catch {
+      // Ignore private browsing/session storage failures.
+    }
+  }
+
+  function notifyClaimStarted(source) {
+    if (!endpoint || claimStartedAlreadyNotified()) return;
+
+    const params = new URLSearchParams({ action: 'start', source: source || 'claim_form' });
+    const truck = formValue('truckName') || formValue('truckSearch');
+    const city = formValue('city') || formValue('truckSearchCity');
+    const profile = formValue('truckProfileUrl');
+    const selectedTruckId = selectedTruckInput?.value || '';
+
+    if (truck) params.set('truck', truck);
+    if (city) params.set('city', city);
+    if (profile) params.set('profile', absoluteProfileUrl(profile));
+    if (selectedTruckId) params.set('selectedTruckId', selectedTruckId);
+
+    markClaimStartedNotified();
+    fetch(`${endpoint}?${params.toString()}`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    }).catch(() => {
+      // The claim form should remain usable if start tracking is unavailable.
+    });
   }
 
   function applyPrefillFromParams() {
@@ -76,6 +116,10 @@
       dedupeKey: [truck, city, profile].filter(Boolean).join(':') || 'claim-form',
       dedupeWindowMs: 60 * 60 * 1000,
     });
+
+    if (truck || city || profile) {
+      notifyClaimStarted('prefill');
+    }
   }
 
   function updateEmailFallback() {
@@ -149,6 +193,8 @@
   }
 
   async function searchTrucks() {
+    notifyClaimStarted('search');
+
     const query = formValue('truckSearch') || formValue('truckName');
     const city = formValue('truckSearchCity') || formValue('city');
 
@@ -284,6 +330,7 @@
   }
 
   searchButton?.addEventListener('click', searchTrucks);
+  form.addEventListener('focusin', () => notifyClaimStarted('form_focus'), { once: true });
   form.addEventListener('input', updateEmailFallback);
   form.addEventListener('submit', submitClaim);
   applyPrefillFromParams();

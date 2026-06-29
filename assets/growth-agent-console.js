@@ -8,6 +8,7 @@ const firebaseConfig = {
 };
 
 const GROWTH_AGENT_API_BASE_URL = 'https://food-truck-growth-agent-xmel35gaya-uc.a.run.app';
+const OWNER_CLAIM_ADMIN_ENDPOINT = 'https://us-central1-food-truck-finder-4414c.cloudfunctions.net/manageOwnerClaimRequests';
 const PUBLIC_TRUCK_SHARE_BASE_URL = 'https://www.ftf-foodtruckfinder.com/truck/';
 const PUBLIC_SITE_BASE_URL = 'https://www.ftf-foodtruckfinder.com';
 const GROWTH_AGENT_STATUSES = [
@@ -37,12 +38,14 @@ const state = {
   activeTab: 'review',
   loadedTabs: {},
   selectedStatus: 'needs_review',
+  selectedClaimRequestStatus: 'all',
   selectedDraftStatus: 'needs_approval',
   selectedDraftPlatform: 'all',
   selectedSocialInboxStatus: 'needs_review',
   selectedSocialInboxPlatform: 'all',
   counts: {},
   leads: [],
+  claimRequests: [],
   draftReviewQueue: null,
   socialInbox: null,
   claimFunnelReport: null,
@@ -111,6 +114,11 @@ const selectors = {
   claimFunnelSummary: document.querySelector('[data-claim-funnel-summary]'),
   claimFunnelRecommendations: document.querySelector('[data-claim-funnel-recommendations]'),
   claimFunnelLeads: document.querySelector('[data-claim-funnel-leads]'),
+  claimRequests: document.querySelector('[data-claim-requests]'),
+  claimRequestSummary: document.querySelector('[data-claim-request-summary]'),
+  claimRequestStatus: document.querySelector('[data-claim-request-status]'),
+  claimRequestRefresh: document.querySelector('[data-claim-request-refresh]'),
+  claimRequestLoadedAt: document.querySelector('[data-claim-request-loaded-at]'),
   weeklyReportGenerate: document.querySelector('[data-weekly-report-generate]'),
   weeklyReportSummary: document.querySelector('[data-weekly-report-summary]'),
   weeklyReportRecommendations: document.querySelector('[data-weekly-report-recommendations]'),
@@ -520,6 +528,40 @@ async function callGrowthAgent(path, options = {}) {
   if (!response.ok) {
     const providerMessage = payload.publish_result?.message;
     throw new Error(providerMessage || payload.error || `Growth Agent request failed with ${response.status}.`);
+  }
+
+  return payload;
+}
+
+async function callOwnerClaimAdmin(query = '', options = {}) {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('Sign in before opening claim requests.');
+  }
+
+  const token = await user.getIdToken();
+  const separator = query && query.startsWith('?') ? '' : '?';
+  const response = await fetch(`${OWNER_CLAIM_ADMIN_ENDPOINT}${query ? `${separator}${query}` : ''}`, {
+    method: options.method || 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+  const text = await response.text();
+  let payload = {};
+
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      payload = {error: text};
+    }
+  }
+
+  if (!response.ok || payload.ok === false) {
+    throw new Error(payload.error || `Claim request failed with ${response.status}.`);
   }
 
   return payload;
@@ -1401,6 +1443,96 @@ function renderSocialInbox() {
   }).join('');
 }
 
+function claimRequestActionButtons(claim) {
+  const id = escapeHtml(claim.id || '');
+  const status = String(claim.status || '').toLowerCase();
+  const buttons = [
+    ['acknowledged', 'Acknowledge'],
+    ['needs_more_info', 'Needs Info'],
+    ['claim_verified', 'Verify'],
+    ['rejected', 'Reject'],
+  ].filter(([nextStatus]) => nextStatus !== status);
+
+  return buttons.map(([nextStatus, label]) => `
+    <button class="row-action row-action--ghost" type="button" data-claim-request-id="${id}" data-claim-request-action="${escapeHtml(nextStatus)}">${escapeHtml(label)}</button>
+  `).join('');
+}
+
+function renderClaimRequests() {
+  if (!selectors.claimRequests) return;
+
+  const claims = state.claimRequests || [];
+  const counts = claims.reduce((acc, claim) => {
+    const status = String(claim.status || 'unknown').toLowerCase();
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
+
+  if (selectors.claimRequestSummary) {
+    const rows = [
+      ['Submitted', counts.claim_submitted || 0],
+      ['Acknowledged', counts.acknowledged || 0],
+      ['Needs Info', counts.needs_more_info || 0],
+      ['Verified', counts.claim_verified || 0],
+      ['Rejected', counts.rejected || 0],
+    ];
+    selectors.claimRequestSummary.innerHTML = rows.map(([label, value]) => `
+      <div class="growth-agent-card">
+        <strong>${escapeHtml(formatCount(value))}</strong>
+        <span>${escapeHtml(label)}</span>
+      </div>
+    `).join('');
+  }
+
+  if (selectors.claimRequestLoadedAt) {
+    selectors.claimRequestLoadedAt.textContent = state.claimRequestsLoadedAt
+      ? `Loaded ${formatDate(state.claimRequestsLoadedAt)}`
+      : '';
+  }
+
+  if (!claims.length) {
+    selectors.claimRequests.innerHTML = `
+      <article class="growth-agent-empty growth-agent-empty--card">No claim requests match this filter yet.</article>
+    `;
+    return;
+  }
+
+  selectors.claimRequests.innerHTML = claims.map((claim) => {
+    const contact = [
+      claim.ownerName,
+      claim.ownerEmail,
+      claim.ownerPhone,
+    ].filter(Boolean).join(' / ') || 'No owner contact';
+    const proofUrl = claim.proofUpload?.downloadUrl || claim.proofUpload?.url || '';
+    const profileUrl = claim.truckProfileUrl || '';
+    const statusReason = claim.statusReason || claim.statusNotes || '';
+
+    return `
+      <article class="claim-request-card">
+        <div class="claim-request-card__main">
+          <strong>${escapeHtml(claim.truckName || 'Unnamed truck')}</strong>
+          <span>${escapeHtml(claim.city || 'No city listed')}</span>
+          <span>${escapeHtml(contact)}</span>
+          ${claim.websiteOrSocialProof ? `<span>${escapeHtml(claim.websiteOrSocialProof)}</span>` : ''}
+          ${claim.message ? `<p>${escapeHtml(claim.message)}</p>` : ''}
+          ${statusReason ? `<p class="draft-review-card__reason">${escapeHtml(statusReason)}</p>` : ''}
+        </div>
+        <div class="claim-request-card__meta">
+          <span class="status-pill">${escapeHtml(growthStatusLabel(claim.status))}</span>
+          <span>${escapeHtml(formatDate(claim.createdAt))}</span>
+          <div class="claim-request-card__links">
+            ${profileUrl ? `<a class="row-action row-action--ghost" href="${escapeHtml(profileUrl)}" target="_blank" rel="noreferrer">Profile</a>` : ''}
+            ${proofUrl ? `<a class="row-action row-action--ghost" href="${escapeHtml(proofUrl)}" target="_blank" rel="noreferrer">Proof</a>` : ''}
+          </div>
+          <div class="claim-request-card__actions">
+            ${claimRequestActionButtons(claim)}
+          </div>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
 function renderClaimFunnel() {
   const report = state.claimFunnelReport || {};
   const totals = report.totals || {};
@@ -1753,6 +1885,7 @@ function renderAll() {
   renderAgentPanel();
   renderDraftReviewQueue();
   renderSocialInbox();
+  renderClaimRequests();
   renderClaimFunnel();
   renderWeeklyReport();
   renderAttributionPerformance();
@@ -1829,13 +1962,41 @@ async function loadClaimsTab(force = false) {
   if (!force && state.loadedTabs.claims) return;
 
   const status = state.selectedStatus === 'all' ? '' : `&status=${encodeURIComponent(state.selectedStatus)}`;
-  const [leadsPayload, claimFunnelPayload] = await Promise.all([
+  const claimRequestParams = new URLSearchParams({
+    status: state.selectedClaimRequestStatus || 'all',
+    limit: '50',
+  });
+  const [claimRequestsResult, leadsResult, claimFunnelResult] = await Promise.allSettled([
+    callOwnerClaimAdmin(claimRequestParams.toString()),
     callGrowthAgent(`/admin/owner-outreach-leads?limit=100${status}`),
     callGrowthAgent('/admin/claim-funnel-report?limit=25'),
   ]);
-  state.leads = leadsPayload.leads || [];
-  state.claimFunnelReport = claimFunnelPayload.report || null;
+
+  if (claimRequestsResult.status === 'fulfilled') {
+    state.claimRequests = claimRequestsResult.value.claims || [];
+    state.claimRequestsLoadedAt = new Date().toISOString();
+  } else {
+    state.claimRequests = [];
+    state.claimRequestsLoadedAt = '';
+    console.warn('Claim request load failed', claimRequestsResult.reason);
+  }
+
+  if (leadsResult.status === 'fulfilled') {
+    state.leads = leadsResult.value.leads || [];
+  } else {
+    state.leads = [];
+    console.warn('Owner lead load failed', leadsResult.reason);
+  }
+
+  if (claimFunnelResult.status === 'fulfilled') {
+    state.claimFunnelReport = claimFunnelResult.value.report || null;
+  } else {
+    state.claimFunnelReport = null;
+    console.warn('Claim funnel load failed', claimFunnelResult.reason);
+  }
+
   state.loadedTabs.claims = true;
+  renderClaimRequests();
   renderClaimFunnel();
   renderLeads();
 }
@@ -2547,6 +2708,50 @@ async function updateSocialThreadStatus(threadId, status) {
   }
 }
 
+async function runClaimRequestAction(claimRequestId, status) {
+  if (!claimRequestId || !status) return;
+
+  const body = {
+    claimRequestId,
+    status,
+    notes: '',
+  };
+
+  if (status === 'rejected' || status === 'needs_more_info') {
+    const reason = window.prompt(status === 'rejected'
+      ? 'Why reject this claim?'
+      : 'What information do we need from the owner?');
+    if (!reason || !reason.trim()) return;
+    body.reason = reason.trim();
+  }
+
+  if (status === 'acknowledged') {
+    body.notes = 'Acknowledged from the Growth Agent claim review panel.';
+  }
+
+  if (status === 'claim_verified') {
+    const note = window.prompt('Optional verification note');
+    if (note && note.trim()) body.notes = note.trim();
+  }
+
+  setLoading(true);
+  setMessage(selectors.message, `Updating claim to ${growthStatusLabel(status).toLowerCase()}...`);
+
+  try {
+    await callOwnerClaimAdmin('', {
+      method: 'POST',
+      body,
+    });
+    setMessage(selectors.message, `Claim marked ${growthStatusLabel(status).toLowerCase()}.`);
+    invalidateGrowthCache('claims');
+    await loadGrowthAgent({force: true, tab: 'claims'});
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Unable to update claim request.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
 async function runDraftAction(draftId, action) {
   if (!draftId || !action) return;
   if (action === 'media-required') {
@@ -2719,6 +2924,11 @@ selectors.draftReviewRefresh?.addEventListener('click', () => {
   void loadGrowthAgent({force: true, tab: 'review'});
 });
 
+selectors.claimRequestRefresh?.addEventListener('click', () => {
+  invalidateGrowthCache('claims');
+  void loadGrowthAgent({force: true, tab: 'claims'});
+});
+
 selectors.mediaGenerate?.addEventListener('click', () => {
   void generateMediaAssets();
 });
@@ -2849,6 +3059,15 @@ document.addEventListener('click', (event) => {
     return;
   }
 
+  const claimRequestButton = event.target.closest('[data-claim-request-action]');
+  if (claimRequestButton) {
+    void runClaimRequestAction(
+      claimRequestButton.dataset.claimRequestId || '',
+      claimRequestButton.dataset.claimRequestAction || ''
+    );
+    return;
+  }
+
   const button = event.target.closest('[data-draft-action]');
   if (!button) return;
   void runDraftAction(button.dataset.draftId || '', button.dataset.draftAction || '');
@@ -2885,6 +3104,12 @@ selectors.status?.addEventListener('change', (event) => {
   void loadGrowthAgent({force: true, tab: 'claims'});
 });
 
+selectors.claimRequestStatus?.addEventListener('change', (event) => {
+  state.selectedClaimRequestStatus = event.target.value || 'all';
+  invalidateGrowthCache('claims');
+  void loadGrowthAgent({force: true, tab: 'claims'});
+});
+
 window.addEventListener('hashchange', expandPanelForHash);
 
 initCollapsiblePanels();
@@ -2898,6 +3123,8 @@ auth.onAuthStateChanged(async (user) => {
       selectors.sessionSummary.textContent = '';
     }
     state.socialDrafts = [];
+    state.claimRequests = [];
+    state.claimRequestsLoadedAt = '';
     state.draftReviewQueue = null;
     state.socialInbox = null;
     state.claimFunnelReport = null;
@@ -2915,6 +3142,7 @@ auth.onAuthStateChanged(async (user) => {
     renderAgentPanel();
     renderDraftReviewQueue();
     renderSocialInbox();
+    renderClaimRequests();
     renderClaimFunnel();
     renderWeeklyReport();
     renderAttributionPerformance();

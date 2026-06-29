@@ -836,6 +836,23 @@ h1 {
   line-height: 1.55;
 }
 
+.claim-optional-panel {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 14px 16px;
+}
+
+.claim-optional-panel summary {
+  cursor: pointer;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.claim-form-grid--optional {
+  margin-top: 16px;
+}
+
 .claim-status,
 .claim-result {
   border: 1px solid var(--line);

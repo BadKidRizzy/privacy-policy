@@ -27,7 +27,7 @@
     href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
     rel="stylesheet"
   >
-  <link rel="stylesheet" href="../assets/site.css?v=3">
+  <link rel="stylesheet" href="../assets/site.css?v=4">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -68,18 +68,16 @@
       <section class="hero">
         <div class="hero__copy">
           <p class="eyebrow">For Food Truck Owners</p>
-          <h1>Claim your truck profile so customers know where to find you.</h1>
+          <h1>Claim your food truck profile.</h1>
           <p class="hero__lede">
-            Food Truck Finder helps owners keep profile, schedule, menu, photos, and contact details
-            in one place. Claims are reviewed before a profile is connected to an owner account.
+            Tell us which truck is yours and how to reach you. We review each claim before connecting
+            a profile to an owner account.
           </p>
 
           <div class="hero__pills">
-            <span>Manual claim review</span>
-            <span>Profile updates</span>
-            <span>Menu visibility</span>
-            <span>Schedule details</span>
-            <span>Owner support</span>
+            <span>Quick form</span>
+            <span>Manual review</span>
+            <span>Email follow-up</span>
           </div>
 
           <div class="hero__actions">
@@ -115,11 +113,10 @@
 
       <section class="section claim-form-section" id="claim-form">
         <div class="section-heading">
-          <p class="eyebrow">Search Before Claiming</p>
-          <h2>Find your truck first, then submit the claim.</h2>
+          <p class="eyebrow">Start Here</p>
+          <h2>Find your truck, then send the claim.</h2>
           <p>
-            If your truck appears in the search results, select it before submitting. If it does not
-            appear yet, continue with a new claim request.
+            Search if you already saw a profile. If you do not find it, you can still submit the form.
           </p>
         </div>
 
@@ -132,11 +129,11 @@
           <div class="claim-search-panel">
             <div class="claim-field">
               <label for="truck-search">Truck name</label>
-              <input id="truck-search" name="truckSearch" type="search" autocomplete="organization" placeholder="Example: Taco Seed">
+              <input id="truck-search" name="truckSearch" type="search" autocomplete="organization" placeholder="Example: Alos Tacos">
             </div>
             <div class="claim-field">
-              <label for="truck-search-city">City or market</label>
-              <input id="truck-search-city" name="truckSearchCity" type="text" autocomplete="address-level2" placeholder="Example: Baltimore">
+              <label for="truck-search-city">City</label>
+              <input id="truck-search-city" name="truckSearchCity" type="text" autocomplete="address-level2" placeholder="Example: Chicago">
             </div>
             <button class="button button--secondary" type="button" data-claim-search>Search Trucks</button>
           </div>
@@ -153,7 +150,7 @@
             </div>
 
             <div class="claim-field">
-              <label for="city">City or market <span>required</span></label>
+              <label for="city">City <span>required</span></label>
               <input id="city" name="city" type="text" autocomplete="address-level2" required maxlength="100">
             </div>
 
@@ -172,31 +169,36 @@
               <input id="owner-phone" name="ownerPhone" type="tel" autocomplete="tel" required maxlength="32">
             </div>
 
-            <div class="claim-field">
-              <label for="business-email">Business email <span>optional proof</span></label>
-              <input id="business-email" name="businessEmail" type="email" autocomplete="email" maxlength="254">
-            </div>
-
             <div class="claim-field claim-field--wide">
-              <label for="website-proof">Website, Instagram, Facebook, or other official proof <span>required</span></label>
+              <label for="website-proof">Official website or social page <span>required</span></label>
               <input id="website-proof" name="websiteOrSocialProof" type="text" required maxlength="500" placeholder="https://example.com or @yourtruck">
             </div>
 
-            <div class="claim-field claim-field--wide">
-              <label for="truck-profile-url">Existing Food Truck Finder profile URL <span>optional</span></label>
-              <input id="truck-profile-url" name="truckProfileUrl" type="url" maxlength="500" placeholder="https://www.ftf-foodtruckfinder.com/truck/...">
-            </div>
+            <details class="claim-optional-panel claim-field--wide">
+              <summary>Add proof or notes</summary>
+              <div class="claim-form-grid claim-form-grid--optional">
+                <div class="claim-field">
+                  <label for="business-email">Business email <span>optional</span></label>
+                  <input id="business-email" name="businessEmail" type="email" autocomplete="email" maxlength="254">
+                </div>
 
-            <div class="claim-field claim-field--wide">
-              <label for="proof-file">Photo proof <span>optional</span></label>
-              <input id="proof-file" name="proofFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf">
-              <p class="claim-help">Optional JPG, PNG, WebP, or PDF up to 3 MB. A truck, menu, license, or official document can speed up review.</p>
-            </div>
+                <div class="claim-field">
+                  <label for="truck-profile-url">Food Truck Finder profile URL <span>optional</span></label>
+                  <input id="truck-profile-url" name="truckProfileUrl" type="url" maxlength="500" placeholder="https://www.ftf-foodtruckfinder.com/truck/...">
+                </div>
 
-            <div class="claim-field claim-field--wide">
-              <label for="message">Message <span>optional</span></label>
-              <textarea id="message" name="message" rows="5" maxlength="1200" placeholder="Anything else we should know before reviewing the claim?"></textarea>
-            </div>
+                <div class="claim-field claim-field--wide">
+                  <label for="proof-file">Photo or document proof <span>optional</span></label>
+                  <input id="proof-file" name="proofFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf">
+                  <p class="claim-help">JPG, PNG, WebP, or PDF up to 3 MB. A truck, menu, license, or official document can speed up review.</p>
+                </div>
+
+                <div class="claim-field claim-field--wide">
+                  <label for="message">Message <span>optional</span></label>
+                  <textarea id="message" name="message" rows="3" maxlength="1200" placeholder="Anything else we should know?"></textarea>
+                </div>
+              </div>
+            </details>
           </div>
 
           <div class="claim-submit-row">
@@ -292,6 +294,6 @@
 
   <script src="../assets/attribution.js?v=1"></script>
   <script src="../assets/site.js?v=1"></script>
-  <script src="../assets/claim-page.js?v=2"></script>
+  <script src="../assets/claim-page.js?v=3"></script>
 </body>
 </html>

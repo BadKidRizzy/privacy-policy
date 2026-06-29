@@ -255,7 +255,6 @@ function formatClaimSummary(truck) {
   const parts = [
     truck.name || 'This truck',
     truck.currentAddress,
-    state.truckId ? `ID ${state.truckId}` : '',
   ].filter(Boolean);
 
   return `You are claiming: ${parts.join(' - ')}`;

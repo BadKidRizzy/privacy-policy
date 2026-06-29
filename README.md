@@ -63,13 +63,13 @@ This repo hosts the public static pages for Food Truck Finder.
 - Generated truck pages must use "profile awaiting owner claim" style wording for seeded trucks.
 - Generated claim links prefill `/claim-your-food-truck/?truck=TruckName&city=City&profile=/truck/slug/`.
 - The claim form posts to the Firebase HTTPS function `submitOwnerClaimRequest`.
-- The backend records `claim_started`, `claim_submitted`, and later management updates for `claim_verified`, `rejected`, or `needs_more_info`.
+- The backend records `claim_started`, `claim_submitted`, and later management updates for `acknowledged`, `claim_verified`, `rejected`, or `needs_more_info`.
 - Public pages preserve Growth Agent tracking slugs through `ftf_attribution_slug` / `tracking_slug`, then send `claim_started`, `claim_submitted`, and app-store click events to the Growth Agent attribution loop.
 - Claim auto-response email drafts are created by the backend, but real email sending remains disabled until a provider is intentionally connected.
 - The `/admin/growth-agent/` console calls `https://food-truck-growth-agent-xmel35gaya-uc.a.run.app` with the signed-in Firebase Auth ID token from `food-truck-finder-prod`.
 - The Growth Agent page includes a Growth Autopilot panel for generating reviewable social content calendars, tracking links, scores, and recommendations.
 - The Growth Agent page includes a draft review queue with full post previews, truck profile links, tracking links, copy-caption buttons, approval actions, and filters for needs approval, approved, scheduled, published, rejected, and all drafts.
-- The Growth Agent page includes a daily automation button that calls `POST /admin/daily-growth-automation`, plus claim funnel and weekly growth report dashboards.
+- The Growth Agent page includes a daily automation button that calls `POST /admin/daily-growth-automation`, plus owner claim request review, claim funnel, and weekly growth report dashboards.
 - The Growth Agent page includes a Weekly City Digests panel that creates review-only social, email, push, and SEO draft packs through `POST /admin/weekly-city-digests`.
 - The Growth Agent page includes an Autonomous Agent panel for the latest briefing, open task queue, saved instructions, and recent memory records.
 - The Growth Agent page includes an Attribution tab that shows tracked clicks, downstream app/claim actions, strongest sources/campaigns, and a manual learning-loop run button.

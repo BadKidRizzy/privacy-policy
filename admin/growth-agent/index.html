@@ -18,7 +18,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../../assets/site.css?v=1">
-  <link rel="stylesheet" href="../../assets/management-console.css?v=32">
+  <link rel="stylesheet" href="../../assets/management-console.css?v=33">
 </head>
 <body class="console-body growth-agent-page">
   <div class="console-shell">
@@ -288,6 +288,37 @@
           </div>
         </section>
 
+        <section class="growth-agent-panel growth-agent-claim-requests-panel" id="claim-requests" data-panel-key="claim-requests" data-panel-default="open" data-growth-agent-tab-panel="claims">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Claim Review</p>
+              <h3>Owner Claim Requests</h3>
+              <p>Review submitted truck claims, acknowledge new requests, ask for more proof, verify owners, or reject bad claims.</p>
+            </div>
+            <div class="panel-heading__actions">
+              <button class="button button--secondary" type="button" data-claim-request-refresh>Refresh Claims</button>
+            </div>
+          </div>
+
+          <div class="growth-agent-filterbar">
+            <label>
+              Claim Status
+              <select data-claim-request-status>
+                <option value="all">All claims</option>
+                <option value="claim_submitted">Submitted</option>
+                <option value="acknowledged">Acknowledged</option>
+                <option value="needs_more_info">Needs more info</option>
+                <option value="claim_verified">Verified</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </label>
+            <span data-claim-request-loaded-at></span>
+          </div>
+
+          <div class="growth-agent-grid growth-agent-grid--dashboard" data-claim-request-summary></div>
+          <div class="claim-request-list" data-claim-requests></div>
+        </section>
+
         <section class="growth-agent-panel growth-agent-claim-panel" id="claim-funnel" data-panel-key="claim-funnel" data-panel-default="open" data-growth-agent-tab-panel="claims">
           <div class="panel-heading">
             <div>
@@ -538,6 +569,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script defer src="../../assets/growth-agent-console.js?v=23"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=24"></script>
 </body>
 </html>
