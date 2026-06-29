@@ -588,6 +588,10 @@ function getScheduleEntries(truck) {
 }
 
 function renderSchedule(truck) {
+  if (!selectors.scheduleList) {
+    return;
+  }
+
   const schedule = getScheduleEntries(truck);
   selectors.scheduleList.textContent = '';
 
