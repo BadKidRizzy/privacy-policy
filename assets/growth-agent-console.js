@@ -8,7 +8,7 @@ const firebaseConfig = {
 };
 
 const GROWTH_AGENT_API_BASE_URL = 'https://food-truck-growth-agent-xmel35gaya-uc.a.run.app';
-const OWNER_CLAIM_ADMIN_ENDPOINT = 'https://us-central1-food-truck-finder-4414c.cloudfunctions.net/manageOwnerClaimRequests';
+const OWNER_CLAIM_ADMIN_ENDPOINT = 'https://us-central1-food-truck-finder-prod.cloudfunctions.net/manageOwnerClaimRequests';
 const PUBLIC_TRUCK_SHARE_BASE_URL = 'https://www.ftf-foodtruckfinder.com/truck/';
 const PUBLIC_SITE_BASE_URL = 'https://www.ftf-foodtruckfinder.com';
 const GROWTH_AGENT_STATUSES = [
