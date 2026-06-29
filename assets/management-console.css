@@ -1507,6 +1507,18 @@
   object-fit: cover;
 }
 
+.draft-media-selected img[data-media-preview-image],
+.draft-media-candidate img[data-media-preview-image] {
+  opacity: 1;
+  transition: opacity 0.18s ease;
+}
+
+.draft-media-selected img[data-media-lazy-src],
+.draft-media-candidate img[data-media-lazy-src] {
+  opacity: 0.48;
+  object-fit: contain;
+}
+
 .draft-media-placeholder {
   display: grid;
   place-items: center;

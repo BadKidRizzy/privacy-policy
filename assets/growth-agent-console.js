@@ -13,6 +13,7 @@ const PUBLIC_TRUCK_SHARE_BASE_URL = 'https://www.ftf-foodtruckfinder.com/truck/'
 const PUBLIC_SITE_BASE_URL = 'https://www.ftf-foodtruckfinder.com';
 const DRAFT_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 const DRAFT_IMAGE_MAX_DIMENSION = 1600;
+const MEDIA_PREVIEW_PLACEHOLDER_IMAGE = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 const GROWTH_AGENT_STATUSES = [
   'needs_review',
   'not_contacted',
@@ -71,6 +72,8 @@ const state = {
   lastAgentRun: null,
   lastAttributionRun: null,
 };
+
+let mediaPreviewObserver = null;
 
 const selectors = {
   authSection: document.querySelector('[data-auth-section]'),
@@ -976,10 +979,57 @@ function isLikelyImageUrl(value) {
     if (/\.(jpg|jpeg|png|webp|gif)$/i.test(path)) return true;
     if (url.search.toLowerCase().includes('alt=media') && (host.includes('firebasestorage.googleapis.com') || host.includes('storage.googleapis.com'))) return true;
     if (host === 'picsum.photos') return true;
+    if (host.endsWith('.gstatic.com') || host.endsWith('.googleusercontent.com')) return true;
     return host === 'images.squarespace-cdn.com' || host === 'cdn.prod.website-files.com';
   } catch {
     return false;
   }
+}
+
+function mediaPreviewUrl(candidate) {
+  const thumbnailUrl = String(candidate?.thumbnail_url || '').trim();
+  if (thumbnailUrl) return thumbnailUrl;
+  return String(candidate?.source_url || '').trim();
+}
+
+function loadLazyMediaPreview(image) {
+  if (!(image instanceof HTMLImageElement)) return;
+  const url = image.dataset.mediaLazySrc || '';
+  if (!url) return;
+  image.src = url;
+  image.removeAttribute('data-media-lazy-src');
+}
+
+function ensureMediaPreviewObserver() {
+  if (mediaPreviewObserver !== null) return mediaPreviewObserver;
+  if (!('IntersectionObserver' in window)) {
+    mediaPreviewObserver = false;
+    return mediaPreviewObserver;
+  }
+
+  mediaPreviewObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      loadLazyMediaPreview(entry.target);
+      mediaPreviewObserver.unobserve(entry.target);
+    });
+  }, {
+    rootMargin: '640px 0px',
+    threshold: 0.01,
+  });
+  return mediaPreviewObserver;
+}
+
+function hydrateLazyMediaPreviews(root = document) {
+  const images = Array.from(root.querySelectorAll('img[data-media-preview-image][data-media-lazy-src]'));
+  if (!images.length) return;
+
+  const observer = ensureMediaPreviewObserver();
+  if (!observer) {
+    images.forEach(loadLazyMediaPreview);
+    return;
+  }
+  images.forEach((image) => observer.observe(image));
 }
 
 function readBlobAsDataUrl(blob) {
@@ -1070,9 +1120,10 @@ async function buildDraftImageUploadPayload(file) {
 }
 
 function mediaPreviewMarkup(candidate, fallbackText = 'Open Source') {
-  const url = candidate.thumbnail_url || candidate.source_url;
-  if (isLikelyImageUrl(url)) {
-    return `<img src="${escapeHtml(url)}" alt="${escapeHtml(candidate.alt_text || candidate.title || 'Media candidate')}" data-media-preview-image>`;
+  const url = mediaPreviewUrl(candidate);
+  const hasThumbnail = Boolean(String(candidate?.thumbnail_url || '').trim());
+  if (hasThumbnail || isLikelyImageUrl(url)) {
+    return `<img src="${MEDIA_PREVIEW_PLACEHOLDER_IMAGE}" data-media-lazy-src="${escapeHtml(url)}" data-media-full-src="${escapeHtml(candidate.source_url || url)}" alt="${escapeHtml(candidate.alt_text || candidate.title || 'Media candidate')}" loading="lazy" decoding="async" fetchpriority="low" width="92" height="69" data-media-preview-image>`;
   }
   return `<span class="draft-media-placeholder">${escapeHtml(fallbackText)}</span>`;
 }
@@ -1413,6 +1464,7 @@ function renderDraftReviewQueue() {
       </article>
     `;
   }).join('');
+  hydrateLazyMediaPreviews(selectors.draftReviewQueue);
 }
 
 function socialPlatformLabel(value) {
@@ -3345,6 +3397,12 @@ document.addEventListener('submit', (event) => {
     void uploadDraftImage(draftImageForm);
   }
 });
+
+document.addEventListener('toggle', (event) => {
+  const details = event.target;
+  if (!(details instanceof HTMLDetailsElement) || !details.open) return;
+  details.querySelectorAll('img[data-media-preview-image][data-media-lazy-src]').forEach(loadLazyMediaPreview);
+}, true);
 
 document.addEventListener('error', (event) => {
   const image = event.target;
