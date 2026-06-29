@@ -140,7 +140,7 @@ const tabConfig = {
     description: 'Owner account management, truck limits, and account status.',
     collection: 'users',
     filter: (record) => record.userType === 'Owner',
-    columns: ['Owner', 'Email', 'Trucks', 'Access', 'Status', 'Auth', 'Action'],
+    columns: ['Owner', 'Email', 'Trucks', 'Access', 'Status', 'Auth', 'Created', 'Action'],
     searchLabel: 'Search Owners',
     searchPlaceholder: 'Search owner name, email, phone, address...',
     createLabel: '',
@@ -150,7 +150,7 @@ const tabConfig = {
     description: 'Review truck profiles, public visibility, missing details, and owner access.',
     collection: 'foodTrucks',
     filter: () => true,
-    columns: ['Truck', 'Owner', 'Phone', 'Location', 'Public Status', 'Profile Health', 'Updated', 'Actions'],
+    columns: ['Truck', 'Owner', 'Phone', 'Location', 'Public Status', 'Profile Health', 'Created', 'Updated', 'Actions'],
     searchLabel: 'Search Trucks',
     searchPlaceholder: 'Search truck, phone, owner email, location, cuisine, tag...',
     createLabel: 'Create Truck',
@@ -170,7 +170,7 @@ const tabConfig = {
     description: 'Organizer accounts, organization details, and event access.',
     collection: 'users',
     filter: (record) => record.userType === 'Organizer',
-    columns: ['Organizer', 'Organization', 'Email', 'Events', 'Access', 'Status', 'Action'],
+    columns: ['Organizer', 'Organization', 'Email', 'Events', 'Access', 'Status', 'Created', 'Action'],
     searchLabel: 'Search Organizers',
     searchPlaceholder: 'Search organizer, organization, email, phone...',
     createLabel: '',
@@ -180,7 +180,7 @@ const tabConfig = {
     description: 'Event records, organizer ownership, capacity, and public status.',
     collection: 'events',
     filter: () => true,
-    columns: ['Event', 'Organizer', 'When', 'Capacity', 'Status', 'Updated', 'Action'],
+    columns: ['Event', 'Organizer', 'When', 'Capacity', 'Status', 'Created', 'Updated', 'Action'],
     searchLabel: 'Search Events',
     searchPlaceholder: 'Search event, organizer, address, status...',
     createLabel: 'Create Event',
@@ -583,6 +583,7 @@ function getSortValue(tab, column, record) {
     if (column === 'Access') return record.unlimitedTrucks || record.unlimitedInvites ? 999999 : Number(record.invitesAllowed || 0);
     if (column === 'Status') return record.accountStatus || 'active';
     if (column === 'Auth') return record.authDisabled ? 'disabled' : 'enabled';
+    if (column === 'Created') return toTimestamp(record.createdAt);
   }
 
   if (tab === 'trucks') {
@@ -592,6 +593,7 @@ function getSortValue(tab, column, record) {
     if (column === 'Location') return record.currentAddress || '';
     if (column === 'Public Status') return getTruckStatusValue(record);
     if (column === 'Profile Health') return getTruckHealthScore(record);
+    if (column === 'Created') return toTimestamp(record.createdAt);
     if (column === 'Updated') return toTimestamp(record.updatedAt || record.managementUpdatedAt);
   }
 
@@ -610,6 +612,7 @@ function getSortValue(tab, column, record) {
     if (column === 'Events') return getEventCountForOrganizer(record.id);
     if (column === 'Access') return record.unlimitedEvents ? 'unlimited events' : 'standard';
     if (column === 'Status') return record.accountStatus || 'active';
+    if (column === 'Created') return toTimestamp(record.createdAt);
   }
 
   if (tab === 'events') {
@@ -618,6 +621,7 @@ function getSortValue(tab, column, record) {
     if (column === 'When') return toTimestamp(record.startAt);
     if (column === 'Capacity') return Number(record.truckCapacity || 0);
     if (column === 'Status') return record.status || 'open';
+    if (column === 'Created') return toTimestamp(record.createdAt);
     if (column === 'Updated') return toTimestamp(record.updatedAt);
   }
 
@@ -1154,6 +1158,7 @@ function renderOwnerRow(record) {
       <td>${escapeHtml(access)}</td>
       <td>${statusPill(record.accountStatus || 'active')}</td>
       <td>${statusPill(record.authDisabled ? 'disabled' : 'enabled')}</td>
+      <td>${formatShortDate(record.createdAt)}</td>
       <td>${actionButton('users', record.id)}</td>
     </tr>
   `;
@@ -1184,6 +1189,7 @@ function renderOrganizerRow(record) {
       <td>${eventCount}</td>
       <td>${escapeHtml(access)}</td>
       <td>${statusPill(record.accountStatus || 'active')}</td>
+      <td>${formatShortDate(record.createdAt)}</td>
       <td>${actionButton('users', record.id)}</td>
     </tr>
   `;
@@ -1208,6 +1214,7 @@ function renderTruckRow(record) {
       <td class="truck-address-cell">${escapeHtml(record.currentAddress || 'No address')}</td>
       <td>${renderTruckVisibility(record)}</td>
       <td>${renderTruckHealth(record)}</td>
+      <td class="truck-date-cell">${formatShortDate(record.createdAt)}</td>
       <td class="truck-updated-cell">
         ${formatShortDate(record.updatedAt)}
         <span class="muted-cell">${statusPill(status, ['closed', 'hidden', 'archived'])}</span>
@@ -1236,6 +1243,7 @@ function renderEventRow(record) {
       <td>${formatDate(record.startAt)}</td>
       <td>${accepted}/${capacity || 'unset'}</td>
       <td>${statusPill(record.status || 'open')}</td>
+      <td>${formatShortDate(record.createdAt)}</td>
       <td>${formatShortDate(record.updatedAt)}</td>
       <td>${actionButton('events', record.id)}</td>
     </tr>

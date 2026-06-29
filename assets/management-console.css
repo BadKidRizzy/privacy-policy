@@ -1736,7 +1736,7 @@
 }
 
 .management-table--trucks {
-  min-width: 1480px;
+  min-width: 1700px;
   table-layout: fixed;
 }
 
@@ -1908,18 +1908,24 @@
 
 .management-table--trucks th:nth-child(7),
 .management-table--trucks td:nth-child(7) {
-  width: 140px;
+  width: 130px;
 }
 
 .management-table--trucks th:nth-child(8),
 .management-table--trucks td:nth-child(8) {
+  width: 130px;
+}
+
+.management-table--trucks th:nth-child(9),
+.management-table--trucks td:nth-child(9) {
   width: 270px;
 }
 
 .management-table--trucks td:nth-child(5),
 .management-table--trucks td:nth-child(6),
 .management-table--trucks td:nth-child(7),
-.management-table--trucks td:nth-child(8) {
+.management-table--trucks td:nth-child(8),
+.management-table--trucks td:nth-child(9) {
   vertical-align: middle;
 }
 
