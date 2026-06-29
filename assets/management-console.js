@@ -26,6 +26,13 @@ const state = {
     organizers: '',
     events: '',
   },
+  tableSortByTab: {
+    owners: {column: '', direction: 'asc'},
+    trucks: {column: '', direction: 'asc'},
+    foodies: {column: '', direction: 'asc'},
+    organizers: {column: '', direction: 'asc'},
+    events: {column: '', direction: 'asc'},
+  },
   truckFilters: {
     claim: 'all',
     movement: 'all',
@@ -124,6 +131,8 @@ const SEED_CALLABLE_MAX_PAYLOAD_BYTES = 8 * 1024 * 1024;
 const INITIAL_BULK_ROW_COUNT = 5;
 const PUBLIC_TRUCK_SHARE_BASE_URL = 'https://www.ftf-foodtruckfinder.com/truck/';
 const LIST_FIELD_NAMES = new Set(['socialLinks', 'cuisines', 'tags', 'seedWarnings']);
+const NON_SORTABLE_COLUMNS = new Set(['Action', 'Actions']);
+const DESC_SORT_COLUMNS = new Set(['Trucks', 'Events', 'Capacity', 'Created', 'Updated', 'When', 'Profile Health']);
 
 const tabConfig = {
   owners: {
@@ -537,6 +546,133 @@ function compareText(left, right) {
   return String(left || '').localeCompare(String(right || ''), undefined, {sensitivity: 'base'});
 }
 
+function getCurrentTableSort(tab = state.activeTab) {
+  return state.tableSortByTab[tab] || {column: '', direction: 'asc'};
+}
+
+function hasActiveTableSort(tab = state.activeTab) {
+  return Boolean(getCurrentTableSort(tab).column);
+}
+
+function getDefaultSortDirection(column) {
+  return DESC_SORT_COLUMNS.has(column) ? 'desc' : 'asc';
+}
+
+function getTruckStatusValue(record) {
+  if (record.archived === true) return 'archived';
+  if (record.isMapHidden === true) return 'hidden';
+  return record.isOpen ? 'open' : 'closed';
+}
+
+function getTruckHealthScore(record) {
+  const warnings = getTruckValidationWarnings(record).slice();
+  if (record.archived === true) {
+    warnings.push('archived');
+  }
+  return warnings.length;
+}
+
+function getSortValue(tab, column, record) {
+  const owner = tab === 'trucks' ? getUserById(record.ownerUid || record.ownerId) : null;
+  const organizer = tab === 'events' ? getUserById(record.organizerId) : null;
+
+  if (tab === 'owners') {
+    if (column === 'Owner') return record.name || '';
+    if (column === 'Email') return record.email || '';
+    if (column === 'Trucks') return getTruckCountForOwner(record.id);
+    if (column === 'Access') return record.unlimitedTrucks || record.unlimitedInvites ? 999999 : Number(record.invitesAllowed || 0);
+    if (column === 'Status') return record.accountStatus || 'active';
+    if (column === 'Auth') return record.authDisabled ? 'disabled' : 'enabled';
+  }
+
+  if (tab === 'trucks') {
+    if (column === 'Truck') return record.name || '';
+    if (column === 'Owner') return owner?.name || record.ownerEmail || getOwnerDetail(record, owner);
+    if (column === 'Phone') return record.businessPhone || '';
+    if (column === 'Location') return record.currentAddress || '';
+    if (column === 'Public Status') return getTruckStatusValue(record);
+    if (column === 'Profile Health') return getTruckHealthScore(record);
+    if (column === 'Updated') return toTimestamp(record.updatedAt || record.managementUpdatedAt);
+  }
+
+  if (tab === 'foodies') {
+    if (column === 'Foodie') return record.name || '';
+    if (column === 'Email') return record.email || '';
+    if (column === 'Status') return record.accountStatus || 'active';
+    if (column === 'Auth') return record.authDisabled ? 'disabled' : 'enabled';
+    if (column === 'Created') return toTimestamp(record.createdAt);
+  }
+
+  if (tab === 'organizers') {
+    if (column === 'Organizer') return record.name || '';
+    if (column === 'Organization') return record.organizationName || '';
+    if (column === 'Email') return record.email || '';
+    if (column === 'Events') return getEventCountForOrganizer(record.id);
+    if (column === 'Access') return record.unlimitedEvents ? 'unlimited events' : 'standard';
+    if (column === 'Status') return record.accountStatus || 'active';
+  }
+
+  if (tab === 'events') {
+    if (column === 'Event') return record.title || '';
+    if (column === 'Organizer') return record.organizationName || organizer?.organizationName || record.organizerName || '';
+    if (column === 'When') return toTimestamp(record.startAt);
+    if (column === 'Capacity') return Number(record.truckCapacity || 0);
+    if (column === 'Status') return record.status || 'open';
+    if (column === 'Updated') return toTimestamp(record.updatedAt);
+  }
+
+  return '';
+}
+
+function compareSortValues(leftValue, rightValue, direction) {
+  const leftMissing = leftValue == null || leftValue === '';
+  const rightMissing = rightValue == null || rightValue === '';
+
+  if (leftMissing && rightMissing) return 0;
+  if (leftMissing) return 1;
+  if (rightMissing) return -1;
+
+  const leftNumber = typeof leftValue === 'number' && Number.isFinite(leftValue);
+  const rightNumber = typeof rightValue === 'number' && Number.isFinite(rightValue);
+  const result = leftNumber && rightNumber
+    ? leftValue - rightValue
+    : compareText(leftValue, rightValue);
+
+  return direction === 'desc' ? result * -1 : result;
+}
+
+function getRecordSortFallback(record) {
+  return record.name || record.title || record.email || record.organizationName || record.id || '';
+}
+
+function sortRecordsByTableHeader(records) {
+  const sort = getCurrentTableSort();
+  if (!sort.column) return records;
+
+  return [...records].sort((left, right) => {
+    const result = compareSortValues(
+      getSortValue(state.activeTab, sort.column, left),
+      getSortValue(state.activeTab, sort.column, right),
+      sort.direction,
+    );
+
+    return result || compareText(getRecordSortFallback(left), getRecordSortFallback(right));
+  });
+}
+
+function setTableSort(column) {
+  if (!column || NON_SORTABLE_COLUMNS.has(column)) return;
+
+  const current = getCurrentTableSort();
+  const direction = current.column === column && current.direction === 'asc'
+    ? 'desc'
+    : current.column === column && current.direction === 'desc'
+      ? 'asc'
+      : getDefaultSortDirection(column);
+
+  state.tableSortByTab[state.activeTab] = {column, direction};
+}
+
 function matchesTruckFilters(record) {
   const filters = state.truckFilters;
   const claimed = record.claimed === true || record.claimStatus === 'claimed';
@@ -658,7 +794,7 @@ function hasActiveSearchOrFilters() {
   const hasSearch = Boolean(getCurrentSearch().trim());
   const hasTruckFilters = state.activeTab === 'trucks' && getActiveTruckFilterCount() > 0;
   const hasTruckSort = state.activeTab === 'trucks' && state.truckSort !== 'recently_updated';
-  return hasSearch || hasTruckFilters || hasTruckSort;
+  return hasSearch || hasTruckFilters || hasTruckSort || hasActiveTableSort();
 }
 
 function getOwnerEmailOptions() {
@@ -786,6 +922,10 @@ function getActiveRecords() {
     .filter((record) => !query || recordText(record).includes(query))
     .filter((record) => state.activeTab !== 'trucks' || matchesTruckFilters(record));
 
+  if (hasActiveTableSort()) {
+    return sortRecordsByTableHeader(records);
+  }
+
   return state.activeTab === 'trucks' ? sortTruckRecords(records) : records;
 }
 
@@ -909,12 +1049,13 @@ function renderTable() {
   const records = getActiveRecords();
   const currentSearch = getCurrentSearch();
   const activeTruckFilterCount = state.activeTab === 'trucks' ? getActiveTruckFilterCount() : 0;
+  const currentSort = getCurrentTableSort();
 
   selectors.panelTitle.textContent = config.title;
   selectors.panelDescription.textContent = config.description;
   selectors.loadedAt.textContent = state.loadedAt ? `Loaded ${formatDate(state.loadedAt)}` : '';
   selectors.managementTable?.classList.toggle('management-table--trucks', state.activeTab === 'trucks');
-  selectors.tableHead.innerHTML = `<tr>${config.columns.map((column) => `<th>${column}</th>`).join('')}</tr>`;
+  selectors.tableHead.innerHTML = renderTableHead(config.columns, currentSort);
   selectors.empty.hidden = records.length > 0;
   if (selectors.createRecord) {
     selectors.createRecord.hidden = !config.createLabel;
@@ -940,7 +1081,11 @@ function renderTable() {
     }
   }
   if (selectors.clearSearch) {
-    selectors.clearSearch.textContent = state.activeTab === 'trucks' ? 'Reset Search & Filters' : 'Clear Search';
+    selectors.clearSearch.textContent = state.activeTab === 'trucks'
+      ? 'Reset Search, Filters & Sort'
+      : hasActiveTableSort()
+        ? 'Reset Search & Sort'
+        : 'Clear Search';
     selectors.clearSearch.disabled = !hasActiveSearchOrFilters();
   }
   if (selectors.filterSummary) {
@@ -962,6 +1107,35 @@ function renderTable() {
     if (state.activeTab === 'trucks') return renderTruckRow(record);
     return renderEventRow(record);
   }).join('');
+}
+
+function renderTableHead(columns, currentSort) {
+  return `
+    <tr>
+      ${columns.map((column) => {
+        if (NON_SORTABLE_COLUMNS.has(column)) {
+          return `<th scope="col">${escapeHtml(column)}</th>`;
+        }
+
+        const isActive = currentSort.column === column;
+        const ariaSort = isActive
+          ? currentSort.direction === 'desc' ? 'descending' : 'ascending'
+          : 'none';
+        const indicator = isActive
+          ? currentSort.direction === 'desc' ? 'v' : '^'
+          : '-';
+
+        return `
+          <th scope="col" aria-sort="${ariaSort}">
+            <button class="table-sort-button" type="button" data-sort-column="${escapeHtml(column)}" aria-label="Sort by ${escapeHtml(column)}">
+              <span>${escapeHtml(column)}</span>
+              <span class="table-sort-indicator" aria-hidden="true">${indicator}</span>
+            </button>
+          </th>
+        `;
+      }).join('')}
+    </tr>
+  `;
 }
 
 function renderOwnerRow(record) {
@@ -1154,6 +1328,7 @@ function renderAll() {
 
 function clearCurrentSearchAndFilters() {
   state.searchByTab[state.activeTab] = '';
+  state.tableSortByTab[state.activeTab] = {column: '', direction: 'asc'};
 
   if (state.activeTab === 'trucks') {
     Object.keys(state.truckFilters).forEach((key) => {
@@ -2517,6 +2692,7 @@ selectors.truckFilterInputs.forEach((input) => {
 
 selectors.truckSort?.addEventListener('change', (event) => {
   state.truckSort = event.target.value || 'recently_updated';
+  state.tableSortByTab.trucks = {column: '', direction: 'asc'};
   renderTable();
 });
 
@@ -2526,6 +2702,15 @@ selectors.search?.addEventListener('input', (event) => {
 });
 
 selectors.clearSearch?.addEventListener('click', clearCurrentSearchAndFilters);
+
+selectors.tableHead?.addEventListener('click', (event) => {
+  const target = event.target instanceof Element ? event.target : null;
+  const sortButton = target?.closest('[data-sort-column]');
+  if (!sortButton) return;
+
+  setTableSort(sortButton.getAttribute('data-sort-column') || '');
+  renderTable();
+});
 
 selectors.tabs.forEach((tab) => {
   tab.addEventListener('click', () => {
