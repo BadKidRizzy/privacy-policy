@@ -1121,15 +1121,16 @@ function renderTableHead(columns, currentSort) {
         const ariaSort = isActive
           ? currentSort.direction === 'desc' ? 'descending' : 'ascending'
           : 'none';
-        const indicator = isActive
-          ? currentSort.direction === 'desc' ? 'v' : '^'
-          : '-';
+        const directionClass = isActive ? ` table-sort-icon--${currentSort.direction}` : '';
 
         return `
           <th scope="col" aria-sort="${ariaSort}">
             <button class="table-sort-button" type="button" data-sort-column="${escapeHtml(column)}" aria-label="Sort by ${escapeHtml(column)}">
               <span>${escapeHtml(column)}</span>
-              <span class="table-sort-indicator" aria-hidden="true">${indicator}</span>
+              <span class="table-sort-icon${directionClass}" aria-hidden="true">
+                <span class="table-sort-icon__up"></span>
+                <span class="table-sort-icon__down"></span>
+              </span>
             </button>
           </th>
         `;

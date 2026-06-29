@@ -1762,11 +1762,16 @@
 .table-sort-button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   max-width: 100%;
-  border: 0;
-  padding: 0;
+  min-height: 30px;
+  border: 0 !important;
+  border-radius: 999px;
+  padding: 5px 8px;
+  appearance: none;
+  -webkit-appearance: none;
   background: transparent;
+  box-shadow: none;
   color: inherit;
   font: inherit;
   font-weight: 800;
@@ -1774,26 +1779,68 @@
   text-align: left;
   text-transform: inherit;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .table-sort-button:hover,
 .table-sort-button:focus-visible {
+  background: rgba(15, 124, 130, 0.08);
   color: var(--ink);
   outline: none;
 }
 
-.table-sort-indicator {
-  flex: 0 0 auto;
-  min-width: 10px;
-  color: rgba(108, 91, 77, 0.72);
-  font-size: 0.68rem;
-  font-weight: 900;
-  line-height: 1;
+.table-sort-button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(15, 124, 130, 0.14);
 }
 
-.management-table th[aria-sort="ascending"] .table-sort-indicator,
-.management-table th[aria-sort="descending"] .table-sort-indicator {
+.table-sort-icon {
+  position: relative;
+  flex: 0 0 auto;
+  width: 8px;
+  height: 12px;
+  opacity: 0.46;
+}
+
+.table-sort-icon__up,
+.table-sort-icon__down {
+  position: absolute;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+
+.table-sort-icon__up {
+  top: 1px;
+  border-bottom: 5px solid currentColor;
+}
+
+.table-sort-icon__down {
+  bottom: 1px;
+  border-top: 5px solid currentColor;
+}
+
+.table-sort-button:hover .table-sort-icon,
+.table-sort-button:focus-visible .table-sort-icon {
+  opacity: 0.78;
+}
+
+.management-table th[aria-sort="ascending"] .table-sort-button,
+.management-table th[aria-sort="descending"] .table-sort-button {
+  background: rgba(15, 124, 130, 0.1);
   color: var(--accent-deep);
+}
+
+.management-table th[aria-sort="ascending"] .table-sort-icon,
+.management-table th[aria-sort="descending"] .table-sort-icon {
+  color: var(--accent-deep);
+  opacity: 1;
+}
+
+.table-sort-icon--asc .table-sort-icon__down,
+.table-sort-icon--desc .table-sort-icon__up {
+  opacity: 0.22;
 }
 
 .management-table td {
