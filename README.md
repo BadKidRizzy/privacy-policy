@@ -64,6 +64,7 @@ This repo hosts the public static pages for Food Truck Finder.
 - Generated claim links prefill `/claim-your-food-truck/?truck=TruckName&city=City&profile=/truck/slug/`.
 - The claim form posts to the Firebase HTTPS function `submitOwnerClaimRequest`.
 - The backend records `claim_started`, `claim_submitted`, and later management updates for `acknowledged`, `claim_verified`, `rejected`, or `needs_more_info`.
+- Claim-start emails mean a visitor opened the prefilled claim form. Those records show in the Growth Agent claim review filter as `Started`; verify/reject actions appear after the owner submits the full form.
 - Public pages preserve Growth Agent tracking slugs through `ftf_attribution_slug` / `tracking_slug`, then send `claim_started`, `claim_submitted`, and app-store click events to the Growth Agent attribution loop.
 - Claim auto-response email drafts are created by the backend, but real email sending remains disabled until a provider is intentionally connected.
 - The `/admin/growth-agent/` console calls `https://food-truck-growth-agent-xmel35gaya-uc.a.run.app` with the signed-in Firebase Auth ID token from `food-truck-finder-prod`.

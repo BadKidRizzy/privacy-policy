@@ -1444,6 +1444,10 @@ function renderSocialInbox() {
 }
 
 function claimRequestActionButtons(claim) {
+  if (claim.readOnly) {
+    return '<span class="status-pill status-pill--warn">Waiting for form</span>';
+  }
+
   const id = escapeHtml(claim.id || '');
   const status = String(claim.status || '').toLowerCase();
   const buttons = [
@@ -1470,6 +1474,7 @@ function renderClaimRequests() {
 
   if (selectors.claimRequestSummary) {
     const rows = [
+      ['Started', counts.claim_started || 0],
       ['Submitted', counts.claim_submitted || 0],
       ['Acknowledged', counts.acknowledged || 0],
       ['Needs Info', counts.needs_more_info || 0],
@@ -1498,14 +1503,18 @@ function renderClaimRequests() {
   }
 
   selectors.claimRequests.innerHTML = claims.map((claim) => {
+    const isStartedOnly = String(claim.status || '').toLowerCase() === 'claim_started' || Boolean(claim.readOnly);
     const contact = [
       claim.ownerName,
       claim.ownerEmail,
       claim.ownerPhone,
-    ].filter(Boolean).join(' / ') || 'No owner contact';
+    ].filter(Boolean).join(' / ') || (isStartedOnly ? 'No owner contact yet. Waiting for the form submission.' : 'No owner contact');
     const proofUrl = claim.proofUpload?.downloadUrl || claim.proofUpload?.url || '';
     const profileUrl = claim.truckProfileUrl || '';
     const statusReason = claim.statusReason || claim.statusNotes || '';
+    const startedNote = isStartedOnly
+      ? 'Visitor opened the claim form, but has not submitted owner contact or proof yet.'
+      : '';
 
     return `
       <article class="claim-request-card">
@@ -1515,10 +1524,11 @@ function renderClaimRequests() {
           <span>${escapeHtml(contact)}</span>
           ${claim.websiteOrSocialProof ? `<span>${escapeHtml(claim.websiteOrSocialProof)}</span>` : ''}
           ${claim.message ? `<p>${escapeHtml(claim.message)}</p>` : ''}
+          ${startedNote ? `<p>${escapeHtml(startedNote)}</p>` : ''}
           ${statusReason ? `<p class="draft-review-card__reason">${escapeHtml(statusReason)}</p>` : ''}
         </div>
         <div class="claim-request-card__meta">
-          <span class="status-pill">${escapeHtml(growthStatusLabel(claim.status))}</span>
+          <span class="${escapeHtml(statusPillClass(claim.status))}">${escapeHtml(growthStatusLabel(claim.status))}</span>
           <span>${escapeHtml(formatDate(claim.createdAt))}</span>
           <div class="claim-request-card__links">
             ${profileUrl ? `<a class="row-action row-action--ghost" href="${escapeHtml(profileUrl)}" target="_blank" rel="noreferrer">Profile</a>` : ''}
