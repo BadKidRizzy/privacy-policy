@@ -595,11 +595,11 @@ function renderMetrics() {
     ? `Last queue generated ${formatCount(state.lastQueue.items || 0)} review items.`
     : 'Outreach queue runs daily at 6:15 AM.';
   const socialCopy = state.lastSocialBatch
-    ? `Last social batch created ${formatCount(state.lastSocialBatch.drafts || 0)} drafts.`
-    : 'Social drafts stay in approval until posted manually.';
+    ? `Last social batch created ${formatCount(state.lastSocialBatch.drafts || 0)} auto-approved post${Number(state.lastSocialBatch.drafts || 0) === 1 ? '' : 's'}.`
+    : 'Social posts are auto-approved and publish from the daily schedule.';
   const autopilotCopy = state.lastAutopilotPlan
-    ? `Last autopilot plan created ${formatCount(state.lastAutopilotPlan.drafts || 0)} scheduled drafts.`
-    : 'Growth Autopilot builds reviewable scheduled drafts only.';
+    ? `Last autopilot plan created ${formatCount(state.lastAutopilotPlan.drafts || 0)} scheduled post${Number(state.lastAutopilotPlan.drafts || 0) === 1 ? '' : 's'}.`
+    : 'Growth Autopilot creates auto-approved scheduled posts.';
   const digestCopy = state.lastCityDigestBatch
     ? `Last city digest batch created ${formatCount(state.lastCityDigestBatch.packs || 0)} city pack${Number(state.lastCityDigestBatch.packs || 0) === 1 ? '' : 's'}.`
     : 'Weekly city digests create social, email, push, and SEO drafts.';
