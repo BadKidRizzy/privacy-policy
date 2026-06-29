@@ -317,6 +317,70 @@
       text-decoration: none;
     }
 
+    .copy-link-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      margin-top: 12px;
+      align-items: center;
+    }
+
+    .copy-link-row input {
+      min-width: 0;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      padding: 0 10px;
+      font: inherit;
+      font-size: 13px;
+    }
+
+    .copy-link-row button {
+      min-height: 38px;
+      border-radius: 8px;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .call-notes {
+      grid-column: 2 / -1;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+      min-width: 0;
+    }
+
+    .call-notes label {
+      display: block;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .call-notes textarea {
+      display: block;
+      width: 100%;
+      min-height: 92px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      padding: 10px;
+      font: inherit;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .call-notes textarea:focus,
+    .copy-link-row input:focus {
+      outline: 2px solid rgba(15, 124, 130, 0.2);
+      outline-offset: 2px;
+    }
+
     .actions {
       display: grid;
       gap: 8px;
@@ -378,6 +442,10 @@
         border-bottom: 1px solid var(--line);
         padding: 0 0 12px;
       }
+
+      .call-notes {
+        grid-column: 1 / -1;
+      }
     }
 
     @media (max-width: 560px) {
@@ -393,6 +461,10 @@
 
       .toolbar button {
         grid-column: auto;
+      }
+
+      .copy-link-row {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -706,6 +778,52 @@
       color: var(--success);
     }
 
+    .copy-link-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .copy-link-row input {
+      height: 42px;
+      border-radius: 999px;
+      border-color: rgba(15, 124, 130, 0.18);
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .copy-link-row button {
+      min-height: 42px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .call-notes {
+      border-top-color: var(--line);
+      padding-top: 14px;
+    }
+
+    .call-notes label {
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.01em;
+    }
+
+    .call-notes textarea {
+      min-height: 108px;
+      border-radius: 18px;
+      border-color: rgba(31, 23, 19, 0.13);
+      background: rgba(255, 255, 255, 0.78);
+      color: var(--ink);
+      font-size: 14px;
+      box-shadow: inset 0 0 0 1px rgba(31, 23, 19, 0.02);
+    }
+
     .actions {
       padding: 12px;
       border: 1px solid var(--line);
@@ -759,6 +877,10 @@
         border-right: 0;
         border-bottom: 1px solid var(--line);
         padding: 0 0 14px;
+      }
+
+      .call-notes {
+        grid-column: 1 / -1;
       }
 
       .contact-checks {
@@ -946,12 +1068,35 @@
       return phone ? 'tel:' + encodeURIComponent(phone) : '';
     }
 
-    function copyText(text) {
-      return navigator.clipboard.writeText(text);
+    async function copyText(text) {
+      const value = String(text ?? '');
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(value);
+        return;
+      }
+
+      const textArea = document.createElement('textarea');
+      textArea.value = value;
+      textArea.setAttribute('readonly', '');
+      textArea.style.position = 'fixed';
+      textArea.style.top = '-9999px';
+      document.body.append(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      textArea.remove();
     }
 
     function copySmsDraft(row) {
       return copyText('To: ' + (row.businessPhone || 'No phone') + '\n\n' + row.smsMessage);
+    }
+
+    function flashButton(button, label = 'Copied') {
+      if (!button) return;
+      const original = button.textContent;
+      button.textContent = label;
+      window.setTimeout(() => {
+        button.textContent = original;
+      }, 1200);
     }
 
     function normalizeStatus(status) {
@@ -975,6 +1120,11 @@
     function getTexted(row) {
       const texted = getRowState(row).texted;
       return typeof texted === 'boolean' ? texted : row.texted === true;
+    }
+
+    function getCallNotes(row) {
+      const notes = getRowState(row).callNotes;
+      return typeof notes === 'string' ? notes : '';
     }
 
     function setStatus(row, status) {
@@ -1009,6 +1159,16 @@
       render();
     }
 
+    function setCallNotes(row, callNotes) {
+      statusState[row.truckId] = {
+        ...getRowState(row),
+        callNotes,
+        callNotesUpdatedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      saveStatus();
+    }
+
     function matches(row) {
       const status = getStatus(row);
       const query = controls.search.value.trim().toLowerCase();
@@ -1023,6 +1183,7 @@
         phoneAuditCandidates(row).join(' '),
         matchedSourceUrls(row).join(' '),
         socialUrls(row).join(' '),
+        getCallNotes(row),
       ].join(' ').toLowerCase();
 
       return (!query || searchText.includes(query))
@@ -1140,6 +1301,43 @@
       return wrapper;
     }
 
+    function buildProfileCopyRow(row) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'copy-link-row';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.readOnly = true;
+      input.value = row.profileUrl || '';
+      input.setAttribute('aria-label', 'Truck page link');
+      input.addEventListener('focus', () => input.select());
+      input.addEventListener('click', () => input.select());
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = 'Copy Link';
+      button.addEventListener('click', async () => {
+        await copyText(row.profileUrl);
+        flashButton(button);
+      });
+      wrapper.append(input, button);
+      return wrapper;
+    }
+
+    function buildCallNotes(row) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'call-notes';
+      const notesId = 'call-notes-' + String(row.truckId).replace(/[^a-z0-9_-]/gi, '-');
+      const label = document.createElement('label');
+      label.setAttribute('for', notesId);
+      label.textContent = 'Call notes';
+      const textarea = document.createElement('textarea');
+      textarea.id = notesId;
+      textarea.value = getCallNotes(row);
+      textarea.placeholder = 'Type what happened on the call, who answered, follow-up needed, or any owner feedback.';
+      textarea.addEventListener('input', () => setCallNotes(row, textarea.value));
+      wrapper.append(label, textarea);
+      return wrapper;
+    }
+
     function renderCard(row) {
       const status = getStatus(row);
       const reachedOut = getReachedOut(row);
@@ -1227,6 +1425,8 @@
       }
       body.append(social);
 
+      body.append(buildProfileCopyRow(row));
+
       const auditPanel = document.createElement('div');
       auditPanel.className = 'audit-panel';
       const auditSummary = document.createElement('p');
@@ -1302,6 +1502,10 @@
         }, 'primary'),
         buildLink('Call', telHref(row)),
         buildLink('Profile', row.profileUrl),
+        buildButton('Copy Link', async (event) => {
+          await copyText(row.profileUrl);
+          flashButton(event.currentTarget);
+        }),
         buildLink('Website', row.websiteUrl),
         buildLink('Social', firstSocialUrl(row))
       );
@@ -1331,7 +1535,7 @@
       );
       actions.append(copyActions);
 
-      card.append(outreachColumn, body, actions);
+      card.append(outreachColumn, body, actions, buildCallNotes(row));
       return card;
     }
 
