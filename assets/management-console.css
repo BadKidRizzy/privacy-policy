@@ -1366,6 +1366,77 @@
   color: var(--muted);
 }
 
+.draft-review-card__editor {
+  border: 1px solid rgba(31, 23, 19, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 12px;
+}
+
+.draft-review-card__editor summary {
+  cursor: pointer;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.draft-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.6fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.draft-editor-form {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.draft-editor-form label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.draft-editor-form textarea,
+.draft-editor-form input[type="text"],
+.draft-editor-form input[type="file"] {
+  width: 100%;
+  border: 1px solid rgba(31, 23, 19, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.draft-editor-form textarea,
+.draft-editor-form input[type="text"] {
+  padding: 10px 11px;
+}
+
+.draft-editor-form textarea {
+  min-height: 180px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.draft-editor-form input[type="file"] {
+  padding: 9px;
+}
+
+.draft-editor-form small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
 .draft-media {
   display: grid;
   gap: 10px;
@@ -1458,6 +1529,12 @@
   font-size: 0.88rem;
   line-height: 1.28;
   overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .draft-editor-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .social-inbox-list {

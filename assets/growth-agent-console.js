@@ -11,6 +11,8 @@ const GROWTH_AGENT_API_BASE_URL = 'https://food-truck-growth-agent-xmel35gaya-uc
 const OWNER_CLAIM_ADMIN_ENDPOINT = 'https://us-central1-food-truck-finder-prod.cloudfunctions.net/manageOwnerClaimRequests';
 const PUBLIC_TRUCK_SHARE_BASE_URL = 'https://www.ftf-foodtruckfinder.com/truck/';
 const PUBLIC_SITE_BASE_URL = 'https://www.ftf-foodtruckfinder.com';
+const DRAFT_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
+const DRAFT_IMAGE_MAX_DIMENSION = 1600;
 const GROWTH_AGENT_STATUSES = [
   'needs_review',
   'not_contacted',
@@ -236,6 +238,8 @@ function setLoading(isLoading) {
     ...selectors.autopilotPlatforms,
     ...document.querySelectorAll('[data-draft-action]'),
     ...document.querySelectorAll('[data-media-action]'),
+    ...document.querySelectorAll('[data-draft-edit-form] textarea, [data-draft-edit-form] input, [data-draft-edit-form] button'),
+    ...document.querySelectorAll('[data-draft-image-form] input, [data-draft-image-form] button'),
     ...document.querySelectorAll('[data-social-reply-action]'),
     ...document.querySelectorAll('[data-social-thread-status]'),
     ...document.querySelectorAll('[data-agent-task-status]'),
@@ -978,6 +982,93 @@ function isLikelyImageUrl(value) {
   }
 }
 
+function readBlobAsDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(reader.error || new Error('Unable to read image file.'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function loadImageElement(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Unable to read that image. Try a JPG or PNG file.'));
+    };
+    image.src = url;
+  });
+}
+
+function canvasToJpegBlob(canvas, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error('Unable to prepare the image for upload.'));
+      }
+    }, 'image/jpeg', quality);
+  });
+}
+
+function draftUploadFileName(file) {
+  const base = String(file?.name || 'draft-image')
+    .replace(/\.[^.]+$/, '')
+    .replace(/[^A-Za-z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 90) || 'draft-image';
+  return `${base}.jpg`;
+}
+
+async function buildDraftImageUploadPayload(file) {
+  if (!file) {
+    throw new Error('Choose an image first.');
+  }
+  if (!String(file.type || '').startsWith('image/')) {
+    throw new Error('Choose a JPG or PNG image.');
+  }
+
+  const image = await loadImageElement(file);
+  const scale = Math.min(
+    1,
+    DRAFT_IMAGE_MAX_DIMENSION / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height)
+  );
+  const width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
+  const height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('This browser could not prepare the image for upload.');
+  }
+  context.fillStyle = '#ffffff';
+  context.fillRect(0, 0, width, height);
+  context.drawImage(image, 0, 0, width, height);
+
+  let blob = await canvasToJpegBlob(canvas, 0.9);
+  if (blob.size > DRAFT_IMAGE_MAX_BYTES) {
+    blob = await canvasToJpegBlob(canvas, 0.76);
+  }
+  if (blob.size > DRAFT_IMAGE_MAX_BYTES) {
+    throw new Error('That image is still larger than 8 MB after optimization.');
+  }
+
+  return {
+    fileName: draftUploadFileName(file),
+    contentType: 'image/jpeg',
+    dataUrl: await readBlobAsDataUrl(blob),
+  };
+}
+
 function mediaPreviewMarkup(candidate, fallbackText = 'Open Source') {
   const url = candidate.thumbnail_url || candidate.source_url;
   if (isLikelyImageUrl(url)) {
@@ -1067,6 +1158,7 @@ function mediaSourceLabel(value) {
     app_profile_page: 'Profile screenshot',
     owner_social_profile: 'Owner social',
     google_image_result: 'Google image',
+    uploaded_admin_image: 'Uploaded image',
   };
   return labels[value] || growthStatusLabel(value || 'Media');
 }
@@ -1114,6 +1206,39 @@ function draftNextStep(draft) {
     return 'Published from the Growth Agent.';
   }
   return '';
+}
+
+function draftEditMarkup(draft) {
+  const draftId = String(draft.id || '');
+  if (!draftId || draft.status === 'published') return '';
+  return `
+    <details class="draft-review-card__editor">
+      <summary>Edit wording or replace image</summary>
+      <div class="draft-editor-grid">
+        <form class="draft-editor-form" data-draft-edit-form data-draft-id="${escapeHtml(draftId)}">
+          <label>
+            <span>Post wording</span>
+            <textarea data-draft-edit-text rows="8">${escapeHtml(draft.text || '')}</textarea>
+          </label>
+          ${draft.subject ? `
+            <label>
+              <span>Subject</span>
+              <input type="text" data-draft-edit-subject value="${escapeHtml(draft.subject || '')}">
+            </label>
+          ` : ''}
+          <button class="row-action row-action--button" type="submit">Save Wording</button>
+        </form>
+        <form class="draft-editor-form" data-draft-image-form data-draft-id="${escapeHtml(draftId)}">
+          <label>
+            <span>Upload replacement image</span>
+            <input type="file" accept="image/jpeg,image/png,image/webp" data-draft-image-file>
+          </label>
+          <small>Uploaded images are converted to JPG and selected for this draft.</small>
+          <button class="row-action row-action--button" type="submit">Upload Image</button>
+        </form>
+      </div>
+    </details>
+  `;
 }
 
 function renderDraftMedia(draft) {
@@ -1276,6 +1401,7 @@ function renderDraftReviewQueue() {
           ${subject}
           <p>${escapeHtml(draft.text || '').replace(/\n/g, '<br>')}</p>
         </div>
+        ${draftEditMarkup(draft)}
         ${draftTagSourceMarkup(draft)}
         ${renderDraftMedia(draft)}
         ${draft.media_brief ? `<details class="draft-review-card__brief"><summary>Media and reviewer notes</summary><p>${escapeHtml(draft.media_brief).replace(/\n/g, '<br>')}</p></details>` : ''}
@@ -2620,6 +2746,70 @@ async function runMediaAction(candidateId, action) {
   }
 }
 
+async function saveDraftWording(form) {
+  const draftId = form?.dataset?.draftId || '';
+  const text = String(form?.querySelector('[data-draft-edit-text]')?.value || '').trim();
+  if (!draftId || !text) {
+    setMessage(selectors.message, 'Draft wording cannot be blank.', true);
+    return;
+  }
+
+  const updates = {text};
+  const subjectInput = form.querySelector('[data-draft-edit-subject]');
+  if (subjectInput) {
+    updates.subject = String(subjectInput.value || '').trim();
+  }
+
+  setLoading(true);
+  setMessage(selectors.message, 'Saving draft wording...');
+  try {
+    await callGrowthAgent(`/admin/campaign-drafts/${encodeURIComponent(draftId)}`, {
+      method: 'PATCH',
+      body: {
+        actor: auth.currentUser?.email || 'growth-agent-console',
+        updates,
+      },
+    });
+    setMessage(selectors.message, 'Draft wording saved.');
+    invalidateGrowthCache('review');
+    await loadGrowthAgent({force: true, tab: 'review', refreshMetrics: true});
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Unable to save draft wording.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function uploadDraftImage(form) {
+  const draftId = form?.dataset?.draftId || '';
+  const file = form?.querySelector('[data-draft-image-file]')?.files?.[0] || null;
+  if (!draftId || !file) {
+    setMessage(selectors.message, 'Choose an image before uploading.', true);
+    return;
+  }
+
+  setLoading(true);
+  setMessage(selectors.message, 'Preparing and uploading replacement image...');
+  try {
+    const payload = await buildDraftImageUploadPayload(file);
+    await callGrowthAgent(`/admin/campaign-drafts/${encodeURIComponent(draftId)}/media-upload`, {
+      method: 'POST',
+      body: {
+        ...payload,
+        actor: auth.currentUser?.email || 'growth-agent-console',
+      },
+    });
+    form.reset();
+    setMessage(selectors.message, 'Replacement image uploaded and selected for this draft.');
+    invalidateGrowthCache('review');
+    await loadGrowthAgent({force: true, tab: 'review', refreshMetrics: true});
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Unable to upload replacement image.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
 async function saveAgentInstruction(event) {
   event.preventDefault();
   const value = String(selectors.agentInstruction?.value || '').trim();
@@ -3133,6 +3323,21 @@ document.addEventListener('click', (event) => {
   const button = event.target.closest('[data-draft-action]');
   if (!button) return;
   void runDraftAction(button.dataset.draftId || '', button.dataset.draftAction || '');
+});
+
+document.addEventListener('submit', (event) => {
+  const draftEditForm = event.target.closest('[data-draft-edit-form]');
+  if (draftEditForm) {
+    event.preventDefault();
+    void saveDraftWording(draftEditForm);
+    return;
+  }
+
+  const draftImageForm = event.target.closest('[data-draft-image-form]');
+  if (draftImageForm) {
+    event.preventDefault();
+    void uploadDraftImage(draftImageForm);
+  }
 });
 
 document.addEventListener('error', (event) => {
