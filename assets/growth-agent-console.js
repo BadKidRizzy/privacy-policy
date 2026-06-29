@@ -148,6 +148,7 @@ const selectors = {
   socialStrategySummary: document.querySelector('[data-social-strategy-summary]'),
   socialStrategyBoard: document.querySelector('[data-social-strategy-board]'),
   autopilotGenerate: document.querySelector('[data-autopilot-generate]'),
+  autoPublisherRun: document.querySelector('[data-auto-publisher-run]'),
   autopilotRefresh: document.querySelector('[data-autopilot-refresh]'),
   autopilotCity: document.querySelector('[data-autopilot-city]'),
   autopilotDays: document.querySelector('[data-autopilot-days]'),
@@ -224,6 +225,7 @@ function setLoading(isLoading) {
     selectors.socialStrategyCompetitors,
     selectors.socialStrategyGoals,
     selectors.autopilotGenerate,
+    selectors.autoPublisherRun,
     selectors.autopilotRefresh,
     selectors.autopilotCity,
     selectors.autopilotDays,
@@ -2344,6 +2346,52 @@ async function generateGrowthAutopilotPlan() {
   }
 }
 
+async function runAutoPublisherNow() {
+  const platforms = selectedAutopilotPlatforms().filter((platform) => ['instagram', 'facebook'].includes(platform));
+  const socialLimit = Number(selectors.autopilotDailyPosts?.value || 2);
+  const platformCopy = platforms.length ? platforms.map(socialPlatformLabel).join(' and ') : 'Facebook and Instagram';
+  const confirmed = window.confirm(
+    `Post approved ${platformCopy} drafts now from the connected Food Truck Finder account? Instagram drafts still need selected media.`
+  );
+  if (!confirmed) return;
+
+  setLoading(true);
+  setMessage(selectors.message, 'Posting approved social drafts...');
+
+  try {
+    const payload = await callGrowthAgent('/admin/auto-publisher-run', {
+      method: 'POST',
+      body: {
+        collection: 'foodTrucks',
+        platforms: platforms.length ? platforms : ['facebook', 'instagram'],
+        statuses: ['approved'],
+        social_limit: Number.isFinite(socialLimit) ? socialLimit : 2,
+        email_limit: 0,
+        actor: auth.currentUser?.email || 'growth-agent-console',
+      },
+    });
+    const result = payload.auto_publish || {};
+    const attempts = result.attempts || [];
+    const detail = attempts.length
+      ? attempts.map((attempt) => `${socialPlatformLabel(attempt.platform)} ${growthStatusLabel(attempt.status).toLowerCase()}`).join(', ')
+      : (result.skipped || []).join(' ');
+    setMessage(
+      selectors.message,
+      `Publisher attempted ${result.social_attempted || 0} social draft${Number(result.social_attempted || 0) === 1 ? '' : 's'} and posted ${result.social_published || 0}. ${detail}`.trim()
+    );
+    invalidateGrowthCache();
+    state.selectedDraftStatus = 'published';
+    if (selectors.draftReviewStatus) {
+      selectors.draftReviewStatus.value = 'published';
+    }
+    await loadGrowthAgent({force: true, refreshMetrics: true});
+  } catch (error) {
+    setMessage(selectors.message, error.message || 'Publisher run failed.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
 async function generateSocialDrafts() {
   setLoading(true);
   setMessage(selectors.message, 'Generating social drafts for approval...');
@@ -2953,6 +3001,10 @@ selectors.socialInboxRefresh?.addEventListener('click', () => {
 
 selectors.autopilotGenerate?.addEventListener('click', () => {
   void generateGrowthAutopilotPlan();
+});
+
+selectors.autoPublisherRun?.addEventListener('click', () => {
+  void runAutoPublisherNow();
 });
 
 selectors.autopilotRefresh?.addEventListener('click', () => {
