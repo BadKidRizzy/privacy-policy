@@ -34,6 +34,8 @@ This repo hosts the public static pages for Food Truck Finder.
   Account deletion instructions page.
 - `admin/index.html`
   Private management console served at `/admin/`.
+- `admin/marketing/index.html`
+  Public marketing call queue with truck phone numbers, social links, phone audit notes, and browser-saved called checkmarks.
 - `admin/growth-agent/index.html`
   Private Growth Agent console served at `/admin/growth-agent/`.
 - `open/index.html`
@@ -113,6 +115,8 @@ This repo hosts the public static pages for Food Truck Finder.
   Delete account page
 - `/admin/`
   Private management console
+- `/admin/marketing/`
+  Public marketing call queue
 - `/admin/growth-agent/`
   Private Growth Agent console
 - `/open/`
