@@ -2069,13 +2069,19 @@ function invalidateGrowthCache(...tabs) {
 async function loadMetricCounts(force = false) {
   if (!force && state.loadedTabs.metrics) return;
 
-  const countResults = await Promise.all(
-    GROWTH_AGENT_STATUSES.map(async (status) => {
-      const payload = await callGrowthAgent(`/admin/owner-outreach-leads?status=${encodeURIComponent(status)}&limit=500`);
-      return [status, payload.leads?.length || 0];
-    })
-  );
-  state.counts = Object.fromEntries(countResults);
+  try {
+    const payload = await callGrowthAgent('/admin/owner-outreach-summary?limit=500');
+    state.counts = payload.summary?.counts || {};
+  } catch (error) {
+    console.warn('Owner outreach summary failed; falling back to status counts.', error);
+    const countResults = await Promise.all(
+      GROWTH_AGENT_STATUSES.map(async (status) => {
+        const payload = await callGrowthAgent(`/admin/owner-outreach-leads?status=${encodeURIComponent(status)}&limit=500`);
+        return [status, payload.leads?.length || 0];
+      })
+    );
+    state.counts = Object.fromEntries(countResults);
+  }
   state.loadedTabs.metrics = true;
   renderMetrics();
 }
