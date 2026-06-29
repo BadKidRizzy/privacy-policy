@@ -13,6 +13,8 @@
     href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800;900&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
     rel="stylesheet"
   >
+  <link rel="stylesheet" href="../../assets/site.css?v=1">
+  <link rel="stylesheet" href="../../assets/management-console.css?v=35">
   <style>
     :root {
       color-scheme: light;
@@ -36,15 +38,6 @@
       color: var(--ink);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       line-height: 1.45;
-    }
-
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 5;
-      background: rgba(246, 247, 249, 0.96);
-      border-bottom: 1px solid var(--line);
-      backdrop-filter: blur(10px);
     }
 
     .wrap {
@@ -493,16 +486,34 @@
       font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    header {
-      top: 0;
-      padding: 16px 0 18px;
-      background: rgba(246, 239, 230, 0.88);
-      border-bottom: 1px solid rgba(31, 23, 19, 0.08);
-      box-shadow: 0 14px 40px rgba(31, 23, 19, 0.08);
-    }
-
     .wrap {
       width: min(calc(100% - 32px), 1680px);
+    }
+
+    .marketing-call-page .console-header {
+      margin-bottom: 18px;
+    }
+
+    .marketing-call-page .console-header .button {
+      min-height: 52px;
+      border-radius: 999px;
+      padding: 0 20px;
+    }
+
+    .marketing-console-app {
+      margin-bottom: 18px;
+    }
+
+    .marketing-console-toolbar {
+      margin-bottom: 14px;
+    }
+
+    .marketing-console-toolbar h1 {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: clamp(28px, 3vw, 38px);
+      letter-spacing: -0.04em;
+      line-height: 1.02;
+      max-width: none;
     }
 
     .topbar {
@@ -983,28 +994,37 @@
     }
   </style>
 </head>
-<body class="marketing-call-page">
-  <header>
-    <div class="wrap">
-      <div class="topbar">
-        <div class="title-cluster">
-          <a class="brand-mark" href="../../" aria-label="Food Truck Finder home">
-            <img src="../../assets/brand/IconLogo.png" alt="Food Truck Finder logo" width="44" height="44">
-            <span>Food Truck Finder</span>
-          </a>
-          <span class="title-divider" aria-hidden="true"></span>
-          <div class="title-copy">
+<body class="console-body marketing-call-page">
+  <div class="console-shell">
+    <header class="console-header">
+      <a class="brand" href="../../" aria-label="Food Truck Finder home">
+        <img src="../../assets/brand/IconLogo.png" alt="Food Truck Finder logo" width="44" height="44">
+        <span>FTF Management</span>
+      </a>
+
+      <div class="console-header__actions">
+        <a href="../">Management Console</a>
+        <a href="../growth-agent/">Growth Agent</a>
+        <a href="../../privacy-policy/">Privacy</a>
+        <a href="../../delete-account.html">Delete Account</a>
+        <button class="button button--ghost" type="button" id="signOut" hidden>Sign Out</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="console-app marketing-console-app">
+        <div class="console-toolbar marketing-console-toolbar">
+          <div class="console-toolbar__copy">
+            <p class="eyebrow">Admin Outreach</p>
             <h1>Marketing Call Console</h1>
             <p class="subtle">Admin-only truck outreach list with phone numbers, social links, audit notes, and shared called and texted checkmarks.</p>
           </div>
+          <div class="console-toolbar__actions">
+            <button class="primary" type="button" id="exportStatus">Export Contact Status</button>
+          </div>
         </div>
-        <div class="topbar-actions">
-          <a class="button" href="../">Admin Home</a>
-          <a class="button" href="../growth-agent/">Growth Agent</a>
-          <button class="primary" type="button" id="exportStatus">Export Contact Status</button>
-        </div>
-      </div>
-      <section class="auth-panel" aria-label="Admin sign in">
+
+        <section class="auth-panel" aria-label="Admin sign in">
         <form class="auth-form" id="loginForm">
           <input id="adminEmail" name="email" type="email" autocomplete="username" placeholder="Admin email" required>
           <input id="adminPassword" name="password" type="password" autocomplete="current-password" placeholder="Password" required>
@@ -1013,7 +1033,6 @@
         <div class="session-panel hidden" id="sessionPanel">
           <span id="sessionSummary">Signed in</span>
           <button type="button" id="syncNow">Sync</button>
-          <button type="button" id="signOut">Sign Out</button>
         </div>
         <span class="auth-message warn" id="authMessage">Admin sign in required.</span>
       </section>
@@ -1064,10 +1083,8 @@
         </select>
         <button type="button" id="nextReady">Next Call</button>
       </div>
-    </div>
-  </header>
-  <main>
-    <div class="wrap">
+      </section>
+
       <section class="stats" aria-label="Outreach stats">
         <div class="stat"><strong id="visibleCount">0</strong><span>Visible</span></div>
         <div class="stat"><strong id="readyCount">0</strong><span>Ready</span></div>
@@ -1080,8 +1097,8 @@
       </section>
       <section id="list" class="list"></section>
       <div id="empty" class="empty hidden">No trucks match the current filters.</div>
-    </div>
-  </main>
+    </main>
+  </div>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script>
@@ -1195,6 +1212,9 @@
       const signedIn = Boolean(user);
       authControls.loginForm?.classList.toggle('hidden', signedIn);
       authControls.sessionPanel?.classList.toggle('hidden', !signedIn);
+      if (authControls.signOut) {
+        authControls.signOut.hidden = !signedIn;
+      }
       if (authControls.sessionSummary) {
         authControls.sessionSummary.textContent = signedIn ? 'Signed in as ' + (user.email || user.uid) : 'Signed out';
       }
