@@ -116,6 +116,7 @@ const selectors = {
   menuCount: document.querySelector('[data-menu-count]'),
   jumpMenu: document.querySelector('[data-jump-menu]'),
   menuSection: document.querySelector('[data-menu-section]'),
+  menuTitle: document.querySelector('[data-menu-title]'),
   menuList: document.querySelector('[data-menu-list]'),
   toggleMenu: document.querySelector('[data-toggle-menu]'),
   gallerySection: document.querySelector('[data-gallery-section]'),
@@ -597,6 +598,13 @@ function renderMenu(truck) {
 
   selectors.menuList.textContent = '';
   selectors.menuList.classList.toggle('menu-list--photos', menu.length === 0 && menuPhotos.length > 0);
+  if (selectors.menuTitle) {
+    selectors.menuTitle.textContent = menu.length > 0
+      ? 'Popular Items'
+      : menuPhotos.length > 0
+        ? 'Menu Photos'
+        : 'Menu Details';
+  }
   selectors.menuCount.textContent = menu.length > 0
     ? `${menu.length} item${menu.length === 1 ? '' : 's'}`
     : menuPhotos.length > 0
@@ -784,7 +792,12 @@ function renderLinks(truck) {
   }
 
   if (isHttpUrl(truck.websiteUrl)) {
-    addLink('Website', truck.websiteUrl);
+    const websiteSocialLabel = socialLabel(truck.websiteUrl);
+    if (websiteSocialLabel) {
+      addLink(websiteSocialLabel, truck.websiteUrl, socialDetail(truck.websiteUrl));
+    } else {
+      addLink('Website', truck.websiteUrl);
+    }
   }
 
   if (isHttpUrl(truck.doordashUrl)) {
