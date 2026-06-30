@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;650;750;850&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/truck-page.css?v=21">
+  <link rel="stylesheet" href="../assets/truck-page.css?v=22">
 </head>
 <body>
   <div class="truck-shell" data-page-shell>
@@ -107,6 +107,17 @@
                 <button class="text-button" type="button" data-toggle-menu hidden>Show All</button>
               </div>
               <div class="menu-list" data-menu-list></div>
+            </section>
+
+            <section class="section-panel gallery-panel" data-gallery-section hidden>
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Photos</p>
+                  <h2>Gallery</h2>
+                </div>
+                <span class="gallery-count" data-gallery-count></span>
+              </div>
+              <div class="photo-gallery" data-gallery-list></div>
             </section>
           </div>
 
@@ -203,6 +214,6 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-  <script defer src="../assets/truck-page.js?v=19"></script>
+  <script defer src="../assets/truck-page.js?v=20"></script>
 </body>
 </html>

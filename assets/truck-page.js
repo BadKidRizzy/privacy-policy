@@ -118,6 +118,9 @@ const selectors = {
   menuSection: document.querySelector('[data-menu-section]'),
   menuList: document.querySelector('[data-menu-list]'),
   toggleMenu: document.querySelector('[data-toggle-menu]'),
+  gallerySection: document.querySelector('[data-gallery-section]'),
+  galleryList: document.querySelector('[data-gallery-list]'),
+  galleryCount: document.querySelector('[data-gallery-count]'),
   scheduleList: document.querySelector('[data-schedule-list]'),
   linkStack: document.querySelector('[data-link-stack]'),
   shareText: document.querySelector('[data-share-text]'),
@@ -240,6 +243,23 @@ function asArray(value) {
 
 function isHttpUrl(value) {
   return /^https?:\/\//i.test(asText(value));
+}
+
+function isLikelyImageUrl(value) {
+  const url = asText(value);
+  if (!isHttpUrl(url)) return false;
+
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./i, '').toLowerCase();
+    if (/\.(?:avif|gif|heic|jpe?g|png|webp)$/i.test(parsed.pathname)) return true;
+    return host.includes('firebasestorage.googleapis.com')
+      || host.includes('storage.googleapis.com')
+      || host.includes('images.squarespace-cdn.com')
+      || host.includes('cdn.shopify.com');
+  } catch {
+    return /\.(?:avif|gif|heic|jpe?g|png|webp)(?:[?#].*)?$/i.test(url);
+  }
 }
 
 function firstHttpUrl(values) {
@@ -537,7 +557,7 @@ function getMenuPhotoUrls(truck) {
     ...asArray(truck.menuImages),
     ...asArray(truck.menuImage ? [truck.menuImage] : []),
     ...asArray(truck.researchMenuImageUrls),
-  ].map(asText).filter(isHttpUrl)));
+  ].map(asText).filter(isLikelyImageUrl)));
 }
 
 function createMenuPhoto(url, index, truckName) {
@@ -593,6 +613,68 @@ function renderMenu(truck) {
 
   selectors.toggleMenu.hidden = menu.length <= MENU_PREVIEW_LIMIT;
   selectors.toggleMenu.textContent = state.showFullMenu ? 'Show Less' : `Show All ${menu.length}`;
+}
+
+function getGalleryPhotoUrls(truck) {
+  const seen = new Set();
+  const urls = [];
+  const hasStructuredMenu = asArray(truck.menu).some((item) => item && typeof item === 'object');
+
+  if (!hasStructuredMenu) {
+    return urls;
+  }
+
+  getMenuPhotoUrls(truck).map(asText).filter(isLikelyImageUrl).forEach((url) => {
+    const key = normalizedUrlKey(url);
+    if (seen.has(key)) return;
+    seen.add(key);
+    urls.push(url);
+  });
+
+  return urls.slice(0, 10);
+}
+
+function createGalleryPhoto(url, index, truckName) {
+  const link = document.createElement('a');
+  link.className = 'gallery-photo';
+  link.href = url;
+  link.target = '_blank';
+  link.rel = 'noreferrer';
+
+  const image = document.createElement('img');
+  image.src = url;
+  image.alt = `${truckName || 'Food truck'} gallery photo ${index + 1}`;
+  image.loading = 'lazy';
+
+  const label = document.createElement('span');
+  label.textContent = 'Open photo';
+
+  link.append(image, label);
+  return link;
+}
+
+function renderGallery(truck) {
+  if (!selectors.gallerySection || !selectors.galleryList) {
+    return;
+  }
+
+  const photos = getGalleryPhotoUrls(truck);
+  selectors.galleryList.textContent = '';
+
+  if (photos.length === 0) {
+    selectors.gallerySection.hidden = true;
+    if (selectors.galleryCount) selectors.galleryCount.textContent = '';
+    return;
+  }
+
+  photos.forEach((url, index) => {
+    selectors.galleryList.appendChild(createGalleryPhoto(url, index, truck.name));
+  });
+
+  selectors.gallerySection.hidden = false;
+  if (selectors.galleryCount) {
+    selectors.galleryCount.textContent = `${photos.length} photo${photos.length === 1 ? '' : 's'}`;
+  }
 }
 
 function getScheduleEntries(truck) {
@@ -781,6 +863,7 @@ function renderTruck(truck) {
 
   renderCuisines(truck);
   renderMenu(truck);
+  renderGallery(truck);
   renderSchedule(truck);
   renderLinks(truck);
   setView('truck');
