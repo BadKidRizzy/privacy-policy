@@ -287,6 +287,15 @@ function normalizedUrlKey(url) {
   }
 }
 
+function humanizeSocialSlug(value) {
+  return decodeURIComponent(asText(value))
+    .replace(/^@/, '')
+    .replace(/-\d{6,}$/g, '')
+    .replace(/[._-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function socialProfileHandle(url) {
   try {
     const parsed = new URL(url);
@@ -294,14 +303,16 @@ function socialProfileHandle(url) {
     const parts = parsed.pathname.split('/').filter(Boolean);
     if (!parts.length) return '';
     const first = decodeURIComponent(parts[0]).replace(/^@/, '').trim();
-    if (!first || ['p', 'reel', 'stories', 'explore', 'accounts', 'share', 'watch', 'pages', 'groups'].includes(first.toLowerCase())) {
-      return '';
+    const firstKey = first.toLowerCase();
+    if (!first) return '';
+    if (host.includes('facebook')) {
+      if (['share', 'watch', 'groups'].includes(firstKey)) return '';
+      const pageSegment = ['p', 'pages'].includes(firstKey) && parts[1] ? parts[1] : first;
+      return humanizeSocialSlug(pageSegment);
     }
+    if (['p', 'reel', 'stories', 'explore', 'accounts', 'share', 'watch', 'pages', 'groups'].includes(firstKey)) return '';
     if (host.includes('instagram') || host.includes('tiktok') || host === 'x.com' || host.includes('twitter')) {
       return `@${first}`;
-    }
-    if (host.includes('facebook')) {
-      return first;
     }
   } catch {
     return '';
