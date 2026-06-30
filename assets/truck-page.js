@@ -254,6 +254,41 @@ function formatHost(url) {
   }
 }
 
+function normalizedUrlKey(url) {
+  try {
+    const parsed = new URL(url);
+    parsed.hash = '';
+    parsed.search = '';
+    parsed.hostname = parsed.hostname.replace(/^www\./i, '').toLowerCase();
+    parsed.pathname = parsed.pathname.replace(/\/+$/, '') || '/';
+    return parsed.toString().replace(/\/$/, '');
+  } catch {
+    return asText(url).replace(/\/+$/, '').toLowerCase();
+  }
+}
+
+function socialProfileHandle(url) {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./i, '').toLowerCase();
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    if (!parts.length) return '';
+    const first = decodeURIComponent(parts[0]).replace(/^@/, '').trim();
+    if (!first || ['p', 'reel', 'stories', 'explore', 'accounts', 'share', 'watch', 'pages', 'groups'].includes(first.toLowerCase())) {
+      return '';
+    }
+    if (host.includes('instagram') || host.includes('tiktok') || host === 'x.com' || host.includes('twitter')) {
+      return `@${first}`;
+    }
+    if (host.includes('facebook')) {
+      return first;
+    }
+  } catch {
+    return '';
+  }
+  return '';
+}
+
 function formatPrice(value) {
   const price = Number(value);
   if (!Number.isFinite(price) || price <= 0) {
@@ -530,6 +565,7 @@ function renderMenu(truck) {
   const visibleMenu = state.showFullMenu ? menu : menu.slice(0, MENU_PREVIEW_LIMIT);
 
   selectors.menuList.textContent = '';
+  selectors.menuList.classList.toggle('menu-list--photos', menu.length === 0 && menuPhotos.length > 0);
   selectors.menuCount.textContent = menu.length > 0
     ? `${menu.length} item${menu.length === 1 ? '' : 's'}`
     : menuPhotos.length > 0
@@ -644,23 +680,36 @@ function getOrderUrl(truck) {
 function renderLinks(truck) {
   selectors.linkStack.textContent = '';
   const links = [];
+  const seen = new Set();
+
+  function addLink(label, url, detail = '') {
+    if (!url) return;
+    const key = normalizedUrlKey(url);
+    if (seen.has(key)) return;
+    seen.add(key);
+    links.push([label, url, detail]);
+  }
 
   if (isHttpUrl(truck.websiteUrl)) {
-    links.push(['Website', truck.websiteUrl]);
+    addLink('Website', truck.websiteUrl);
   }
 
   if (isHttpUrl(truck.doordashUrl)) {
-    links.push(['DoorDash', truck.doordashUrl]);
+    addLink('DoorDash', truck.doordashUrl);
   }
 
   if (isHttpUrl(truck.uberEatsUrl)) {
-    links.push(['Uber Eats', truck.uberEatsUrl]);
+    addLink('Uber Eats', truck.uberEatsUrl);
   }
 
   asArray(truck.socialLinks)
     .map(asText)
     .filter(isHttpUrl)
-    .forEach((url) => links.push([socialLabel(url), url]));
+    .forEach((url) => {
+      const label = socialLabel(url);
+      if (!label) return;
+      addLink(label, url, socialDetail(url));
+    });
 
   const phone = asText(truck.businessPhone);
   if (phone) {
@@ -687,7 +736,11 @@ function socialLabel(url) {
   if (host.includes('tiktok')) return 'TikTok';
   if (host.includes('youtube')) return 'YouTube';
   if (host.includes('x.com') || host.includes('twitter')) return 'X';
-  return 'Social';
+  return '';
+}
+
+function socialDetail(url) {
+  return socialProfileHandle(url) || formatHost(url);
 }
 
 function renderTruck(truck) {

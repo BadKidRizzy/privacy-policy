@@ -578,6 +578,11 @@ h2 {
   gap: 10px;
 }
 
+.menu-list--photos {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  align-items: start;
+}
+
 .menu-item,
 .schedule-item,
 .link-item {
@@ -609,7 +614,7 @@ h2 {
 
 .menu-photo img {
   width: 100%;
-  max-height: 520px;
+  height: clamp(220px, 26vw, 340px);
   border-radius: 16px;
   object-fit: contain;
   background: #fff;
@@ -1013,7 +1018,11 @@ h2 {
     grid-template-columns: 1fr;
   }
 
+  .menu-list--photos {
+    grid-template-columns: 1fr;
+  }
+
   .menu-photo img {
-    max-height: 420px;
+    height: min(360px, 78vw);
   }
 }
