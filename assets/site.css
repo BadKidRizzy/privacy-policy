@@ -783,6 +783,43 @@ h1 {
   gap: 18px;
 }
 
+.claim-app-callout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 18px;
+  border: 1px solid rgba(15, 124, 130, 0.18);
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(231, 247, 245, 0.94), rgba(255, 255, 255, 0.82));
+  padding: 18px;
+  box-shadow: 0 18px 42px rgba(31, 23, 19, 0.06);
+}
+
+.claim-app-callout strong,
+.claim-app-callout span {
+  display: block;
+}
+
+.claim-app-callout strong {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.claim-app-callout span {
+  margin-top: 5px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.claim-app-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 .claim-search-panel,
 .claim-submit-row {
   display: grid;
@@ -1195,11 +1232,16 @@ h1 {
 
   .hero__owner-cta,
   .owner-proof-grid,
+  .claim-app-callout,
   .claim-form-grid,
   .claim-search-panel,
   .claim-submit-row,
   .truck-preview-grid {
     grid-template-columns: 1fr;
+  }
+
+  .claim-app-actions {
+    justify-content: stretch;
   }
 
   .owner-preview {
