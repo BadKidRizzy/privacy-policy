@@ -527,6 +527,36 @@ h2 {
   line-height: 1.35;
 }
 
+.truck-profile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  align-items: start;
+  gap: 20px;
+}
+
+.truck-profile > .truck-hero {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
+.truck-profile > .content-grid {
+  display: contents;
+}
+
+.truck-profile > .conversion-grid {
+  grid-column: 1;
+  margin-top: 0;
+}
+
+.truck-profile .main-column {
+  grid-column: 1;
+}
+
+.truck-profile .side-column {
+  grid-column: 2;
+  grid-row: 2 / span 2;
+}
+
 .content-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
@@ -963,9 +993,18 @@ h2 {
 
 @media (max-width: 920px) {
   .truck-hero,
+  .truck-profile,
   .content-grid,
   .conversion-grid {
     grid-template-columns: 1fr;
+  }
+
+  .truck-profile > .truck-hero,
+  .truck-profile > .conversion-grid,
+  .truck-profile .main-column,
+  .truck-profile .side-column {
+    grid-column: 1;
+    grid-row: auto;
   }
 
   .app-download-panel {
