@@ -132,6 +132,10 @@ const selectors = {
   claimModalClose: document.querySelector('[data-claim-modal-close]'),
   claimModalEmail: document.querySelector('[data-claim-modal-email]'),
   claimSummary: document.querySelector('[data-claim-summary]'),
+  photoModal: document.querySelector('[data-photo-modal]'),
+  photoModalClose: document.querySelector('[data-photo-modal-close]'),
+  photoModalImage: document.querySelector('[data-photo-modal-image]'),
+  photoModalTitle: document.querySelector('[data-photo-modal-title]'),
   toast: document.querySelector('[data-toast]'),
 };
 
@@ -142,6 +146,7 @@ const state = {
   shareUrl: '',
   showFullMenu: false,
   pageWasHidden: false,
+  lastPhotoTrigger: null,
 };
 
 function getTruckId() {
@@ -510,6 +515,38 @@ function continueToClaimEmail() {
   }
 }
 
+function openPhotoModal(url, altText, title, trigger) {
+  if (!selectors.photoModal || !selectors.photoModalImage) {
+    window.open(url, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  state.lastPhotoTrigger = trigger || null;
+  selectors.photoModalImage.src = url;
+  selectors.photoModalImage.alt = altText || title || 'Food truck photo';
+  if (selectors.photoModalTitle) {
+    selectors.photoModalTitle.textContent = title || 'Truck photo';
+  }
+  selectors.photoModal.hidden = false;
+  document.body.classList.add('modal-open');
+  selectors.photoModalClose?.focus({preventScroll: true});
+}
+
+function closePhotoModal() {
+  if (!selectors.photoModal) {
+    return;
+  }
+
+  selectors.photoModal.hidden = true;
+  document.body.classList.remove('modal-open');
+  if (selectors.photoModalImage) {
+    selectors.photoModalImage.removeAttribute('src');
+    selectors.photoModalImage.alt = '';
+  }
+  state.lastPhotoTrigger?.focus?.({preventScroll: true});
+  state.lastPhotoTrigger = null;
+}
+
 function setDocumentMeta(truck) {
   const title = `${truck.name || 'Food Truck'} | Food Truck Finder`;
   const description = truck.description || `View ${truck.name || 'this food truck'} on Food Truck Finder.`;
@@ -573,11 +610,9 @@ function getMenuPhotoUrls(truck) {
 }
 
 function createMenuPhoto(url, index, truckName) {
-  const link = document.createElement('a');
-  link.className = 'menu-photo';
-  link.href = url;
-  link.target = '_blank';
-  link.rel = 'noreferrer';
+  const button = document.createElement('button');
+  button.className = 'menu-photo';
+  button.type = 'button';
 
   const image = document.createElement('img');
   image.src = url;
@@ -585,10 +620,14 @@ function createMenuPhoto(url, index, truckName) {
   image.loading = 'lazy';
 
   const label = document.createElement('span');
-  label.textContent = 'Open full menu photo';
+  label.textContent = 'View menu photo';
 
-  link.append(image, label);
-  return link;
+  button.addEventListener('click', () => {
+    openPhotoModal(url, image.alt, `Menu photo ${index + 1}`, button);
+  });
+
+  button.append(image, label);
+  return button;
 }
 
 function renderMenu(truck) {
@@ -654,11 +693,9 @@ function getGalleryPhotoUrls(truck) {
 }
 
 function createGalleryPhoto(url, index, truckName) {
-  const link = document.createElement('a');
-  link.className = 'gallery-photo';
-  link.href = url;
-  link.target = '_blank';
-  link.rel = 'noreferrer';
+  const button = document.createElement('button');
+  button.className = 'gallery-photo';
+  button.type = 'button';
 
   const image = document.createElement('img');
   image.src = url;
@@ -666,10 +703,14 @@ function createGalleryPhoto(url, index, truckName) {
   image.loading = 'lazy';
 
   const label = document.createElement('span');
-  label.textContent = 'Open photo';
+  label.textContent = 'View photo';
 
-  link.append(image, label);
-  return link;
+  button.addEventListener('click', () => {
+    openPhotoModal(url, image.alt, `Photo ${index + 1}`, button);
+  });
+
+  button.append(image, label);
+  return button;
 }
 
 function renderGallery(truck) {
@@ -999,6 +1040,12 @@ async function loadTruck() {
       closeClaimModal();
     }
   });
+  selectors.photoModalClose?.addEventListener('click', closePhotoModal);
+  selectors.photoModal?.addEventListener('click', (event) => {
+    if (event.target === selectors.photoModal) {
+      closePhotoModal();
+    }
+  });
   selectors.toggleMenu?.addEventListener('click', () => {
     state.showFullMenu = !state.showFullMenu;
     renderMenu(state.truck);
@@ -1037,6 +1084,11 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && selectors.photoModal && !selectors.photoModal.hidden) {
+    closePhotoModal();
+    return;
+  }
+
   if (event.key === 'Escape' && selectors.claimModal && !selectors.claimModal.hidden) {
     closeClaimModal();
   }

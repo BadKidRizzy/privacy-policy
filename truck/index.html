@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;650;750;850&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/truck-page.css?v=26">
+  <link rel="stylesheet" href="../assets/truck-page.css?v=27">
 </head>
 <body>
   <div class="truck-shell" data-page-shell>
@@ -220,10 +220,23 @@
     </div>
   </div>
 
+  <div class="modal-backdrop photo-modal-backdrop" data-photo-modal role="dialog" aria-modal="true" aria-labelledby="photo-modal-title" hidden>
+    <div class="photo-modal">
+      <div class="photo-modal-header">
+        <div>
+          <p class="eyebrow">Photo</p>
+          <h2 id="photo-modal-title" data-photo-modal-title>Truck photo</h2>
+        </div>
+        <button class="text-button" type="button" data-photo-modal-close>Close</button>
+      </div>
+      <img data-photo-modal-image src="" alt="">
+    </div>
+  </div>
+
   <div class="toast" data-toast hidden>Copied</div>
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-  <script defer src="../assets/truck-page.js?v=22"></script>
+  <script defer src="../assets/truck-page.js?v=23"></script>
 </body>
 </html>

@@ -652,6 +652,7 @@ h2 {
 .menu-photo {
   display: grid;
   gap: 10px;
+  width: 100%;
   border: 1px solid rgba(45, 34, 26, 0.1);
   border-radius: 18px;
   background:
@@ -660,6 +661,9 @@ h2 {
   color: var(--ink);
   font-weight: 850;
   text-decoration: none;
+  text-align: left;
+  appearance: none;
+  cursor: pointer;
 }
 
 .menu-photo img {
@@ -689,14 +693,19 @@ h2 {
 .gallery-photo {
   position: relative;
   overflow: hidden;
+  display: block;
+  width: 100%;
   min-height: 128px;
   border: 1px solid rgba(45, 34, 26, 0.1);
   border-radius: 18px;
   background: #fff;
   color: #fff;
   aspect-ratio: 4 / 3;
+  padding: 0;
   text-decoration: none;
   box-shadow: 0 8px 18px rgba(24, 17, 13, 0.06);
+  appearance: none;
+  cursor: pointer;
 }
 
 .gallery-photo img {
@@ -981,6 +990,51 @@ h2 {
   margin-top: 22px;
 }
 
+.photo-modal-backdrop {
+  z-index: 30;
+  padding: clamp(12px, 3vw, 28px);
+  background: rgba(23, 20, 17, 0.72);
+}
+
+.photo-modal {
+  width: min(1120px, 100%);
+  max-height: min(86vh, 900px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 242, 0.98), rgba(255, 255, 255, 0.94)),
+    var(--surface);
+  box-shadow: var(--shadow);
+  padding: clamp(12px, 2vw, 18px);
+}
+
+.photo-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.photo-modal-header h2 {
+  margin: 0;
+  font-size: clamp(20px, 3vw, 30px);
+}
+
+.photo-modal img {
+  width: 100%;
+  max-height: min(72vh, 760px);
+  border-radius: 18px;
+  object-fit: contain;
+  background: #fff;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
 [hidden] {
   display: none !important;
 }
@@ -1113,6 +1167,20 @@ h2 {
 
   .truck-hero--banner .hero-actions {
     grid-template-columns: 1fr;
+  }
+
+  .photo-modal {
+    max-height: 90vh;
+    border-radius: 20px;
+  }
+
+  .photo-modal-header {
+    align-items: center;
+  }
+
+  .photo-modal img {
+    max-height: 70vh;
+    border-radius: 14px;
   }
 
   h2 {
