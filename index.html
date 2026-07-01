@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Food Truck Finder | Built for Foodies, Owners, and Event Organizers</title>
+  <title>Food Truck Finder | Help Customers Find and Choose Your Food Truck</title>
   <meta
     name="description"
-    content="Food Truck Finder helps foodies discover trucks faster, helps owners share live location and menus, and helps organizers plan stronger events."
+    content="Food Truck Finder helps food truck owners claim a public profile, share location, menus, schedules, and make it easier for customers to choose their truck."
   >
   <meta name="theme-color" content="#ee6c3f">
   <link rel="canonical" href="https://www.ftf-foodtruckfinder.com/">
@@ -19,7 +19,7 @@
   <meta property="og:title" content="Food Truck Finder">
   <meta
     property="og:description"
-    content="One platform for foodies, food truck owners, and event organizers."
+    content="Claim a food truck profile, keep customers current, and make your truck easier to choose."
   >
   <meta property="og:image" content="https://www.ftf-foodtruckfinder.com/assets/media/foodies/explore-live-simulator.png">
   <meta property="og:image:alt" content="Food Truck Finder mobile app explore screen">
@@ -27,7 +27,7 @@
   <meta name="twitter:title" content="Food Truck Finder">
   <meta
     name="twitter:description"
-    content="Find trucks faster, update live stops, and build better food-driven events."
+    content="Claim your truck profile, show current details, and help customers decide before they drive."
   >
   <meta name="twitter:image" content="https://www.ftf-foodtruckfinder.com/assets/media/foodies/explore-live-simulator.png">
   <link rel="icon" type="image/png" href="./assets/brand/favicon.png">
@@ -39,7 +39,7 @@
     href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
     rel="stylesheet"
   >
-  <link rel="stylesheet" href="./assets/site.css?v=2">
+  <link rel="stylesheet" href="./assets/site.css?v=3">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -95,10 +95,10 @@
       </button>
 
       <nav id="site-nav" class="site-nav" data-site-nav>
-        <a href="#foodies">Foodies</a>
-        <a href="./get-app/">Get App</a>
         <a href="#owners">Owners</a>
         <a href="./claim-your-food-truck/">Claim</a>
+        <a href="./get-app/">Get App</a>
+        <a href="#foodies">Foodies</a>
         <a href="#cities">Cities</a>
         <a href="#organizers">Organizers</a>
         <a href="#faq">FAQ</a>
@@ -109,19 +109,19 @@
     <main id="top">
       <section class="hero">
         <div class="hero__copy">
-          <p class="eyebrow">Built to help food truck owners get found, with tools for foodies and organizers</p>
-          <h1>Help more people find your truck, check your menu, and know where you will be next.</h1>
+          <p class="eyebrow">For food truck owners</p>
+          <h1>Make it easy for customers to find your truck today.</h1>
           <p class="hero__lede">
-            Food Truck Finder gives owners one place to share live location, schedule, menu, and
-            specials, while foodies browse nearby trucks and organizers build better vendor lineups.
+            Claim your public profile, show your menu and schedule, connect your socials, and give
+            customers one trustworthy place to check before they drive somewhere else.
           </p>
 
           <div class="hero__pills">
-            <span>Owner setup help</span>
-            <span>Live location</span>
-            <span>Menu and specials</span>
-            <span>Truck discovery</span>
-            <span>Event-ready profiles</span>
+            <span>Claim a profile</span>
+            <span>Show location</span>
+            <span>Publish menus</span>
+            <span>Add socials</span>
+            <span>Get discovered</span>
           </div>
 
           <div class="hero__actions" id="download">
@@ -133,77 +133,81 @@
             </a>
             <a
               class="button button--secondary"
-              href="https://apps.apple.com/us/app/ftf-food-truck-finder/id6742719545"
-              target="_blank"
-              rel="noreferrer"
+              href="#owners"
             >
-              Download on the App Store
+              See Owner Tools
             </a>
             <a
               class="button button--ghost"
-              href="https://play.google.com/store/apps/details?id=com.innoryzen.foodtruckfinder"
-              target="_blank"
-              rel="noreferrer"
+              href="./get-app/"
             >
-              Get it on Google Play
+              Download App
             </a>
           </div>
 
           <div class="hero__owner-cta">
             <div>
-              <p class="hero__owner-label">Owner support</p>
-              <strong>Need onboarding help or a referral code?</strong>
-              <span>Email us and we will help get your truck profile live faster.</span>
+              <p class="hero__owner-label">Owner onboarding</p>
+              <strong>No profile yet? We can help you claim it.</strong>
+              <span>Send your truck name and best contact. We will help connect the right owner account.</span>
             </div>
             <a class="button button--ghost" href="./claim-your-food-truck/">
-              Start Owner Claim
+              Start Claim
             </a>
           </div>
 
           <div class="hero__notes">
             <div>
-              <strong>Owners</strong>
-              <span>Keep your location, schedule, menu, and specials in one current place.</span>
+              <strong>Look current</strong>
+              <span>Show menu, schedule, phone, socials, and location from one public profile.</span>
             </div>
             <div>
-              <strong>Foodies</strong>
-              <span>Browse nearby trucks, check details, and decide faster.</span>
+              <strong>Reduce confusion</strong>
+              <span>Give customers a single link instead of making them chase old posts.</span>
             </div>
             <div>
-              <strong>Organizers</strong>
-              <span>Discover trucks and build stronger food-driven events.</span>
+              <strong>Win more visits</strong>
+              <span>Help hungry customers decide before they pick another option.</span>
             </div>
           </div>
         </div>
 
         <div class="hero__visual">
-          <div class="hero-card hero-card--primary">
-            <img
-              src="./assets/media/foodies/explore-live-simulator.png"
-              alt="Food Truck Finder explore experience"
-            >
-          </div>
+          <div class="owner-preview" aria-label="Owner profile preview">
+            <div class="owner-preview__header">
+              <span>Owner Profile</span>
+              <strong>Ready for today&apos;s service</strong>
+            </div>
 
-          <div class="hero-card hero-card--secondary">
-            <img
-              src="./assets/media/owners/owner-overview-explained.png"
-              alt="Food Truck Finder owner overview"
-            >
-          </div>
+            <div class="owner-preview__screens">
+              <figure class="owner-preview__screen owner-preview__screen--main">
+                <img src="./assets/media/owners/owner-dashboard.png" alt="Owner dashboard in Food Truck Finder">
+              </figure>
+              <figure class="owner-preview__screen">
+                <img src="./assets/media/owners/owner-menu-explained.png" alt="Owner menu tools in Food Truck Finder">
+              </figure>
+            </div>
 
-          <div class="hero-stat hero-stat--one">
-            <strong>3 user groups</strong>
-            <span>Built for discovery, operations, and planning.</span>
-          </div>
-
-          <div class="hero-stat hero-stat--two">
-            <strong>1 shared platform</strong>
-            <span>Keep the customer view and the owner view connected.</span>
+            <div class="owner-preview__checklist">
+              <span>Location visible</span>
+              <span>Menu ready</span>
+              <span>Social links connected</span>
+            </div>
           </div>
         </div>
       </section>
 
       <section class="role-strip">
+        <article class="role-card">
+          <p class="role-card__tag">Owners</p>
+          <h2>Give customers a clean place to check before they choose.</h2>
+          <p>
+            Claim the profile, keep your menu and schedule current, and share one link that makes
+            your truck easier to trust.
+          </p>
+          <a href="#owners">See owner tools</a>
+        </article>
+
         <article class="role-card">
           <p class="role-card__tag">Foodies</p>
           <h2>Find something good before your lunch break is gone.</h2>
@@ -211,17 +215,7 @@
             Stop bouncing between social posts, maps, and old menus. Use one place to see what is
             nearby, what looks good, and where to go next.
           </p>
-          <a href="#foodies">See the foodie walkthrough</a>
-        </article>
-
-        <article class="role-card">
-          <p class="role-card__tag">Owners</p>
-          <h2>Stop losing orders because people cannot find you.</h2>
-          <p>
-            When your location, hours, or menu are buried in stories and comments, customers move
-            on. Give them one current place to check before they choose another truck.
-          </p>
-          <a href="#owners">See the owner walkthrough</a>
+          <a href="#foodies">See foodie discovery</a>
         </article>
 
         <article class="role-card">
@@ -238,7 +232,7 @@
       <section class="section section--demo" id="how-it-works">
         <div class="section-heading">
           <p class="eyebrow">See It In Action</p>
-          <h2>A quick demo that shows how the app helps owners get picked faster.</h2>
+          <h2>A quick demo that shows why owners should claim their profile.</h2>
           <p>
             The demo below walks through discovery for foodies, live updates for owners, and the
             planning flow for organizers so the product value is clear in under a minute.
@@ -259,19 +253,19 @@
             </video>
 
             <div class="demo-placeholder" data-video-fallback>
-              <p class="demo-placeholder__eyebrow">Video Slot Ready</p>
-              <h3>Record one walkthrough that sells the app in under 60 seconds.</h3>
+              <p class="demo-placeholder__eyebrow">Owner Walkthrough</p>
+              <h3>See how a claimed profile helps customers make a faster decision.</h3>
               <ul>
                 <li>Start with the foodie discovery flow.</li>
                 <li>Show the owner dashboard, schedule, and menu updates.</li>
                 <li>End on organizer value and a download call to action.</li>
               </ul>
-              <a class="button button--ghost" href="./assets/media/video/README.md">Open the video brief</a>
+              <a class="button button--ghost" href="./claim-your-food-truck/">Claim Your Truck</a>
             </div>
           </div>
 
           <div class="demo-panel">
-            <h3>What this demo sells</h3>
+            <h3>What owners should see fast</h3>
             <ol class="number-list">
               <li>Show foodies finding a truck quickly instead of searching through old posts.</li>
               <li>Show owners updating location, stops, and menus so customers can act on current information.</li>
@@ -280,11 +274,8 @@
             </ol>
 
             <div class="media-callout">
-              <strong>Media library ready</strong>
-              <p>
-                All of the screenshots selected for the site live in
-                <code>assets/media/</code> and are organized by audience.
-              </p>
+              <strong>Owner-first value</strong>
+              <p>Profiles work best when customers can check menu, schedule, photos, and socials without guessing.</p>
             </div>
           </div>
         </div>
@@ -558,20 +549,20 @@
             <p>The owner flow is meant to make stop and schedule changes easier to keep current so customers are not guessing.</p>
           </article>
           <article class="faq-card">
-            <h3>What should the demo video show?</h3>
-            <p>Discovery first, owner updates second, organizer coordination third, then a direct setup or download CTA.</p>
+            <h3>Can I share my truck profile link?</h3>
+            <p>Yes. Public truck profiles are built to be shared in social bios, event pages, flyers, and QR codes.</p>
           </article>
           <article class="faq-card">
-            <h3>Where are the screenshots for the website stored?</h3>
-            <p>They live under <code>assets/media/</code> and are grouped by audience for easy reuse.</p>
+            <h3>Will customers see my menu and socials?</h3>
+            <p>Yes. A stronger profile can show menu items, photos, website, social links, phone, and schedule details.</p>
           </article>
           <article class="faq-card">
             <h3>What if an owner needs help getting started?</h3>
             <p>They can email <a href="mailto:Foodtruckfinderinfo@gmail.com">Foodtruckfinderinfo@gmail.com</a> for onboarding help or referral code support.</p>
           </article>
           <article class="faq-card">
-            <h3>Where are the legal pages now?</h3>
-            <p>The site keeps dedicated links for the privacy policy and account deletion instructions in the footer.</p>
+            <h3>Can event organizers use these profiles?</h3>
+            <p>Yes. Organizer-facing discovery works better when owner profiles are current, visual, and easy to contact.</p>
           </article>
         </div>
       </section>
@@ -621,9 +612,6 @@
         <a href="./food-trucks/baltimore/">Baltimore Trucks</a>
         <a href="./food-trucks/washington-dc/">Washington DC Trucks</a>
         <a href="./delete-account.html">Delete Account</a>
-        <a href="./docs/website-build-prompt.html">Website Prompt</a>
-        <a href="./assets/media/README.md">Media Library</a>
-        <a href="./admin/">Management Console</a>
         <a href="mailto:Foodtruckfinderinfo@gmail.com">Foodtruckfinderinfo@gmail.com</a>
       </div>
 
