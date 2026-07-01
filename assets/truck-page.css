@@ -12,8 +12,8 @@
   --gold: #f1b64c;
   --night: #15100c;
   --cream: #fff4df;
-  --shadow: 0 28px 80px rgba(24, 17, 13, 0.2);
-  --soft-shadow: 0 16px 38px rgba(24, 17, 13, 0.1);
+  --shadow: 0 24px 60px rgba(24, 17, 13, 0.16);
+  --soft-shadow: 0 12px 28px rgba(24, 17, 13, 0.09);
 }
 
 * {
@@ -26,9 +26,7 @@ body {
   font-family: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(circle at 10% 2%, rgba(239, 101, 50, 0.18), transparent 28rem),
-    radial-gradient(circle at 90% 10%, rgba(10, 115, 112, 0.14), transparent 30rem),
-    linear-gradient(180deg, #fffaf1 0%, var(--bg) 50%, #efe1cd 100%);
+    linear-gradient(180deg, #fffaf2 0%, #f7eddf 46%, #edf8f5 100%);
 }
 
 img {
@@ -48,9 +46,9 @@ select {
 }
 
 .truck-shell {
-  width: min(1180px, calc(100% - 32px));
+  width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 22px 0 48px;
+  padding: 18px 0 48px;
 }
 
 .truck-topbar {
@@ -62,8 +60,8 @@ select {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 22px;
-  padding: 10px 0 14px;
-  background: linear-gradient(180deg, rgba(255, 250, 241, 0.94), rgba(255, 250, 241, 0));
+  padding: 10px 0 12px;
+  background: linear-gradient(180deg, rgba(255, 250, 242, 0.98), rgba(255, 250, 242, 0.72));
   backdrop-filter: blur(14px);
 }
 
@@ -184,31 +182,32 @@ select {
   position: relative;
   display: block;
   overflow: hidden;
-  margin-bottom: 24px;
-  padding: clamp(10px, 1.6vw, 18px);
+  margin-bottom: 22px;
+  padding: clamp(8px, 1.2vw, 14px);
   border-color: rgba(49, 35, 24, 0.12);
-  border-radius: 34px;
+  border-radius: 28px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 243, 224, 0.78)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 246, 232, 0.82)),
     rgba(255, 255, 255, 0.72);
   box-shadow: var(--shadow);
 }
 
 .truck-hero--banner .hero-media {
-  display: block;
-  height: auto;
+  display: grid;
+  place-items: center;
+  height: clamp(260px, 42vw, 500px);
   min-height: 0;
-  aspect-ratio: auto;
+  aspect-ratio: 16 / 9;
   padding: 0;
   border: 1px solid rgba(49, 35, 24, 0.1);
-  border-radius: 26px;
+  border-radius: 22px;
   background: #fff8ec;
   box-shadow: 0 20px 52px rgba(24, 17, 13, 0.12);
 }
 
 .truck-hero--banner .hero-media img {
   width: 100%;
-  height: auto;
+  height: 100%;
   border-radius: 0;
   object-fit: contain;
 }
@@ -216,12 +215,12 @@ select {
 .truck-hero--banner .hero-copy {
   position: relative;
   z-index: 2;
-  width: min(900px, calc(100% - 32px));
+  width: min(920px, calc(100% - 34px));
   min-height: 0;
-  margin: clamp(-42px, -4vw, -28px) auto 0;
-  padding: clamp(26px, 3.2vw, 42px);
+  margin: clamp(-54px, -4.6vw, -32px) auto 0;
+  padding: clamp(22px, 2.8vw, 34px);
   border: 1px solid rgba(49, 35, 24, 0.12);
-  border-radius: 26px;
+  border-radius: 22px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(255, 250, 242, 0.9)),
     var(--surface);
@@ -242,11 +241,12 @@ select {
 }
 
 .truck-hero--banner h1 {
-  max-width: 16ch;
+  max-width: 20ch;
   margin-inline: auto;
-  font-size: clamp(2rem, 3vw, 3.15rem);
-  line-height: 1.03;
-  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+  font-size: 46px;
+  line-height: 1.05;
+  letter-spacing: 0;
   text-wrap: balance;
   word-spacing: 0.04em;
 }
@@ -297,18 +297,19 @@ p {
 }
 
 h1 {
-  max-width: 14ch;
-  font-size: clamp(2.55rem, 4.7vw, 4.55rem);
+  max-width: 18ch;
+  overflow-wrap: anywhere;
+  font-size: 58px;
   font-weight: 850;
-  line-height: 0.98;
-  letter-spacing: -0.055em;
+  line-height: 1;
+  letter-spacing: 0;
 }
 
 h2 {
   font-size: 26px;
   font-weight: 850;
   line-height: 1.15;
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
 }
 
 .lede,
@@ -328,6 +329,7 @@ h2 {
 .status-line {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   margin: 0 0 18px;
 }
@@ -526,7 +528,8 @@ h2 {
 
 .content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  align-items: start;
   gap: 20px;
 }
 
@@ -556,8 +559,15 @@ h2 {
   gap: 18px;
 }
 
+@media (min-width: 921px) {
+  .side-column {
+    position: sticky;
+    top: 86px;
+  }
+}
+
 .section-panel {
-  padding: 24px;
+  padding: 22px;
   background:
     linear-gradient(180deg, rgba(255, 250, 242, 0.95), rgba(255, 255, 255, 0.9)),
     var(--surface);
@@ -579,8 +589,13 @@ h2 {
   gap: 10px;
 }
 
+.menu-list:not(.menu-list--photos) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .menu-list--photos {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   align-items: start;
 }
 
@@ -591,23 +606,25 @@ h2 {
   border-radius: 18px;
   background:
     linear-gradient(180deg, rgba(255, 250, 244, 0.96), rgba(255, 255, 255, 0.86));
-  padding: 16px;
+  padding: 14px;
 }
 
 .menu-item {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
   gap: 12px;
+  min-height: 92px;
 }
 
 .menu-photo {
   display: grid;
   gap: 10px;
   border: 1px solid rgba(45, 34, 26, 0.1);
-  border-radius: 22px;
+  border-radius: 18px;
   background:
     linear-gradient(180deg, rgba(255, 250, 244, 0.96), rgba(255, 255, 255, 0.86));
-  padding: 12px;
+  padding: 10px;
   color: var(--ink);
   font-weight: 850;
   text-decoration: none;
@@ -615,8 +632,8 @@ h2 {
 
 .menu-photo img {
   width: 100%;
-  height: clamp(220px, 26vw, 340px);
-  border-radius: 16px;
+  height: clamp(180px, 22vw, 270px);
+  border-radius: 14px;
   object-fit: contain;
   background: #fff;
 }
@@ -634,13 +651,13 @@ h2 {
 }
 
 .photo-gallery {
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
 }
 
 .gallery-photo {
   position: relative;
   overflow: hidden;
-  min-height: 140px;
+  min-height: 128px;
   border: 1px solid rgba(45, 34, 26, 0.1);
   border-radius: 18px;
   background: #fff;
@@ -687,9 +704,15 @@ h2 {
 }
 
 .menu-price {
+  align-self: start;
+  border: 1px solid rgba(49, 115, 69, 0.16);
+  border-radius: 999px;
+  background: rgba(49, 115, 69, 0.09);
   color: var(--green);
   font-weight: 850;
-  font-size: 18px;
+  font-size: 15px;
+  padding: 5px 8px;
+  white-space: nowrap;
 }
 
 .menu-desc,
@@ -704,6 +727,8 @@ h2 {
 
 .link-item {
   position: relative;
+  min-height: 72px;
+  padding-right: 64px;
   text-decoration: none;
 }
 
@@ -711,8 +736,13 @@ h2 {
   content: "Open";
   position: absolute;
   right: 14px;
-  top: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 1px solid rgba(10, 115, 112, 0.18);
+  border-radius: 999px;
+  background: rgba(10, 115, 112, 0.08);
   color: var(--teal);
+  padding: 5px 8px;
   font-size: 12px;
   font-weight: 850;
 }
@@ -798,6 +828,7 @@ h2 {
 }
 
 .share-box {
+  overflow-wrap: anywhere;
   margin-top: 14px;
   padding: 14px;
   border: 1px solid rgba(11, 115, 117, 0.2);
@@ -925,7 +956,7 @@ h2 {
 @media (max-width: 1120px) {
   .truck-hero--banner h1 {
     max-width: 100%;
-    font-size: clamp(2.35rem, 8vw, 3.6rem);
+    font-size: 42px;
   }
 }
 
@@ -967,7 +998,7 @@ h2 {
 
   .truck-hero--banner h1 {
     max-width: 100%;
-    font-size: clamp(2.35rem, 8vw, 3.6rem);
+    font-size: 42px;
   }
 
   .quick-facts {
@@ -975,6 +1006,10 @@ h2 {
   }
 
   .truck-hero--banner .quick-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-list:not(.menu-list--photos) {
     grid-template-columns: 1fr;
   }
 }
@@ -1032,7 +1067,7 @@ h2 {
 
   .truck-hero--banner h1 {
     font-size: 34px;
-    letter-spacing: -0.025em;
+    letter-spacing: 0;
   }
 
   .truck-hero--banner .hero-actions {
