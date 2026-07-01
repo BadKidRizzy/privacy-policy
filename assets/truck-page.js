@@ -515,6 +515,22 @@ function continueToClaimEmail() {
   }
 }
 
+function updatePhotoModalViewportVars() {
+  const viewport = window.visualViewport;
+  const width = Math.max(240, viewport?.width || window.innerWidth || document.documentElement.clientWidth || 360);
+  const height = Math.max(320, viewport?.height || window.innerHeight || document.documentElement.clientHeight || 640);
+  const offsetLeft = viewport?.offsetLeft || 0;
+  const offsetTop = viewport?.offsetTop || 0;
+  const rootStyle = document.documentElement.style;
+
+  rootStyle.setProperty('--photo-modal-vw', `${width}px`);
+  rootStyle.setProperty('--photo-modal-vh', `${height}px`);
+  rootStyle.setProperty('--photo-modal-offset-left', `${offsetLeft}px`);
+  rootStyle.setProperty('--photo-modal-offset-top', `${offsetTop}px`);
+  rootStyle.setProperty('--photo-modal-center-x', `${offsetLeft + width / 2}px`);
+  rootStyle.setProperty('--photo-modal-center-y', `${offsetTop + height / 2}px`);
+}
+
 function openPhotoModal(url, altText, title, trigger) {
   if (!selectors.photoModal || !selectors.photoModalImage) {
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -522,8 +538,10 @@ function openPhotoModal(url, altText, title, trigger) {
   }
 
   state.lastPhotoTrigger = trigger || null;
+  updatePhotoModalViewportVars();
   selectors.photoModal.classList.remove('photo-modal--portrait', 'photo-modal--landscape');
   selectors.photoModalImage.onload = () => {
+    updatePhotoModalViewportVars();
     const isPortrait = selectors.photoModalImage.naturalHeight > selectors.photoModalImage.naturalWidth;
     selectors.photoModal.classList.toggle('photo-modal--portrait', isPortrait);
     selectors.photoModal.classList.toggle('photo-modal--landscape', !isPortrait);
@@ -1103,6 +1121,21 @@ document.addEventListener('keydown', (event) => {
 });
 window.addEventListener('pagehide', () => {
   state.pageWasHidden = true;
+});
+window.addEventListener('resize', () => {
+  if (selectors.photoModal && !selectors.photoModal.hidden) {
+    updatePhotoModalViewportVars();
+  }
+});
+window.visualViewport?.addEventListener('resize', () => {
+  if (selectors.photoModal && !selectors.photoModal.hidden) {
+    updatePhotoModalViewportVars();
+  }
+});
+window.visualViewport?.addEventListener('scroll', () => {
+  if (selectors.photoModal && !selectors.photoModal.hidden) {
+    updatePhotoModalViewportVars();
+  }
 });
 
 loadTruck();

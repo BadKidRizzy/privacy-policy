@@ -1031,20 +1031,37 @@ h2 {
 .photo-modal-backdrop {
   z-index: 30;
   display: block;
-  width: 100vw;
-  height: 100dvh;
-  padding: clamp(12px, 3vw, 28px);
+  left: 0;
+  top: 0;
+  right: auto;
+  bottom: auto;
+  width: max(100vw, var(--photo-modal-vw, 100vw));
+  height: max(100dvh, var(--photo-modal-vh, 100dvh));
+  padding: 0;
   overflow: auto;
-  background: rgba(23, 20, 17, 0.76);
+  background: transparent;
+}
+
+.photo-modal-backdrop::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  width: max(100vw, var(--photo-modal-vw, 100vw));
+  width: max(100vw, 100lvw, var(--photo-modal-vw, 100vw));
+  height: max(100dvh, var(--photo-modal-vh, 100dvh));
+  height: max(100dvh, 100lvh, var(--photo-modal-vh, 100dvh));
+  background: rgba(23, 20, 17, 0.82);
   backdrop-filter: blur(8px);
 }
 
 .photo-modal {
   position: fixed;
-  top: 50dvh;
-  left: 50vw;
-  width: min(960px, calc(100vw - 48px));
-  max-height: min(calc(100dvh - 48px), 900px);
+  z-index: 1;
+  top: var(--photo-modal-center-y, 50dvh);
+  left: var(--photo-modal-center-x, 50vw);
+  width: min(960px, calc(var(--photo-modal-vw, 100vw) - 48px));
+  max-width: calc(var(--photo-modal-vw, 100vw) - 24px);
+  max-height: min(calc(var(--photo-modal-vh, 100dvh) - 48px), 900px);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 12px;
@@ -1059,11 +1076,11 @@ h2 {
 }
 
 .photo-modal--portrait {
-  width: min(620px, calc(100vw - 48px));
+  width: min(620px, calc(var(--photo-modal-vw, 100vw) - 48px));
 }
 
 .photo-modal--landscape {
-  width: min(1060px, calc(100vw - 48px));
+  width: min(1060px, calc(var(--photo-modal-vw, 100vw) - 48px));
 }
 
 .photo-modal-header {
@@ -1083,7 +1100,8 @@ h2 {
 .photo-modal img {
   display: block;
   width: 100%;
-  max-height: min(calc(100dvh - 150px), 760px);
+  max-width: 100%;
+  max-height: min(calc(var(--photo-modal-vh, 100dvh) - 150px), 760px);
   margin: 0 auto;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
@@ -1234,8 +1252,9 @@ body.modal-open {
   }
 
   .photo-modal {
-    width: calc(100vw - 20px);
-    max-height: calc(100dvh - 20px);
+    width: min(520px, calc(var(--photo-modal-vw, 100vw) - 48px));
+    max-width: calc(var(--photo-modal-vw, 100vw) - 32px);
+    max-height: calc(var(--photo-modal-vh, 100dvh) - 20px);
     border-radius: 20px;
     padding: 10px;
   }
@@ -1250,7 +1269,7 @@ body.modal-open {
   }
 
   .photo-modal img {
-    max-height: calc(100dvh - 118px);
+    max-height: calc(var(--photo-modal-vh, 100dvh) - 118px);
     border-radius: 14px;
   }
 
