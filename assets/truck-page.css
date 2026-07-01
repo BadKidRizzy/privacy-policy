@@ -546,12 +546,7 @@ h2 {
 }
 
 .truck-profile > .content-grid {
-  display: contents;
-}
-
-.truck-profile > .conversion-grid {
-  grid-column: 1;
-  margin-top: 0;
+  grid-column: 1 / -1;
 }
 
 .truck-profile .main-column {
@@ -560,7 +555,6 @@ h2 {
 
 .truck-profile .side-column {
   grid-column: 2;
-  grid-row: 2 / span 2;
 }
 
 .content-grid {
@@ -583,6 +577,10 @@ h2 {
     linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(255, 247, 236, 0.82)),
     var(--surface);
   box-shadow: var(--soft-shadow);
+}
+
+.main-column > .conversion-grid {
+  margin-top: 0;
 }
 
 .conversion-grid .section-panel {
@@ -1120,6 +1118,7 @@ body.modal-open {
   }
 
   .truck-profile > .truck-hero,
+  .truck-profile > .content-grid,
   .truck-profile > .conversion-grid,
   .truck-profile .main-column,
   .truck-profile .side-column {
