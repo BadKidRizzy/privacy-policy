@@ -1003,9 +1003,9 @@ h2 {
 
 .photo-modal {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  width: min(960px, 100%);
+  top: 50dvh;
+  left: 50vw;
+  width: min(960px, calc(100vw - 48px));
   max-height: min(calc(100dvh - 48px), 900px);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -1021,11 +1021,11 @@ h2 {
 }
 
 .photo-modal--portrait {
-  width: min(620px, 100%);
+  width: min(620px, calc(100vw - 48px));
 }
 
 .photo-modal--landscape {
-  width: min(1060px, 100%);
+  width: min(1060px, calc(100vw - 48px));
 }
 
 .photo-modal-header {

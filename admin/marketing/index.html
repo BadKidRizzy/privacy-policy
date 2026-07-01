@@ -213,6 +213,16 @@
       text-align: center;
     }
 
+    .contact-timestamp {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.25;
+      text-transform: none;
+    }
+
     .card h2 {
       margin: 0;
       font-size: 18px;
@@ -389,6 +399,19 @@
     .status-row {
       display: grid;
       gap: 8px;
+    }
+
+    .field-stack {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field-stack label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
     .hidden {
@@ -841,6 +864,10 @@
       margin-top: 14px;
     }
 
+    .owner-email-block .copy-link-row {
+      margin-top: 8px;
+    }
+
     .copy-link-row input {
       height: 42px;
       border-radius: 999px;
@@ -1020,7 +1047,8 @@
             <p class="subtle">Admin-only truck outreach list with phone numbers, social links, audit notes, and shared called and texted checkmarks.</p>
           </div>
           <div class="console-toolbar__actions">
-            <button class="primary" type="button" id="exportStatus">Export Contact Status</button>
+            <button class="primary" type="button" id="exportCsv">Export CSV</button>
+            <button type="button" id="exportStatus">Export JSON</button>
           </div>
         </div>
 
@@ -1037,7 +1065,7 @@
         <span class="auth-message warn" id="authMessage">Admin sign in required.</span>
       </section>
       <div class="toolbar">
-        <input id="search" type="search" placeholder="Search truck, phone, social">
+        <input id="search" type="search" placeholder="Search truck, owner email, phone, social">
         <select id="statusFilter" aria-label="Filter by outreach status">
           <option value="">All statuses</option>
           <option value="ready">Ready</option>
@@ -1122,6 +1150,15 @@
       claimed: 'Claimed',
       needs_fix: 'Needs fix',
       opted_out: 'Opted out',
+    };
+    const callOutcomeLabels = {
+      no_answer: 'No answer',
+      left_voicemail: 'Left voicemail',
+      interested: 'Interested',
+      not_interested: 'Not interested',
+      wrong_number: 'Wrong number',
+      needs_follow_up: 'Needs follow-up',
+      claimed: 'Claimed',
     };
     const menuLabels = {
       itemized_menu: 'Itemized menu',
@@ -1245,6 +1282,8 @@
         state.callNotesUpdatedAt,
         state.reachedOutAt,
         state.textedAt,
+        state.callOutcomeUpdatedAt,
+        state.followUpDateUpdatedAt,
       ];
 
       for (const value of candidates) {
@@ -1347,6 +1386,8 @@
         reachedOut: getReachedOut(row),
         texted: getTexted(row),
         callNotes: getCallNotes(row),
+        callOutcome: getCallOutcome(row),
+        followUpDate: getFollowUpDate(row),
       };
       const response = await fetch(outreachStatusEndpoint, {
         method: 'POST',
@@ -1469,6 +1510,24 @@
       return typeof notes === 'string' ? notes : '';
     }
 
+    function getCallOutcome(row) {
+      const outcome = getRowState(row).callOutcome;
+      return typeof outcome === 'string' ? outcome : '';
+    }
+
+    function getFollowUpDate(row) {
+      const followUpDate = getRowState(row).followUpDate;
+      return typeof followUpDate === 'string' ? followUpDate : '';
+    }
+
+    function getReachedOutAt(row) {
+      return getRowState(row).reachedOutAt || row.reachedOutAt || '';
+    }
+
+    function getTextedAt(row) {
+      return getRowState(row).textedAt || row.textedAt || '';
+    }
+
     function setStatus(row, status) {
       statusState[row.truckId] = {
         ...getRowState(row),
@@ -1515,17 +1574,51 @@
       queueRowSync(row, 700);
     }
 
+    function setCallOutcome(row, callOutcome) {
+      const nextState = {
+        ...getRowState(row),
+        callOutcome,
+        callOutcomeUpdatedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (callOutcome === 'claimed') {
+        nextState.status = 'claimed';
+      }
+
+      statusState[row.truckId] = nextState;
+      saveStatus();
+      queueRowSync(row);
+      render();
+    }
+
+    function setFollowUpDate(row, followUpDate) {
+      statusState[row.truckId] = {
+        ...getRowState(row),
+        followUpDate,
+        followUpDateUpdatedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      saveStatus();
+      queueRowSync(row);
+      render();
+    }
+
     function matches(row) {
       const status = getStatus(row);
       const query = controls.search.value.trim().toLowerCase();
       const searchText = [
         row.truckName,
+        row.ownerContactEmail,
+        row.ownerEmail,
         row.businessPhone,
         row.currentAddress,
         row.firstMenuItems,
         row.profileUrl,
         row.phoneAuditStatus,
         row.phoneAuditNotes,
+        callOutcomeLabels[getCallOutcome(row)],
+        getFollowUpDate(row),
         phoneAuditCandidates(row).join(' '),
         matchedSourceUrls(row).join(' '),
         socialUrls(row).join(' '),
@@ -1629,7 +1722,19 @@
       }
     }
 
-    function buildContactToggle(active, activeLabel, inactiveLabel, activeAria, inactiveAria, activeTitle, inactiveTitle, handler) {
+    function formatTimestamp(value) {
+      const date = new Date(value || '');
+      if (!Number.isFinite(date.getTime())) return '';
+
+      return date.toLocaleString([], {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+    }
+
+    function buildContactToggle(active, activeLabel, inactiveLabel, activeAria, inactiveAria, activeTitle, inactiveTitle, detail, handler) {
       const wrapper = document.createElement('div');
       wrapper.className = 'contact-check';
       const button = document.createElement('button');
@@ -1643,29 +1748,77 @@
       const label = document.createElement('span');
       label.className = 'reach-label';
       label.textContent = active ? activeLabel : inactiveLabel;
+      if (detail) {
+        const timestamp = document.createElement('span');
+        timestamp.className = 'contact-timestamp';
+        timestamp.textContent = detail;
+        label.append(timestamp);
+      }
       wrapper.append(button, label);
       return wrapper;
     }
 
-    function buildProfileCopyRow(row) {
+    function buildCopyFieldRow(value, ariaLabel, buttonLabel) {
       const wrapper = document.createElement('div');
       wrapper.className = 'copy-link-row';
       const input = document.createElement('input');
       input.type = 'text';
       input.readOnly = true;
-      input.value = row.profileUrl || '';
-      input.setAttribute('aria-label', 'Truck page link');
+      input.value = value || '';
+      input.setAttribute('aria-label', ariaLabel);
       input.addEventListener('focus', () => input.select());
       input.addEventListener('click', () => input.select());
       const button = document.createElement('button');
       button.type = 'button';
-      button.textContent = 'Copy Link';
+      button.textContent = buttonLabel;
       button.addEventListener('click', async () => {
-        await copyText(row.profileUrl);
+        await copyText(value || '');
         flashButton(button);
       });
       wrapper.append(input, button);
       return wrapper;
+    }
+
+    function buildProfileCopyRow(row) {
+      return buildCopyFieldRow(row.profileUrl || '', 'Truck page link', 'Copy Link');
+    }
+
+    function buildClaimUrl(row) {
+      const url = new URL('/claim-your-food-truck/', window.location.origin);
+      if (row.truckName) url.searchParams.set('truck', row.truckName);
+      if (row.currentAddress) url.searchParams.set('city', row.currentAddress);
+      if (row.profileUrl) url.searchParams.set('profile', row.profileUrl);
+      url.hash = 'claim-form';
+      return url.toString();
+    }
+
+    function buildClaimCopyRow(row) {
+      return buildCopyFieldRow(buildClaimUrl(row), 'Owner claim link', 'Copy Claim Link');
+    }
+
+    function buildOwnerEmailCopyRow(row) {
+      return buildCopyFieldRow(getOwnerContactEmail(row), 'Owner contact email', 'Copy Email');
+    }
+
+    function getOwnerContactEmail(row) {
+      return row.ownerContactEmail || row.businessEmail || row.contactEmail || row.publicEmail || row.ownerEmail || '';
+    }
+
+    function getNextActionLabel(row) {
+      const phoneAuditStatus = getPhoneAuditStatus(row);
+      const phone = normalizePhone(row.businessPhone);
+      const ownerEmail = getOwnerContactEmail(row);
+      const socials = socialUrls(row);
+
+      if (!phone && !ownerEmail && socials.length === 0) return 'Needs research';
+      if (phoneAuditStatus === 'source_phone_mismatch' || phoneAuditStatus === 'missing_phone') return 'Needs research';
+      if (phone && getTexted(row) && !getReachedOut(row)) return 'Call first';
+      if (phone && getReachedOut(row) && !getTexted(row)) return 'Text first';
+      if (phone) return 'Call first';
+      if (ownerEmail) return 'Email first';
+      if (socials.some((url) => url.toLowerCase().includes('instagram'))) return 'DM on Instagram';
+      if (socials.length > 0) return 'Social DM';
+      return 'Needs research';
     }
 
     function buildCallNotes(row) {
@@ -1706,6 +1859,7 @@
           'Mark called',
           'Called',
           'Not called yet',
+          formatTimestamp(getReachedOutAt(row)),
           () => setReachedOut(row, !reachedOut)
         ),
         buildContactToggle(
@@ -1716,6 +1870,7 @@
           'Mark texted',
           'Texted',
           'Not texted yet',
+          formatTimestamp(getTextedAt(row)),
           () => setTexted(row, !texted)
         )
       );
@@ -1732,16 +1887,33 @@
         buildPill(statusLabels[status] || status, status === 'opted_out' ? 'danger' : ''),
         buildPill(reachedOut ? 'Called' : 'Not called', reachedOut ? '' : 'warn'),
         buildPill(texted ? 'Texted' : 'Not texted', texted ? '' : 'warn'),
+        buildPill(getNextActionLabel(row), 'success'),
+        getCallOutcome(row) ? buildPill(callOutcomeLabels[getCallOutcome(row)] || getCallOutcome(row), '') : buildPill('No outcome', 'warn'),
         buildPill(phoneAuditLabels[phoneAuditStatus] || phoneAuditStatus, phoneAuditVariant(phoneAuditStatus)),
         buildPill(menuLabels[row.menuStatus] || row.menuStatus, row.menuStatus === 'menu_photo_only' ? 'warn' : ''),
         buildPill(row.businessPhone || 'No phone')
       );
+      if (getFollowUpDate(row)) {
+        meta.append(buildPill('Follow up ' + getFollowUpDate(row), 'warn'));
+      }
       body.append(meta);
 
       const address = document.createElement('p');
       address.className = 'message';
       address.innerHTML = '<strong>Address:</strong> ' + escapeHtml(row.currentAddress || 'Unavailable');
       body.append(address);
+
+      const ownerEmail = document.createElement('div');
+      ownerEmail.className = 'message owner-email-block';
+      const ownerEmailLabel = document.createElement('strong');
+      ownerEmailLabel.textContent = 'Owner Contact Email: ';
+      ownerEmail.append(ownerEmailLabel);
+      if (getOwnerContactEmail(row)) {
+        ownerEmail.append(buildOwnerEmailCopyRow(row));
+      } else {
+        ownerEmail.append(document.createTextNode('No owner email'));
+      }
+      body.append(ownerEmail);
 
       const menu = document.createElement('p');
       menu.className = 'message';
@@ -1772,6 +1944,7 @@
       body.append(social);
 
       body.append(buildProfileCopyRow(row));
+      body.append(buildClaimCopyRow(row));
 
       const auditPanel = document.createElement('div');
       auditPanel.className = 'audit-panel';
@@ -1836,7 +2009,43 @@
         statusSelect.append(option);
       }
       statusSelect.addEventListener('change', () => setStatus(row, statusSelect.value));
-      statusRow.append(statusSelect);
+      const statusField = document.createElement('div');
+      statusField.className = 'field-stack';
+      const statusLabel = document.createElement('label');
+      statusLabel.textContent = 'Status';
+      statusField.append(statusLabel, statusSelect);
+
+      const outcomeSelect = document.createElement('select');
+      const emptyOutcome = document.createElement('option');
+      emptyOutcome.value = '';
+      emptyOutcome.textContent = 'Call outcome';
+      emptyOutcome.selected = !getCallOutcome(row);
+      outcomeSelect.append(emptyOutcome);
+      for (const [value, label] of Object.entries(callOutcomeLabels)) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        option.selected = value === getCallOutcome(row);
+        outcomeSelect.append(option);
+      }
+      outcomeSelect.addEventListener('change', () => setCallOutcome(row, outcomeSelect.value));
+      const outcomeField = document.createElement('div');
+      outcomeField.className = 'field-stack';
+      const outcomeLabel = document.createElement('label');
+      outcomeLabel.textContent = 'Call outcome';
+      outcomeField.append(outcomeLabel, outcomeSelect);
+
+      const followUpInput = document.createElement('input');
+      followUpInput.type = 'date';
+      followUpInput.value = getFollowUpDate(row);
+      followUpInput.addEventListener('change', () => setFollowUpDate(row, followUpInput.value));
+      const followUpField = document.createElement('div');
+      followUpField.className = 'field-stack';
+      const followUpLabel = document.createElement('label');
+      followUpLabel.textContent = 'Follow up on';
+      followUpField.append(followUpLabel, followUpInput);
+
+      statusRow.append(statusField, outcomeField, followUpField);
       actions.append(statusRow);
 
       const primaryActions = document.createElement('div');
@@ -1850,6 +2059,10 @@
         buildLink('Profile', row.profileUrl),
         buildButton('Copy Link', async (event) => {
           await copyText(row.profileUrl);
+          flashButton(event.currentTarget);
+        }),
+        buildButton('Copy Claim', async (event) => {
+          await copyText(buildClaimUrl(row));
           flashButton(event.currentTarget);
         }),
         buildLink('Website', row.websiteUrl),
@@ -1903,6 +2116,70 @@
       document.getElementById('sentCount').textContent = outreachRows.filter((row) => getStatus(row) === 'sent').length;
       document.getElementById('claimedCount').textContent = outreachRows.filter((row) => getStatus(row) === 'claimed').length;
       document.getElementById('optedOutCount').textContent = outreachRows.filter((row) => getStatus(row) === 'opted_out').length;
+    }
+
+    function csvEscape(value) {
+      const text = String(value ?? '');
+      return /[",\n\r]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+    }
+
+    function buildCsvExport() {
+      const headers = [
+        'Truck',
+        'Best next action',
+        'Status',
+        'Call outcome',
+        'Follow up date',
+        'Called',
+        'Called at',
+        'Texted',
+        'Texted at',
+        'Owner email',
+        'Phone',
+        'Address',
+        'Phone audit',
+        'Menu status',
+        'Profile URL',
+        'Claim URL',
+        'Website',
+        'Social links',
+        'Call notes',
+      ];
+      const rows = outreachRows.map((row) => [
+        row.truckName,
+        getNextActionLabel(row),
+        statusLabels[getStatus(row)] || getStatus(row),
+        callOutcomeLabels[getCallOutcome(row)] || getCallOutcome(row),
+        getFollowUpDate(row),
+        getReachedOut(row) ? 'yes' : 'no',
+        getReachedOutAt(row),
+        getTexted(row) ? 'yes' : 'no',
+        getTextedAt(row),
+        getOwnerContactEmail(row),
+        row.businessPhone,
+        row.currentAddress,
+        phoneAuditLabels[getPhoneAuditStatus(row)] || getPhoneAuditStatus(row),
+        menuLabels[row.menuStatus] || row.menuStatus,
+        row.profileUrl,
+        buildClaimUrl(row),
+        row.websiteUrl,
+        socialUrls(row).join(' | '),
+        getCallNotes(row),
+      ]);
+
+      return [headers, ...rows]
+        .map((row) => row.map(csvEscape).join(','))
+        .join('\n');
+    }
+
+    function downloadTextFile(filename, content, type) {
+      const blob = new Blob([content], {type});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
     }
 
     function render() {
@@ -1981,19 +2258,19 @@
         return;
       }
 
-      const blob = new Blob([JSON.stringify({
+      downloadTextFile('ftf-marketing-outreach-export.json', JSON.stringify({
         exportedAt: new Date().toISOString(),
         rows: outreachRows,
         statusState,
-      }, null, 2)], {
-        type: 'application/json',
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'ftf-marketing-outreach-export.json';
-      link.click();
-      URL.revokeObjectURL(url);
+      }, null, 2), 'application/json');
+    });
+    document.getElementById('exportCsv').addEventListener('click', () => {
+      if (!currentUser) {
+        setAuthMessage('Sign in with an admin account before exporting.', 'warn');
+        return;
+      }
+
+      downloadTextFile('ftf-marketing-outreach-export.csv', buildCsvExport(), 'text/csv;charset=utf-8');
     });
 
     initializeAuth();
