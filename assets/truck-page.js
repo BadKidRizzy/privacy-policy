@@ -522,6 +522,12 @@ function openPhotoModal(url, altText, title, trigger) {
   }
 
   state.lastPhotoTrigger = trigger || null;
+  selectors.photoModal.classList.remove('photo-modal--portrait', 'photo-modal--landscape');
+  selectors.photoModalImage.onload = () => {
+    const isPortrait = selectors.photoModalImage.naturalHeight > selectors.photoModalImage.naturalWidth;
+    selectors.photoModal.classList.toggle('photo-modal--portrait', isPortrait);
+    selectors.photoModal.classList.toggle('photo-modal--landscape', !isPortrait);
+  };
   selectors.photoModalImage.src = url;
   selectors.photoModalImage.alt = altText || title || 'Food truck photo';
   if (selectors.photoModalTitle) {
@@ -538,8 +544,10 @@ function closePhotoModal() {
   }
 
   selectors.photoModal.hidden = true;
+  selectors.photoModal.classList.remove('photo-modal--portrait', 'photo-modal--landscape');
   document.body.classList.remove('modal-open');
   if (selectors.photoModalImage) {
+    selectors.photoModalImage.onload = null;
     selectors.photoModalImage.removeAttribute('src');
     selectors.photoModalImage.alt = '';
   }
