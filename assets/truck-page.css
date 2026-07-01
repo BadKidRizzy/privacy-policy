@@ -195,9 +195,10 @@ select {
 .truck-hero--banner .hero-media {
   display: grid;
   place-items: center;
+  width: min(100%, 1060px);
   height: clamp(260px, 42vw, 500px);
   min-height: 0;
-  aspect-ratio: 16 / 9;
+  margin-inline: auto;
   padding: 0;
   border: 1px solid rgba(49, 35, 24, 0.1);
   border-radius: 22px;
@@ -210,7 +211,7 @@ select {
   height: 100%;
   border-radius: 0;
   object-fit: cover;
-  object-position: center;
+  object-position: center 44%;
 }
 
 .truck-hero--banner .hero-copy {
@@ -218,7 +219,7 @@ select {
   z-index: 2;
   width: min(920px, calc(100% - 34px));
   min-height: 0;
-  margin: clamp(-54px, -4.6vw, -32px) auto 0;
+  margin: clamp(-42px, -3.6vw, -26px) auto 0;
   padding: clamp(22px, 2.8vw, 34px);
   border: 1px solid rgba(49, 35, 24, 0.12);
   border-radius: 22px;
