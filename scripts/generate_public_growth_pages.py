@@ -243,7 +243,7 @@ def render_truck_page(truck: dict, city_links: str) -> str:
         </div>
       </section>
     </main>
-{footer('<a href="../../food-trucks/washington-dc/">DC Food Trucks</a>')}
+{footer(city_links)}
 """
     structured_data = {
         "@context": "https://schema.org",
@@ -364,7 +364,7 @@ def render_city_page(city: dict, trucks: list[dict], city_links: str) -> str:
         </div>
       </section>
     </main>
-{footer('<a href="../../food-trucks/washington-dc/">DC Food Trucks</a><a href="../../food-trucks/baltimore/">Baltimore Trucks</a>')}
+{footer(city_links)}
 """
     structured_data = {
         "@context": "https://schema.org",
@@ -408,7 +408,6 @@ def write_sitemap(cities: list[dict], trucks: list[dict]) -> None:
         ("", "weekly", "1.0"),
         ("claim-your-food-truck/", "weekly", "0.9"),
         ("get-app/", "weekly", "0.9"),
-        ("truck/", "weekly", "0.7"),
         ("flyer/", "monthly", "0.6"),
         ("privacy-policy/", "yearly", "0.4"),
         ("delete-account.html", "yearly", "0.3"),
@@ -438,10 +437,9 @@ def remove_generated_dirs(data: dict) -> None:
 def main() -> None:
     data = json.loads(DATA_PATH.read_text(encoding="utf-8"))
     trucks_by_slug = {truck["slug"]: truck for truck in data["trucks"]}
-    city_links = (
-        '<a href="../../food-trucks/baltimore/">Baltimore</a>'
-        '<a href="../../food-trucks/washington-dc/">Washington DC</a>'
-        '<a href="../../food-trucks/arlington/">Arlington</a>'
+    city_links = "".join(
+        f'<a href="../../food-trucks/{esc(city["slug"])}/">{esc(city["name"])} Trucks</a>'
+        for city in data["cities"]
     )
 
     remove_generated_dirs(data)
