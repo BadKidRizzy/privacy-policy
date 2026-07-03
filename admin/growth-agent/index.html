@@ -19,7 +19,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="../../assets/site.css?v=1">
-  <link rel="stylesheet" href="../../assets/management-console.css?v=35">
+  <link rel="stylesheet" href="../../assets/management-console.css?v=37">
 </head>
 <body class="console-body growth-agent-page">
   <div class="console-shell">
@@ -97,6 +97,7 @@
           <button type="button" role="tab" data-growth-agent-tab="automation">Automation</button>
           <button type="button" role="tab" data-growth-agent-tab="reports">Reports</button>
           <button type="button" role="tab" data-growth-agent-tab="attribution">Attribution</button>
+          <button type="button" role="tab" data-growth-agent-tab="challenge">Challenge</button>
           <button type="button" role="tab" data-growth-agent-tab="guide">Guide</button>
         </nav>
 
@@ -333,6 +334,16 @@
           </div>
 
           <div class="growth-agent-grid growth-agent-grid--dashboard" data-claim-funnel-summary></div>
+          <div class="claim-funnel-insights">
+            <section class="claim-funnel-stage-panel">
+              <h4>Funnel Stages</h4>
+              <div class="claim-funnel-stage-grid" data-claim-funnel-stages></div>
+            </section>
+            <section class="claim-funnel-followup-panel">
+              <h4>Follow-up Queue</h4>
+              <div class="claim-funnel-followups" data-claim-funnel-followups></div>
+            </section>
+          </div>
           <div class="growth-agent-recommendations" data-claim-funnel-recommendations></div>
           <div class="claim-funnel-board" data-claim-funnel-leads></div>
         </section>
@@ -443,6 +454,84 @@
                 </tr>
               </thead>
               <tbody data-attribution-rows></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="growth-agent-panel growth-agent-challenge-panel" id="owner-growth-challenge" data-panel-key="owner-growth-challenge" data-panel-default="open" data-growth-agent-tab-panel="challenge">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Giveaway Tracking</p>
+              <h3>FTF $500 Owner Growth Challenge</h3>
+              <p>Record profile setup, freshness, real foodie activation, check-ins, and review points for the 30-day owner challenge.</p>
+            </div>
+            <div class="panel-heading__actions">
+              <button class="button button--secondary" type="button" data-challenge-refresh>Refresh Challenge</button>
+            </div>
+          </div>
+
+          <div class="growth-agent-grid growth-agent-grid--dashboard" data-challenge-summary></div>
+
+          <div class="growth-agent-filterbar growth-agent-filterbar--social">
+            <label>
+              Truck
+              <select data-challenge-truck></select>
+            </label>
+            <label class="growth-agent-check">
+              <span>Disqualified</span>
+              <input type="checkbox" data-challenge-disqualified>
+            </label>
+            <span data-challenge-loaded-at></span>
+          </div>
+
+          <form class="challenge-form" data-challenge-form>
+            <section class="challenge-form-card">
+              <h4>Setup</h4>
+              <label class="challenge-check"><input type="checkbox" name="profileComplete"> Complete truck profile</label>
+              <label class="challenge-check"><input type="checkbox" name="menuAdded"> Added menu</label>
+              <label class="challenge-check"><input type="checkbox" name="scheduleAdded"> Added weekly schedule or hours</label>
+              <label class="challenge-check"><input type="checkbox" name="currentLocationAdded"> Added current location</label>
+            </section>
+
+            <section class="challenge-form-card">
+              <h4>Freshness</h4>
+              <label>Status update days <input type="number" name="statusUpdateDays" min="0" step="1" value="0"></label>
+              <label>Location updates <input type="number" name="locationUpdateCount" min="0" step="1" value="0"></label>
+              <label>Menu/special updates <input type="number" name="menuSpecialUpdateCount" min="0" step="1" value="0"></label>
+            </section>
+
+            <section class="challenge-form-card">
+              <h4>Demand</h4>
+              <label>Unique foodie joins <input type="number" name="uniqueFoodieJoins" min="0" step="1" value="0"></label>
+              <label>Unique favorites <input type="number" name="uniqueFavorites" min="0" step="1" value="0"></label>
+              <label>Verified check-ins <input type="number" name="verifiedCheckIns" min="0" step="1" value="0"></label>
+              <label>Verified reviews <input type="number" name="verifiedReviews" min="0" step="1" value="0"></label>
+            </section>
+
+            <section class="challenge-form-card challenge-form-card--wide">
+              <h4>Review Notes</h4>
+              <label>Fraud flags <textarea name="fraudFlags" rows="3" placeholder="Suspicious accounts, duplicate devices, unusual review pattern..."></textarea></label>
+              <label>Admin notes <textarea name="notes" rows="3" placeholder="Manual adjustments, stationary truck context, owner outreach notes..."></textarea></label>
+              <div class="challenge-score-preview" data-challenge-score-preview></div>
+              <button class="button button--primary" type="submit" data-challenge-save>Save Challenge Entry</button>
+            </section>
+          </form>
+
+          <div class="growth-agent-table-wrap">
+            <table class="growth-agent-table growth-agent-table--drafts">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Truck</th>
+                  <th>Total</th>
+                  <th>Setup</th>
+                  <th>Freshness</th>
+                  <th>Demand</th>
+                  <th>Reviews</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody data-challenge-leaderboard></tbody>
             </table>
           </div>
         </section>
@@ -574,6 +663,7 @@
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script defer src="../../assets/growth-agent-console.js?v=29"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
+  <script defer src="../../assets/growth-agent-console.js?v=31"></script>
 </body>
 </html>

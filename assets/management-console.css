@@ -1162,6 +1162,128 @@
   text-align: right;
 }
 
+.challenge-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.challenge-form-card {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(31, 23, 19, 0.09);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.challenge-form-card--wide {
+  grid-column: 1 / -1;
+}
+
+.challenge-form-card h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.96rem;
+  line-height: 1.25;
+}
+
+.challenge-form-card label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.challenge-check {
+  display: flex !important;
+  align-items: center;
+  gap: 9px !important;
+  min-height: 40px;
+  padding: 9px 10px;
+  border: 1px solid rgba(31, 23, 19, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 253, 249, 0.78);
+  color: var(--ink) !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.challenge-check input {
+  flex: 0 0 auto;
+  width: 18px;
+  min-height: 18px;
+  margin: 0;
+}
+
+.challenge-form-card input[type="number"],
+.challenge-form-card textarea {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.45;
+  padding: 8px 11px;
+  text-transform: none;
+}
+
+.challenge-form-card textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.challenge-form-card input[type="number"]:focus,
+.challenge-form-card textarea:focus {
+  border-color: rgba(15, 124, 130, 0.48);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(15, 124, 130, 0.1);
+  background: #fff;
+}
+
+.challenge-score-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  min-height: 56px;
+  padding: 12px 14px;
+  border: 1px solid rgba(15, 124, 130, 0.16);
+  border-radius: 14px;
+  background: rgba(248, 255, 254, 0.82);
+}
+
+.challenge-score-preview strong {
+  color: var(--ink);
+  font-size: 1.45rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.challenge-score-preview span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.42;
+}
+
+.challenge-form-card--wide .button {
+  justify-self: start;
+}
+
 .growth-agent-table-wrap {
   width: 100%;
   overflow: auto;
@@ -1638,6 +1760,102 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
+}
+
+.claim-funnel-insights {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  gap: 12px;
+}
+
+.claim-funnel-stage-panel,
+.claim-funnel-followup-panel {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(31, 23, 19, 0.09);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.claim-funnel-stage-panel h4,
+.claim-funnel-followup-panel h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.claim-funnel-stage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 9px;
+}
+
+.claim-funnel-stage-card,
+.claim-funnel-followup-card {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(31, 23, 19, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 253, 249, 0.78);
+}
+
+.claim-funnel-stage-card div:first-child,
+.claim-funnel-followup-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.claim-funnel-stage-card div:first-child {
+  display: grid;
+  gap: 8px;
+}
+
+.claim-funnel-stage-card span,
+.claim-funnel-followup-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.claim-funnel-stage-card strong,
+.claim-funnel-followup-card strong {
+  color: var(--ink);
+  font-size: 1.28rem;
+  line-height: 1;
+}
+
+.claim-funnel-stage-bar {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(31, 23, 19, 0.08);
+}
+
+.claim-funnel-stage-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--cool), var(--accent));
+}
+
+.claim-funnel-stage-card small {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.claim-funnel-followups {
+  display: grid;
+  gap: 8px;
 }
 
 .claim-funnel-column,
@@ -2700,6 +2918,10 @@ summary.record-section__heading::-webkit-details-marker {
   }
 
   .agent-briefing-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .claim-funnel-insights {
     grid-template-columns: 1fr;
   }
 

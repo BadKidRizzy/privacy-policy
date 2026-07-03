@@ -11,6 +11,7 @@ const GROWTH_AGENT_API_BASE_URL = 'https://food-truck-growth-agent-xmel35gaya-uc
 const OWNER_CLAIM_ADMIN_ENDPOINT = 'https://us-central1-food-truck-finder-prod.cloudfunctions.net/manageOwnerClaimRequests';
 const PUBLIC_TRUCK_SHARE_BASE_URL = 'https://www.ftf-foodtruckfinder.com/truck/';
 const PUBLIC_SITE_BASE_URL = 'https://www.ftf-foodtruckfinder.com';
+const OWNER_GROWTH_CHALLENGE_DEFAULT_CAMPAIGN_ID = 'ftf-500-owner-growth-challenge-2026';
 const DRAFT_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 const DRAFT_IMAGE_MAX_DIMENSION = 1600;
 const MEDIA_PREVIEW_PLACEHOLDER_IMAGE = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
@@ -23,7 +24,7 @@ const GROWTH_AGENT_STATUSES = [
   'verified',
   'do_not_contact',
 ];
-const GROWTH_AGENT_TABS = ['review', 'claims', 'social', 'strategy', 'automation', 'reports', 'attribution', 'guide'];
+const GROWTH_AGENT_TABS = ['review', 'claims', 'social', 'strategy', 'automation', 'reports', 'attribution', 'challenge', 'guide'];
 const GROWTH_AGENT_TAB_LABELS = {
   review: 'Drafts',
   claims: 'Truck Leads',
@@ -32,7 +33,72 @@ const GROWTH_AGENT_TAB_LABELS = {
   automation: 'Automation',
   reports: 'Reports',
   attribution: 'Attribution',
+  challenge: 'Challenge',
   guide: 'Guide',
+};
+
+const CLAIM_FUNNEL_BUCKET_LABELS = [
+  ['not_sent', 'Not Sent'],
+  ['sent_no_click', 'Sent, No Click'],
+  ['clicked_no_claim', 'Clicked, No Claim'],
+  ['claim_started', 'Claim Started'],
+  ['submitted', 'Submitted'],
+  ['verified', 'Verified'],
+  ['bad_contact', 'Bad Contact'],
+];
+const CLAIM_FUNNEL_STAGE_ORDER = [
+  'outreach_drafted',
+  'outreach_sent',
+  'link_clicked',
+  'claim_page_opened',
+  'claim_submitted',
+  'verified',
+];
+const CLAIM_FUNNEL_STAGE_LABELS = {
+  outreach_drafted: 'Drafted',
+  outreach_sent: 'Sent',
+  link_clicked: 'Clicked',
+  claim_page_opened: 'Claim Page Opened',
+  claim_submitted: 'Submitted',
+  verified: 'Verified',
+};
+const CLAIM_FUNNEL_ACTION_ORDER = [
+  'review_submission',
+  'prioritize_claim_started',
+  'send_claim_help_nudge',
+  'try_alternate_channel',
+  'schedule_follow_up',
+  'send_reviewed_draft',
+  'draft_owner_outreach',
+  'research_contact',
+];
+const CLAIM_FUNNEL_ACTION_LABELS = {
+  review_submission: 'Review Submission',
+  prioritize_claim_started: 'Prioritize Claim Started',
+  send_claim_help_nudge: 'Clicked, Needs Nudge',
+  try_alternate_channel: 'Try Alternate Channel',
+  schedule_follow_up: 'Schedule Follow-up',
+  send_reviewed_draft: 'Send Reviewed Draft',
+  draft_owner_outreach: 'Draft Owner Outreach',
+  research_contact: 'Research Contact',
+};
+
+const OWNER_GROWTH_CHALLENGE_RULES = {
+  profileComplete: 25,
+  menuAdded: 15,
+  scheduleAdded: 15,
+  currentLocationAdded: 10,
+  statusUpdatePerDay: 3,
+  statusUpdateMax: 60,
+  locationUpdatePoints: 5,
+  locationUpdateMax: 100,
+  menuSpecialUpdatePoints: 5,
+  menuSpecialUpdateMax: 60,
+  uniqueFoodieJoinPoints: 10,
+  uniqueFavoritePoints: 5,
+  verifiedCheckInPoints: 15,
+  verifiedReviewPoints: 5,
+  verifiedReviewMax: 50,
 };
 
 const state = {
@@ -55,6 +121,8 @@ const state = {
   weeklyReport: null,
   attributionPerformance: null,
   attributionEvents: [],
+  challengeDashboard: null,
+  challengeSelectedTruckId: '',
   agentBriefing: null,
   agentTasks: [],
   agentMemories: [],
@@ -117,6 +185,8 @@ const selectors = {
   socialInboxSetup: document.querySelector('[data-social-inbox-setup]'),
   socialInboxList: document.querySelector('[data-social-inbox-list]'),
   claimFunnelSummary: document.querySelector('[data-claim-funnel-summary]'),
+  claimFunnelStages: document.querySelector('[data-claim-funnel-stages]'),
+  claimFunnelFollowups: document.querySelector('[data-claim-funnel-followups]'),
   claimFunnelRecommendations: document.querySelector('[data-claim-funnel-recommendations]'),
   claimFunnelLeads: document.querySelector('[data-claim-funnel-leads]'),
   claimRequests: document.querySelector('[data-claim-requests]'),
@@ -133,6 +203,15 @@ const selectors = {
   attributionSummary: document.querySelector('[data-attribution-summary]'),
   attributionInsights: document.querySelector('[data-attribution-insights]'),
   attributionRows: document.querySelector('[data-attribution-rows]'),
+  challengeRefresh: document.querySelector('[data-challenge-refresh]'),
+  challengeSummary: document.querySelector('[data-challenge-summary]'),
+  challengeTruck: document.querySelector('[data-challenge-truck]'),
+  challengeDisqualified: document.querySelector('[data-challenge-disqualified]'),
+  challengeLoadedAt: document.querySelector('[data-challenge-loaded-at]'),
+  challengeForm: document.querySelector('[data-challenge-form]'),
+  challengeScorePreview: document.querySelector('[data-challenge-score-preview]'),
+  challengeSave: document.querySelector('[data-challenge-save]'),
+  challengeLeaderboard: document.querySelector('[data-challenge-leaderboard]'),
   cityDigestGenerate: document.querySelector('[data-city-digest-generate]'),
   cityDigestCities: document.querySelector('[data-city-digest-cities]'),
   cityDigestCityCount: document.querySelector('[data-city-digest-city-count]'),
@@ -168,6 +247,9 @@ const selectors = {
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
+const functions = firebase.app().functions('us-central1');
+const getOwnerGrowthChallengeDashboard = functions.httpsCallable('getOwnerGrowthChallengeDashboard');
+const saveOwnerGrowthChallengeEntry = functions.httpsCallable('saveOwnerGrowthChallengeEntry');
 
 function setMessage(element, message, isError = false) {
   if (!element) return;
@@ -215,6 +297,11 @@ function setLoading(isLoading) {
     selectors.weeklyReportGenerate,
     selectors.attributionLearningRun,
     selectors.attributionRefresh,
+    selectors.challengeRefresh,
+    selectors.challengeTruck,
+    selectors.challengeDisqualified,
+    selectors.challengeSave,
+    ...Array.from(selectors.challengeForm?.querySelectorAll('input, textarea, button') || []),
     selectors.cityDigestGenerate,
     selectors.cityDigestCities,
     selectors.cityDigestCityCount,
@@ -439,6 +526,22 @@ function formatCount(value) {
   return new Intl.NumberFormat().format(Number(value) || 0);
 }
 
+function formatPercent(value) {
+  const parsed = Number(value || 0);
+  if (!Number.isFinite(parsed)) return '0.0%';
+  return `${(parsed * 100).toFixed(1)}%`;
+}
+
+function percentWidth(value) {
+  const parsed = Number(value || 0);
+  if (!Number.isFinite(parsed)) return '0%';
+  return `${Math.min(Math.max(parsed * 100, 0), 100).toFixed(1)}%`;
+}
+
+function claimFunnelActionLabel(action) {
+  return CLAIM_FUNNEL_ACTION_LABELS[action] || growthStatusLabel(action);
+}
+
 function escapeHtml(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -446,6 +549,62 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function cleanChallengeCount(value) {
+  const parsed = Number(value ?? 0);
+  if (!Number.isFinite(parsed) || parsed <= 0) return 0;
+  return Math.floor(parsed);
+}
+
+function cappedChallengeScore(count, pointsEach, maxPoints) {
+  return Math.min(cleanChallengeCount(count) * pointsEach, maxPoints);
+}
+
+function normalizeChallengeMetrics(metrics = {}) {
+  return {
+    profileComplete: metrics.profileComplete === true,
+    menuAdded: metrics.menuAdded === true,
+    scheduleAdded: metrics.scheduleAdded === true,
+    currentLocationAdded: metrics.currentLocationAdded === true,
+    statusUpdateDays: cleanChallengeCount(metrics.statusUpdateDays),
+    locationUpdateCount: cleanChallengeCount(metrics.locationUpdateCount),
+    menuSpecialUpdateCount: cleanChallengeCount(metrics.menuSpecialUpdateCount),
+    uniqueFoodieJoins: cleanChallengeCount(metrics.uniqueFoodieJoins),
+    uniqueFavorites: cleanChallengeCount(metrics.uniqueFavorites),
+    verifiedCheckIns: cleanChallengeCount(metrics.verifiedCheckIns),
+    verifiedReviews: cleanChallengeCount(metrics.verifiedReviews),
+  };
+}
+
+function calculateChallengeScore(input = {}) {
+  const metrics = normalizeChallengeMetrics(input);
+  const details = {
+    profileComplete: metrics.profileComplete ? OWNER_GROWTH_CHALLENGE_RULES.profileComplete : 0,
+    menuAdded: metrics.menuAdded ? OWNER_GROWTH_CHALLENGE_RULES.menuAdded : 0,
+    scheduleAdded: metrics.scheduleAdded ? OWNER_GROWTH_CHALLENGE_RULES.scheduleAdded : 0,
+    currentLocationAdded: metrics.currentLocationAdded ? OWNER_GROWTH_CHALLENGE_RULES.currentLocationAdded : 0,
+    statusUpdates: cappedChallengeScore(metrics.statusUpdateDays, OWNER_GROWTH_CHALLENGE_RULES.statusUpdatePerDay, OWNER_GROWTH_CHALLENGE_RULES.statusUpdateMax),
+    locationUpdates: cappedChallengeScore(metrics.locationUpdateCount, OWNER_GROWTH_CHALLENGE_RULES.locationUpdatePoints, OWNER_GROWTH_CHALLENGE_RULES.locationUpdateMax),
+    menuSpecialUpdates: cappedChallengeScore(metrics.menuSpecialUpdateCount, OWNER_GROWTH_CHALLENGE_RULES.menuSpecialUpdatePoints, OWNER_GROWTH_CHALLENGE_RULES.menuSpecialUpdateMax),
+    uniqueFoodieJoins: metrics.uniqueFoodieJoins * OWNER_GROWTH_CHALLENGE_RULES.uniqueFoodieJoinPoints,
+    uniqueFavorites: metrics.uniqueFavorites * OWNER_GROWTH_CHALLENGE_RULES.uniqueFavoritePoints,
+    verifiedCheckIns: metrics.verifiedCheckIns * OWNER_GROWTH_CHALLENGE_RULES.verifiedCheckInPoints,
+    verifiedReviews: cappedChallengeScore(metrics.verifiedReviews, OWNER_GROWTH_CHALLENGE_RULES.verifiedReviewPoints, OWNER_GROWTH_CHALLENGE_RULES.verifiedReviewMax),
+  };
+  const setup = details.profileComplete + details.menuAdded + details.scheduleAdded + details.currentLocationAdded;
+  const freshness = details.statusUpdates + details.locationUpdates + details.menuSpecialUpdates;
+  const demand = details.uniqueFoodieJoins + details.uniqueFavorites + details.verifiedCheckIns;
+  const reviews = details.verifiedReviews;
+
+  return {
+    setup,
+    freshness,
+    demand,
+    reviews,
+    total: setup + freshness + demand + reviews,
+    details,
+  };
 }
 
 function growthStatusLabel(status) {
@@ -1727,15 +1886,19 @@ function renderClaimFunnel() {
   const report = state.claimFunnelReport || {};
   const totals = report.totals || {};
   const buckets = report.buckets || {};
+  const stages = report.stages || {};
+  const followUps = report.follow_ups || {};
   const recommendations = report.recommendations || [];
 
   if (selectors.claimFunnelSummary) {
     const rows = [
-      ['New Claims', totals.new_claims || 0],
-      ['Pending Proof', totals.pending_proof || 0],
+      ['Not Sent', totals.not_sent || 0],
+      ['Sent, No Click', totals.sent_no_click || 0],
+      ['Clicked, No Claim', totals.clicked_no_claim || 0],
+      ['Claim Started', totals.claim_started || 0],
+      ['Submitted', totals.submitted || totals.new_claims || 0],
       ['Verified', totals.verified || 0],
-      ['Rejected', totals.rejected || 0],
-      ['Needs Info', totals.needs_more_info || 0],
+      ['Bad Contact', totals.bad_contact || 0],
       ['All Leads', totals.all_leads || 0],
     ];
     selectors.claimFunnelSummary.innerHTML = rows.map(([label, value]) => `
@@ -1746,24 +1909,53 @@ function renderClaimFunnel() {
     `).join('');
   }
 
+  if (selectors.claimFunnelStages) {
+    selectors.claimFunnelStages.innerHTML = CLAIM_FUNNEL_STAGE_ORDER.map((stage) => {
+      const summary = stages[stage] || {};
+      return `
+        <article class="claim-funnel-stage-card">
+          <div>
+            <span>${escapeHtml(CLAIM_FUNNEL_STAGE_LABELS[stage] || growthStatusLabel(stage))}</span>
+            <strong>${escapeHtml(formatCount(summary.count || 0))}</strong>
+          </div>
+          <div class="claim-funnel-stage-bar"><span style="width:${escapeHtml(percentWidth(summary.rate))}"></span></div>
+          <small>${escapeHtml(formatPercent(summary.rate))} of leads / ${escapeHtml(formatPercent(summary.previous_stage_rate))} from previous</small>
+        </article>
+      `;
+    }).join('');
+  }
+
+  if (selectors.claimFunnelFollowups) {
+    const orderedKeys = [
+      ...CLAIM_FUNNEL_ACTION_ORDER,
+      ...Object.keys(followUps).filter((key) => !CLAIM_FUNNEL_ACTION_ORDER.includes(key)).sort(),
+    ];
+    const rows = orderedKeys
+      .map((key) => [key, Number(followUps[key] || 0)])
+      .filter(([, value]) => value > 0);
+    selectors.claimFunnelFollowups.innerHTML = rows.length
+      ? rows.map(([key, value]) => `
+        <article class="claim-funnel-followup-card">
+          <span>${escapeHtml(claimFunnelActionLabel(key))}</span>
+          <strong>${escapeHtml(formatCount(value))}</strong>
+        </article>
+      `).join('')
+      : '<p class="growth-agent-empty">No follow-up actions are due.</p>';
+  }
+
   if (selectors.claimFunnelRecommendations) {
-    selectors.claimFunnelRecommendations.innerHTML = recommendations.map((item) => `
-      <article class="growth-agent-recommendation">
-        <strong>${escapeHtml(item.title || 'Recommendation')}</strong>
-        <span>${escapeHtml(item.detail || item.action || '')}</span>
-      </article>
-    `).join('');
+    selectors.claimFunnelRecommendations.innerHTML = recommendations.length
+      ? recommendations.map((item) => `
+        <article class="growth-agent-recommendation">
+          <strong>${escapeHtml(item.title || 'Recommendation')}</strong>
+          <span>${escapeHtml(item.detail || item.action || '')}</span>
+        </article>
+      `).join('')
+      : '<p class="growth-agent-empty growth-agent-empty--card">No recommendations right now.</p>';
   }
 
   if (!selectors.claimFunnelLeads) return;
-  const bucketLabels = [
-    ['new_claims', 'New Claims'],
-    ['pending_proof', 'Pending Proof'],
-    ['verified', 'Verified'],
-    ['rejected', 'Rejected'],
-    ['needs_more_info', 'Needs Info'],
-  ];
-  selectors.claimFunnelLeads.innerHTML = bucketLabels.map(([bucket, label]) => {
+  selectors.claimFunnelLeads.innerHTML = CLAIM_FUNNEL_BUCKET_LABELS.map(([bucket, label]) => {
     const leads = buckets[bucket] || [];
     const leadRows = leads.length
       ? leads.slice(0, 8).map((lead) => {
@@ -1773,12 +1965,22 @@ function renderClaimFunnel() {
           lead.owner_phone,
           lead.owner_social_handle,
         ].filter(Boolean).join(' / ') || 'No contact yet';
+        const latest = lead.latest_event_type
+          ? growthStatusLabel(lead.latest_event_type)
+          : lead.last_contacted_at
+            ? `Contacted ${formatDate(lead.last_contacted_at)}`
+            : growthStatusLabel(lead.outreach_status);
+        const nextAction = lead.next_action ? claimFunnelActionLabel(lead.next_action) : '';
+        const nextDetail = lead.next_action_detail || '';
         return `
           <article class="claim-funnel-card">
             <strong>${escapeHtml(lead.truck_name || 'Unnamed truck')}</strong>
             <span>${escapeHtml(lead.city || lead.truck_id || '')}</span>
             <span>${escapeHtml(contact)}</span>
-            <span>${escapeHtml(lead.latest_event_type ? growthStatusLabel(lead.latest_event_type) : growthStatusLabel(lead.outreach_status))}</span>
+            <span>${escapeHtml(formatCount(lead.tracking_clicks || 0))} clicks</span>
+            ${latest ? `<span>${escapeHtml(latest)}</span>` : ''}
+            ${nextAction ? `<span>${escapeHtml(nextAction)}</span>` : ''}
+            ${nextDetail ? `<span>${escapeHtml(nextDetail)}</span>` : ''}
             <a class="row-action row-action--ghost" href="${escapeHtml(profileUrl)}" target="_blank" rel="noreferrer">Open Profile</a>
           </article>
         `;
@@ -1953,6 +2155,168 @@ function renderAttributionPerformance() {
       : `
         <tr>
           <td colspan="6" class="growth-agent-empty">No attribution rows yet. Use campaign tracking links and app events to populate this table.</td>
+        </tr>
+      `;
+  }
+}
+
+function getChallengeDashboard() {
+  return state.challengeDashboard || {entries: [], trucks: [], campaign: {}};
+}
+
+function challengeEntriesWithScores() {
+  return (getChallengeDashboard().entries || [])
+    .map((entry) => ({
+      ...entry,
+      score: calculateChallengeScore(entry.metrics || {}),
+    }))
+    .sort((left, right) => {
+      const disqualifiedDelta = Number(left.disqualified === true) - Number(right.disqualified === true);
+      if (disqualifiedDelta !== 0) return disqualifiedDelta;
+      return right.score.total - left.score.total || String(left.truckName || '').localeCompare(String(right.truckName || ''));
+    });
+}
+
+function selectedChallengeTruck() {
+  const dashboard = getChallengeDashboard();
+  return (dashboard.trucks || []).find((truck) => truck.id === state.challengeSelectedTruckId) || null;
+}
+
+function selectedChallengeEntry() {
+  const dashboard = getChallengeDashboard();
+  return (dashboard.entries || []).find((entry) => entry.truckId === state.challengeSelectedTruckId) || null;
+}
+
+function readChallengeFormMetrics() {
+  const form = selectors.challengeForm;
+  if (!form) return normalizeChallengeMetrics();
+
+  return normalizeChallengeMetrics({
+    profileComplete: form.elements.profileComplete?.checked,
+    menuAdded: form.elements.menuAdded?.checked,
+    scheduleAdded: form.elements.scheduleAdded?.checked,
+    currentLocationAdded: form.elements.currentLocationAdded?.checked,
+    statusUpdateDays: form.elements.statusUpdateDays?.value,
+    locationUpdateCount: form.elements.locationUpdateCount?.value,
+    menuSpecialUpdateCount: form.elements.menuSpecialUpdateCount?.value,
+    uniqueFoodieJoins: form.elements.uniqueFoodieJoins?.value,
+    uniqueFavorites: form.elements.uniqueFavorites?.value,
+    verifiedCheckIns: form.elements.verifiedCheckIns?.value,
+    verifiedReviews: form.elements.verifiedReviews?.value,
+  });
+}
+
+function writeChallengeForm(entry = null, truck = null) {
+  const form = selectors.challengeForm;
+  if (!form) return;
+
+  const suggested = truck?.suggestedMetrics || {};
+  const metrics = normalizeChallengeMetrics(entry?.metrics || suggested);
+
+  form.elements.profileComplete.checked = metrics.profileComplete;
+  form.elements.menuAdded.checked = metrics.menuAdded;
+  form.elements.scheduleAdded.checked = metrics.scheduleAdded;
+  form.elements.currentLocationAdded.checked = metrics.currentLocationAdded;
+  form.elements.statusUpdateDays.value = metrics.statusUpdateDays;
+  form.elements.locationUpdateCount.value = metrics.locationUpdateCount;
+  form.elements.menuSpecialUpdateCount.value = metrics.menuSpecialUpdateCount;
+  form.elements.uniqueFoodieJoins.value = metrics.uniqueFoodieJoins;
+  form.elements.uniqueFavorites.value = metrics.uniqueFavorites;
+  form.elements.verifiedCheckIns.value = metrics.verifiedCheckIns;
+  form.elements.verifiedReviews.value = metrics.verifiedReviews;
+  form.elements.fraudFlags.value = entry?.fraudFlags || '';
+  form.elements.notes.value = entry?.notes || '';
+
+  if (selectors.challengeDisqualified) {
+    selectors.challengeDisqualified.checked = entry?.disqualified === true;
+  }
+
+  renderChallengeScorePreview();
+}
+
+function renderChallengeTruckOptions() {
+  if (!selectors.challengeTruck) return;
+  const dashboard = getChallengeDashboard();
+  const trucks = [...(dashboard.trucks || [])].sort((left, right) =>
+    String(left.name || '').localeCompare(String(right.name || ''))
+  );
+
+  selectors.challengeTruck.innerHTML = trucks.length
+    ? trucks.map((truck) => `
+      <option value="${escapeHtml(truck.id)}">${escapeHtml(truck.name || truck.id)}</option>
+    `).join('')
+    : '<option value="">No trucks loaded</option>';
+
+  if (!state.challengeSelectedTruckId && trucks[0]) {
+    state.challengeSelectedTruckId = trucks[0].id;
+  }
+
+  selectors.challengeTruck.value = state.challengeSelectedTruckId || '';
+}
+
+function renderChallengeScorePreview() {
+  if (!selectors.challengeScorePreview) return;
+  const score = calculateChallengeScore(readChallengeFormMetrics());
+  selectors.challengeScorePreview.innerHTML = `
+    <strong>${escapeHtml(formatCount(score.total))} pts</strong>
+    <span>Setup ${escapeHtml(formatCount(score.setup))} · Freshness ${escapeHtml(formatCount(score.freshness))} · Demand ${escapeHtml(formatCount(score.demand))} · Reviews ${escapeHtml(formatCount(score.reviews))}</span>
+  `;
+}
+
+function renderChallengeDashboard() {
+  const dashboard = getChallengeDashboard();
+  const entries = challengeEntriesWithScores();
+  const activeEntries = entries.filter((entry) => entry.disqualified !== true);
+  const leader = activeEntries[0];
+
+  if (selectors.challengeLoadedAt) {
+    selectors.challengeLoadedAt.textContent = dashboard.loadedAt ? `Loaded ${formatDate(dashboard.loadedAt)}` : '';
+  }
+
+  if (selectors.challengeSummary) {
+    const rows = [
+      ['Loaded Trucks', (dashboard.trucks || []).length],
+      ['Tracked Entries', entries.length],
+      ['Active Entries', activeEntries.length],
+      ['Current Leader', leader?.truckName || 'None'],
+      ['Leader Score', leader?.score?.total || 0],
+      ['Disqualified', entries.filter((entry) => entry.disqualified === true).length],
+    ];
+    selectors.challengeSummary.innerHTML = rows.map(([label, value]) => `
+      <div class="growth-agent-card">
+        <strong>${escapeHtml(typeof value === 'number' ? formatCount(value) : value)}</strong>
+        <span>${escapeHtml(label)}</span>
+      </div>
+    `).join('');
+  }
+
+  renderChallengeTruckOptions();
+  writeChallengeForm(selectedChallengeEntry(), selectedChallengeTruck());
+
+  if (selectors.challengeLeaderboard) {
+    selectors.challengeLeaderboard.innerHTML = entries.length
+      ? entries.map((entry, index) => {
+        const profileUrl = dynamicTruckUrl(entry.truckId, {truck_name: entry.truckName});
+        return `
+          <tr>
+            <td>${entry.disqualified ? '-' : escapeHtml(formatCount(index + 1))}</td>
+            <td>
+              <strong>${escapeHtml(entry.truckName || entry.truckId)}</strong>
+              <span>${escapeHtml(entry.ownerEmail || '')}</span>
+              <a class="row-action row-action--ghost" href="${escapeHtml(profileUrl)}" target="_blank" rel="noreferrer">Profile</a>
+            </td>
+            <td>${escapeHtml(formatCount(entry.score.total))}</td>
+            <td>${escapeHtml(formatCount(entry.score.setup))}</td>
+            <td>${escapeHtml(formatCount(entry.score.freshness))}</td>
+            <td>${escapeHtml(formatCount(entry.score.demand))}</td>
+            <td>${escapeHtml(formatCount(entry.score.reviews))}</td>
+            <td>${entry.disqualified ? '<span class="status-pill status-pill--danger">Disqualified</span>' : '<span class="status-pill status-pill--success">Active</span>'}</td>
+          </tr>
+        `;
+      }).join('')
+      : `
+        <tr>
+          <td colspan="8" class="growth-agent-empty">No challenge entries yet. Pick a truck above and save the first score record.</td>
         </tr>
       `;
   }
@@ -2274,6 +2638,17 @@ async function loadAttributionTab(force = false) {
   renderAttributionPerformance();
 }
 
+async function loadChallengeTab(force = false) {
+  if (!force && state.loadedTabs.challenge) return;
+
+  const result = await getOwnerGrowthChallengeDashboard({
+    campaignId: OWNER_GROWTH_CHALLENGE_DEFAULT_CAMPAIGN_ID,
+  });
+  state.challengeDashboard = result.data || null;
+  state.loadedTabs.challenge = true;
+  renderChallengeDashboard();
+}
+
 async function loadGrowthTab(tab, force = false) {
   if (tab === 'review') {
     await loadReviewTab(force);
@@ -2301,6 +2676,10 @@ async function loadGrowthTab(tab, force = false) {
   }
   if (tab === 'attribution') {
     await loadAttributionTab(force);
+    return;
+  }
+  if (tab === 'challenge') {
+    await loadChallengeTab(force);
     return;
   }
 }
@@ -2663,6 +3042,54 @@ async function runAttributionLearning() {
     await loadGrowthAgent({force: true, tab: 'attribution', refreshMetrics: true});
   } catch (error) {
     setMessage(selectors.message, error.message || 'Attribution learning failed.', true);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function saveChallengeEntry(event) {
+  event.preventDefault();
+
+  if (!state.challengeSelectedTruckId) {
+    setMessage(selectors.message, 'Pick a truck before saving a challenge entry.', true);
+    return;
+  }
+
+  setLoading(true);
+  setMessage(selectors.message, 'Saving challenge entry...');
+
+  try {
+    const form = selectors.challengeForm;
+    const result = await saveOwnerGrowthChallengeEntry({
+      campaignId: OWNER_GROWTH_CHALLENGE_DEFAULT_CAMPAIGN_ID,
+      truckId: state.challengeSelectedTruckId,
+      metrics: readChallengeFormMetrics(),
+      fraudFlags: form?.elements.fraudFlags?.value || '',
+      notes: form?.elements.notes?.value || '',
+      disqualified: selectors.challengeDisqualified?.checked === true,
+    });
+    const savedEntry = result.data?.entry;
+    const dashboard = getChallengeDashboard();
+    const entries = [...(dashboard.entries || [])];
+    const existingIndex = entries.findIndex((entry) => entry.truckId === state.challengeSelectedTruckId);
+
+    if (existingIndex >= 0) {
+      entries[existingIndex] = savedEntry;
+    } else if (savedEntry) {
+      entries.push(savedEntry);
+    }
+
+    state.challengeDashboard = {
+      ...dashboard,
+      entries,
+      loadedAt: new Date().toISOString(),
+    };
+    state.loadedTabs.challenge = true;
+    renderChallengeDashboard();
+    setMessage(selectors.message, 'Challenge entry saved.');
+  } catch (error) {
+    console.error('Challenge entry save failed', error);
+    setMessage(selectors.message, error.message || 'Challenge entry could not be saved.', true);
   } finally {
     setLoading(false);
   }
@@ -3287,6 +3714,24 @@ selectors.attributionRefresh?.addEventListener('click', () => {
   void loadGrowthAgent({force: true, tab: 'attribution'});
 });
 
+selectors.challengeRefresh?.addEventListener('click', () => {
+  invalidateGrowthCache('challenge');
+  void loadGrowthAgent({force: true, tab: 'challenge'});
+});
+
+selectors.challengeTruck?.addEventListener('change', (event) => {
+  state.challengeSelectedTruckId = event.target.value || '';
+  writeChallengeForm(selectedChallengeEntry(), selectedChallengeTruck());
+});
+
+selectors.challengeDisqualified?.addEventListener('change', renderChallengeScorePreview);
+
+selectors.challengeForm?.addEventListener('input', renderChallengeScorePreview);
+
+selectors.challengeForm?.addEventListener('submit', (event) => {
+  void saveChallengeEntry(event);
+});
+
 selectors.cityDigestGenerate?.addEventListener('click', () => {
   void generateWeeklyCityDigests();
 });
@@ -3462,6 +3907,8 @@ auth.onAuthStateChanged(async (user) => {
     state.weeklyReport = null;
     state.attributionPerformance = null;
     state.attributionEvents = [];
+    state.challengeDashboard = null;
+    state.challengeSelectedTruckId = '';
     state.autopilotReport = null;
     state.agentBriefing = null;
     state.agentTasks = [];
@@ -3477,6 +3924,7 @@ auth.onAuthStateChanged(async (user) => {
     renderClaimFunnel();
     renderWeeklyReport();
     renderAttributionPerformance();
+    renderChallengeDashboard();
     renderCityDigestSummary();
     renderSocialDrafts();
     renderAutopilot();
