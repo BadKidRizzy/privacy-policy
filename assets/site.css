@@ -470,12 +470,15 @@ h1 {
 
 .hero__visual {
   position: relative;
+  align-self: start;
 }
 
 .owner-preview {
   display: grid;
   gap: 18px;
-  min-height: 560px;
+  width: min(100%, 520px);
+  min-height: 0;
+  margin-left: auto;
   padding: 18px;
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
@@ -512,10 +515,14 @@ h1 {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(150px, 0.62fr);
   gap: 14px;
-  align-items: stretch;
+  align-items: start;
+  height: clamp(360px, 38vw, 460px);
 }
 
 .owner-preview__screen {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
   overflow: hidden;
   margin: 0;
   border: 1px solid rgba(31, 23, 19, 0.11);
@@ -527,13 +534,28 @@ h1 {
 .owner-preview__screen img {
   width: 100%;
   height: 100%;
-  min-height: 330px;
+  min-height: 0;
   object-fit: cover;
   object-position: top center;
 }
 
 .owner-preview__screen--main img {
-  min-height: 450px;
+  min-height: 0;
+}
+
+.owner-preview__screen--main {
+  height: 100%;
+}
+
+.owner-preview__screen:not(.owner-preview__screen--main) {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+}
+
+.owner-preview__screen:not(.owner-preview__screen--main) img {
+  padding: 10px;
+  background: #fffaf4;
+  object-fit: contain;
 }
 
 .owner-preview__checklist {
@@ -545,7 +567,7 @@ h1 {
 .owner-preview__checklist span {
   display: grid;
   place-items: center;
-  min-height: 54px;
+  min-height: 48px;
   border: 1px solid rgba(238, 108, 63, 0.18);
   border-radius: 16px;
   background: rgba(255, 231, 221, 0.64);
@@ -1101,15 +1123,17 @@ h1 {
   }
 
   .owner-preview {
-    min-height: 0;
+    width: min(100%, 720px);
+    margin-right: auto;
   }
 
   .owner-preview__screens {
     grid-template-columns: minmax(0, 1fr) minmax(220px, 0.72fr);
+    height: clamp(340px, 54vw, 460px);
   }
 
   .owner-preview__screen--main img {
-    min-height: 380px;
+    min-height: 0;
   }
 
   .role-strip {
@@ -1277,11 +1301,20 @@ h1 {
 
   .owner-preview__screens {
     grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .owner-preview__screen {
+    height: min(82vw, 420px);
+  }
+
+  .owner-preview__screen--main {
+    height: min(96vw, 500px);
   }
 
   .owner-preview__screen img,
   .owner-preview__screen--main img {
-    min-height: 280px;
+    min-height: 0;
   }
 
   .section,
