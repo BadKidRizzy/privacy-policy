@@ -1,258 +1,432 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Food Truck Finder Truck Page</title>
-  <meta name="description" content="View a food truck profile, menu, location, and links on Food Truck Finder.">
-  <meta name="robots" content="noindex, follow">
-  <meta name="theme-color" content="#14120f">
-  <link rel="canonical" href="https://www.ftf-foodtruckfinder.com/truck/">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Truck Profile | Menu, Location &amp; Schedule | Food Truck Finder</title>
+  <meta name="description" content="Find a food truck's menu, location, schedule, and contact links on Food Truck Finder.">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="theme-color" content="#fff8f1">
+  <link rel="canonical" href="https://www.ftf-foodtruckfinder.com/truck/" data-canonical>
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://www.ftf-foodtruckfinder.com/truck/">
+  <meta property="og:url" content="https://www.ftf-foodtruckfinder.com/truck/" data-og-url>
   <meta property="og:site_name" content="Food Truck Finder">
-  <meta property="og:title" content="Food Truck Finder Truck Page">
-  <meta property="og:description" content="View menu, location, schedule, and links for this food truck.">
-  <meta property="og:image" content="https://www.ftf-foodtruckfinder.com/assets/media/seed/food-truck-photo-pending.png">
+  <meta property="og:title" content="Truck Profile | Food Truck Finder">
+  <meta property="og:description" content="Find this truck's menu, location, schedule, and contact links.">
+  <meta property="og:image" content="https://www.ftf-foodtruckfinder.com/assets/brand/IconLogo.png">
+  <meta property="og:image:alt" content="Food Truck Finder">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Food Truck Finder Truck Page">
-  <meta name="twitter:description" content="View menu, location, schedule, and links for this food truck.">
-  <meta name="twitter:image" content="https://www.ftf-foodtruckfinder.com/assets/media/seed/food-truck-photo-pending.png">
-  <link rel="icon" type="image/png" href="../assets/brand/favicon.png">
+  <meta name="twitter:title" content="Truck Profile | Food Truck Finder">
+  <meta name="twitter:description" content="Find this truck's menu, location, schedule, and contact links.">
+  <meta name="twitter:image" content="https://www.ftf-foodtruckfinder.com/assets/brand/IconLogo.png">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTYiIGZpbGw9IiMxODE1MTIiLz48cGF0aCBkPSJNMCA0OGg2NHYxNkgweiIgZmlsbD0iI2ZmZDQzMSIvPjx0ZXh0IHg9IjMyIiB5PSIzOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjMiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IiNlNjJmMzYiPkZURjwvdGV4dD48L3N2Zz4=">
   <link rel="apple-touch-icon" href="../assets/brand/icon.png">
   <link rel="manifest" href="../site.webmanifest">
-  <link rel="preconnect" href="https://www.gstatic.com">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;650;750;850&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/truck-page.css?v=35">
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin>
+  <script>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const path = window.location.pathname.split('/').filter(Boolean);
+      const truckId = (params.get('id') || params.get('truck') || (path[0] === 'truck' ? path[1] : '') || '').trim();
+      if (!truckId || truckId.includes('/')) return;
+      const optimizedMedia = {
+        'seed-photos-3-001-breaking-the-borders-food-truck-elkridge-maryland': {
+          key: 'breaking-borders',
+          source: 'https://firebasestorage.googleapis.com/v0/b/food-truck-finder-prod.firebasestorage.app/o/truckMedia%2FtqDcHCbnyAQIW40DY5O1qrNhjJU2%2Fseed-photos-3-001-breaking-the-borders-food-truck-elkridge-maryland%2Fphotos-3-001%2FIMG_7412.jpg?alt=media&token=a6b9cecc-c789-47fb-9d9c-78abe766d6c2',
+        },
+      }[truckId];
+      if (optimizedMedia) {
+        window.__FTF_MEDIA_PROMISE__ = new Promise((resolve) => {
+          const mediaSize = window.matchMedia('(max-width: 700px)').matches ? '480' : '768';
+          const mediaSrc = `../assets/media/profile/${optimizedMedia.key}-${mediaSize}.js?v=2`;
+          const mediaPreload = document.createElement('link');
+          mediaPreload.rel = 'preload';
+          mediaPreload.as = 'script';
+          mediaPreload.href = mediaSrc;
+          mediaPreload.setAttribute('fetchpriority', 'high');
+          document.head.appendChild(mediaPreload);
+          const mediaScript = document.createElement('script');
+          mediaScript.src = mediaSrc;
+          mediaScript.setAttribute('fetchpriority', 'high');
+          mediaScript.addEventListener('load', () => {
+            if (window.__FTF_OPTIMIZED_HERO__) window.__FTF_OPTIMIZED_HERO__.sourceUrl = optimizedMedia.source;
+            resolve(window.__FTF_OPTIMIZED_HERO__ || null);
+          });
+          mediaScript.addEventListener('error', () => resolve(null));
+          document.head.appendChild(mediaScript);
+        });
+      }
+      const projectId = 'food-truck-finder-prod';
+      const apiKey = 'AIzaSyBWg6A7bQMEXGXhRiXyw_G6v54OqYbhGhc';
+      const publicFields = [
+        'name', 'archived', 'isMapHidden', 'city', 'state', 'currentAddress', 'latitude', 'longitude',
+        'locationType', 'isSharingLocation', 'isOpen', 'statusUpdatedAt', 'locationUpdatedAt',
+        'coordinatesVerified', 'locationAccuracy', 'locationPrecision', 'scheduleUpdatedAt',
+        'updatedAt', 'cuisines', 'description', 'dietaryOptions',
+        'verificationStatus', 'specialSchedule', 'recurringSchedule', 'menu', 'menuImage', 'menuImages',
+        'truckImage', 'photoSourceUrl', 'photos', 'photoUrls', 'businessPhone', 'websiteUrl',
+        'socialLinks', 'cateringUrl', 'bookingUrl', 'eventInquiryUrl', 'doordashUrl', 'uberEatsUrl', 'orderUrl',
+      ];
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 12000);
+      const referenceValue = `projects/${projectId}/databases/(default)/documents/foodTrucks/${truckId}`;
+      const promise = fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:runQuery?key=${apiKey}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          structuredQuery: {
+            select: {fields: publicFields.map((fieldPath) => ({fieldPath}))},
+            from: [{collectionId: 'foodTrucks'}],
+            where: {fieldFilter: {field: {fieldPath: '__name__'}, op: 'EQUAL', value: {referenceValue}}},
+            limit: 1,
+          },
+        }),
+        signal: controller.signal,
+        cache: 'no-store',
+      }).then(async (response) => {
+        const rows = response.ok ? await response.json() : [];
+        const fields = rows[0]?.document?.fields || {};
+        const firstArrayString = (field) => field?.arrayValue?.values?.find((item) => item?.stringValue)?.stringValue || '';
+        const heroUrl = fields.truckImage?.stringValue
+          || fields.photoSourceUrl?.stringValue
+          || fields.menuImage?.stringValue
+          || firstArrayString(fields.menuImages);
+        if (!optimizedMedia && heroUrl && /^https?:\/\//i.test(heroUrl)) {
+          const preload = document.createElement('link');
+          preload.rel = 'preload';
+          preload.as = 'image';
+          preload.href = heroUrl;
+          preload.setAttribute('fetchpriority', 'high');
+          preload.setAttribute('imagesizes', '(max-width: 900px) calc(100vw - 32px), (max-width: 1280px) 54vw, 650px');
+          document.head.appendChild(preload);
+        }
+        return {ok: response.ok, status: response.status, rows};
+      }).catch((error) => ({ok: false, status: 0, rows: [], error: error?.name || 'network'}))
+        .finally(() => window.clearTimeout(timeout));
+      window.__FTF_PROFILE_REQUEST__ = {id: truckId, promise};
+    })();
+  </script>
+  <link rel="stylesheet" href="../assets/truck-page.min.css?v=3">
+  <script>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const requestedName = (params.get('name') || '').trim().slice(0, 120);
+      const requestedId = (params.get('id') || params.get('truck') || '').trim();
+      if (requestedName) {
+        const title = `${requestedName} | Menu, Location & Schedule | Food Truck Finder`;
+        const description = `View ${requestedName}'s menu, location, schedule, and contact links on Food Truck Finder.`;
+        document.title = title;
+        document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+        document.querySelector('meta[property="og:title"]')?.setAttribute('content', title);
+        document.querySelector('meta[property="og:description"]')?.setAttribute('content', description);
+        document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', title);
+        document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', description);
+      }
+      if (requestedId) {
+        const canonical = new URL('/truck/', window.location.origin);
+        canonical.searchParams.set('id', requestedId);
+        document.querySelector('[data-canonical]')?.setAttribute('href', canonical.toString());
+        document.querySelector('[data-og-url]')?.setAttribute('content', canonical.toString());
+      }
+    })();
+  </script>
 </head>
 <body>
-  <div class="truck-shell" data-page-shell>
-    <header class="truck-topbar">
-      <a class="truck-brand" href="../" aria-label="Food Truck Finder home">
-        <img src="../assets/brand/IconLogo.png" alt="" width="40" height="40">
+  <a class="skip-link" href="#main-content">Skip to truck details</a>
+
+  <header class="profile-header">
+    <div class="header-inner">
+      <a class="brand" href="../" aria-label="Food Truck Finder home">
+        <img src="../assets/brand/IconLogo-96.svg" alt="" width="38" height="38">
         <span>Food Truck Finder</span>
       </a>
-      <button class="topbar-button" type="button" data-copy-link>Copy Link</button>
-    </header>
 
-    <main>
-      <section class="truck-hero" data-loading-view>
-        <div class="hero-media hero-media--loading"></div>
-        <div class="hero-copy">
-          <p class="eyebrow">Truck Page</p>
-          <h1>Loading truck profile</h1>
-          <p class="lede">Getting the latest Food Truck Finder listing.</p>
-        </div>
-      </section>
-
-      <section class="truck-hero" data-error-view hidden>
-        <div class="hero-media hero-media--fallback">
-          <img src="../assets/brand/IconLogo.png" alt="">
-        </div>
-        <div class="hero-copy">
-          <p class="eyebrow">Truck Page</p>
-          <h1>Truck not found</h1>
-          <p class="lede" data-error-message>This truck page is not available right now.</p>
-          <div class="hero-actions">
-            <a class="button button--primary" href="../">Visit Food Truck Finder</a>
-          </div>
-        </div>
-      </section>
-
-      <article class="truck-profile" data-truck-view hidden>
-        <section class="truck-hero truck-hero--banner">
-          <div class="hero-media">
-            <img data-truck-image src="../assets/media/seed/food-truck-photo-pending.png" alt="">
-          </div>
-
-          <div class="hero-copy">
-            <p class="eyebrow">Featured Truck</p>
-            <div class="status-line">
-              <span class="status-badge" data-open-state>Food Truck</span>
-              <span class="status-badge status-badge--muted">Public Profile</span>
-            </div>
-            <h1 data-truck-name>Food Truck</h1>
-            <p class="lede" data-truck-description></p>
-
-            <div class="pill-row" data-cuisine-list></div>
-
-            <div class="hero-actions">
-              <a class="button button--primary" data-open-app href="#">Open in App</a>
-              <a class="button button--secondary" data-directions href="#" target="_blank" rel="noreferrer">Get Directions</a>
-              <a class="button button--ghost" data-order-link href="#" target="_blank" rel="noreferrer" hidden>Order Online</a>
-            </div>
-
-            <div class="quick-facts">
-              <button class="quick-fact" type="button" data-copy-address>
-                <span>Where To Go</span>
-                <strong data-truck-address>Address unavailable</strong>
-              </button>
-              <button class="quick-fact" type="button" data-jump-menu>
-                <span>Menu Ready</span>
-                <strong data-menu-count>Menu pending</strong>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <section class="content-grid">
-          <div class="main-column">
-            <section class="section-panel" data-menu-section>
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Menu</p>
-                  <h2 data-menu-title>Popular Items</h2>
-                </div>
-                <button class="text-button" type="button" data-toggle-menu hidden>Show All</button>
-              </div>
-              <div class="menu-list" data-menu-list></div>
-            </section>
-
-            <section class="section-panel gallery-panel" data-gallery-section hidden>
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Photos</p>
-                  <h2>Gallery</h2>
-                </div>
-                <span class="gallery-count" data-gallery-count></span>
-              </div>
-              <div class="photo-gallery" data-gallery-list></div>
-            </section>
-
-            <section class="conversion-grid" aria-label="Download and claim actions">
-              <section class="section-panel app-download-panel">
-                <div class="section-heading">
-                  <div>
-                    <p class="eyebrow">For Customers</p>
-                    <h2>Keep this profile handy.</h2>
-                  </div>
-                </div>
-                <p class="panel-copy">Food Truck Finder helps customers reopen profiles, check details, and keep favorite trucks in one place.</p>
-                <ul class="app-note-list" aria-label="Food Truck Finder app benefits">
-                  <li>Save favorite trucks</li>
-                  <li>Reopen profiles quickly</li>
-                  <li>Check menus, photos, and links</li>
-                </ul>
-              </section>
-
-              <section class="section-panel claim-panel" aria-labelledby="claim-listing-title">
-                <div class="section-heading">
-                  <div>
-                    <p class="eyebrow">Owners</p>
-                    <h2 id="claim-listing-title">Own this truck?</h2>
-                  </div>
-                  <span class="claim-time">2 min</span>
-                </div>
-                <p class="panel-copy">Send a claim request so we can verify you and connect this profile to your owner tools.</p>
-                <ul class="claim-checklist" aria-label="Claim request checklist">
-                  <li>No referral code needed to request a claim</li>
-                  <li>Use an email where our team can reach you</li>
-                  <li>Add a website, social page, or other proof</li>
-                </ul>
-                <div class="claim-download-callout">
-                  <div>
-                    <strong>Start the claim first.</strong>
-                    <span>After review, we send the owner account steps and referral-code help. Approved owners manage menus, photos, schedule, and location from the app.</span>
-                  </div>
-                  <div class="claim-download-actions" aria-label="Download Food Truck Finder">
-                    <a class="button button--secondary" href="https://apps.apple.com/us/app/ftf-food-truck-finder/id6742719545" target="_blank" rel="noreferrer">App Store</a>
-                    <a class="button button--ghost" href="https://play.google.com/store/apps/details?id=com.innoryzen.foodtruckfinder" target="_blank" rel="noreferrer">Google Play</a>
-                  </div>
-                </div>
-                <a class="button button--primary button--full" data-claim-link href="mailto:Foodtruckfinderinfo@gmail.com?subject=Owner%20Claim%20Request&body=Hi%20Food%20Truck%20Finder%20team%2C%0A%0AI%20would%20like%20to%20claim%20a%20truck%20listing.%0A%0ATruck%20name%3A%0ATruck%20ID%3A%0A%0AMy%20name%3A%0APhone%20number%3A%0AProof%20of%20ownership%20or%20official%20link%3A">Start Claim Request</a>
-                <p class="claim-note">Do not worry about the app referral code yet. Submit the claim request first, then we help connect the truck to the correct owner account after review.</p>
-              </section>
-            </section>
-          </div>
-
-          <aside class="side-column">
-            <section class="section-panel">
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Links</p>
-                  <h2>Connect</h2>
-                </div>
-              </div>
-              <div class="link-stack" data-link-stack></div>
-            </section>
-
-            <section class="section-panel">
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Schedule</p>
-                  <h2>When To Go</h2>
-                </div>
-              </div>
-              <div class="schedule-list" data-schedule-list></div>
-            </section>
-
-            <section class="section-panel">
-              <div class="section-heading">
-                <div>
-                  <p class="eyebrow">Marketing Link</p>
-                  <h2>Share This Truck</h2>
-                </div>
-              </div>
-              <p class="panel-copy">Use this public profile in social bios, flyers, event pages, and QR codes.</p>
-              <div class="share-box" data-share-text></div>
-              <div class="share-actions">
-                <button class="button button--secondary" type="button" data-copy-link>Copy Link</button>
-                <button class="button button--ghost" type="button" data-native-share hidden>Share</button>
-              </div>
-            </section>
-
-          </aside>
-        </section>
-      </article>
-    </main>
-  </div>
-
-  <div class="modal-backdrop" data-claim-modal role="dialog" aria-modal="true" aria-labelledby="claim-modal-title" aria-describedby="claim-modal-description" hidden>
-    <div class="claim-modal">
-      <p class="eyebrow">Claim This Listing</p>
-      <h2 id="claim-modal-title">Request access to this truck profile</h2>
-      <p class="panel-copy" id="claim-modal-description">You do not need a referral code to send the claim request. We review the proof first, then help connect the right Owner account.</p>
-      <div class="claim-summary" data-claim-summary>Listing details will be added to the email automatically.</div>
-      <ol class="claim-steps">
-        <li>
-          <strong>Submit the claim form.</strong>
-          <span>We prefill the truck name and profile link. You add your contact info and proof.</span>
-        </li>
-        <li>
-          <strong>We verify ownership.</strong>
-          <span>After review, we connect the profile to the correct Owner account or follow up if we need more info.</span>
-        </li>
-        <li>
-          <strong>Download Food Truck Finder after review.</strong>
-          <span>We send the owner-account steps and referral-code help so you can manage the truck from the app.</span>
-        </li>
-      </ol>
-      <div class="modal-actions">
-        <button class="button button--ghost" type="button" data-claim-modal-close>I'll Do This Later</button>
-        <button class="button button--primary" type="button" data-claim-modal-email>Open Claim Form</button>
-      </div>
+      <nav class="header-actions" aria-label="Profile navigation">
+        <a class="header-link" href="../#foodies" aria-label="Find Trucks">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6M9 12h11"/></svg>
+          <span>Find Trucks</span>
+        </a>
+        <button class="icon-button" type="button" data-share-button aria-label="Share this truck">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 16V3m0 0L7.5 7.5M12 3l4.5 4.5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+          <span class="desktop-label">Share</span>
+        </button>
+      </nav>
     </div>
-  </div>
+  </header>
 
-  <div class="modal-backdrop photo-modal-backdrop" data-photo-modal role="dialog" aria-modal="true" aria-labelledby="photo-modal-title" hidden>
-    <div class="photo-modal">
-      <div class="photo-modal-header">
+  <main id="main-content" class="page-shell" tabindex="-1">
+    <section class="loading-state" data-loading-view aria-labelledby="loading-title" aria-busy="true">
+      <h1 id="loading-title" class="sr-only">Loading truck profile</h1>
+      <div class="skeleton-hero" aria-hidden="true">
+        <div class="skeleton skeleton-media"></div>
+        <div class="skeleton-copy">
+          <span class="skeleton skeleton-line skeleton-line--short"></span>
+          <span class="skeleton skeleton-line skeleton-line--title"></span>
+          <span class="skeleton skeleton-line"></span>
+          <span class="skeleton skeleton-line skeleton-line--medium"></span>
+          <div class="skeleton-buttons">
+            <span class="skeleton skeleton-button"></span>
+            <span class="skeleton skeleton-button"></span>
+          </div>
+        </div>
+      </div>
+      <div class="skeleton skeleton-today" aria-hidden="true"></div>
+      <p class="loading-copy" role="status">Getting the latest truck details…</p>
+    </section>
+
+    <section class="page-state" data-temporary-view hidden aria-labelledby="temporary-title">
+      <div class="state-art" aria-hidden="true">
+        <svg viewBox="0 0 180 130"><path d="M28 42h105l17 29v32H28z"/><path d="M44 42V25h65v17M52 58h50v27H52zM116 59h17l9 17h-26z"/><circle cx="54" cy="105" r="12"/><circle cx="126" cy="105" r="12"/><path d="M76 105h38M16 103h13"/></svg>
+      </div>
+      <div>
+        <p class="eyebrow">Latest details unavailable</p>
+        <h1 id="temporary-title">We couldn’t load the latest details.</h1>
+        <p class="state-copy" data-temporary-message>Please check your connection and try again.</p>
+        <div class="state-actions">
+          <button class="button button--primary" type="button" data-retry>Try Again</button>
+          <a class="button button--outline" href="../#foodies">Explore Nearby Trucks</a>
+          <a class="text-link" href="../">Back to Food Truck Finder</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-state" data-not-found-view hidden aria-labelledby="not-found-title">
+      <div class="state-art state-art--not-found" aria-hidden="true">
+        <svg viewBox="0 0 180 130"><path d="M28 42h105l17 29v32H28z"/><path d="M44 42V25h65v17M52 58h50v27H52zM116 59h17l9 17h-26z"/><circle cx="54" cy="105" r="12"/><circle cx="126" cy="105" r="12"/><path d="M149 28 165 12m0 16-16-16"/></svg>
+      </div>
+      <div>
+        <p class="eyebrow">Profile not found</p>
+        <h1 id="not-found-title">This truck profile may have moved.</h1>
+        <p class="state-copy" data-not-found-message>We couldn’t find the requested profile, but there are more trucks to discover.</p>
+        <div class="state-actions">
+          <a class="button button--primary" href="../#foodies">Find Food Trucks</a>
+          <a class="button button--outline" href="../food-trucks/baltimore/">Explore Nearby Trucks</a>
+          <a class="text-link" href="../">Back to Food Truck Finder</a>
+        </div>
+      </div>
+    </section>
+
+    <article class="truck-profile" data-truck-view hidden>
+      <section class="profile-hero" aria-labelledby="truck-name">
+        <div class="hero-visual" data-hero-visual>
+          <div class="hero-photo-frame" data-hero-photo-frame></div>
+          <span class="photo-note" data-photo-note hidden>Photos coming soon</span>
+        </div>
+
+        <div class="hero-summary">
+          <p class="location-kicker" data-location-summary hidden></p>
+          <h1 id="truck-name" data-truck-name>Food truck profile</h1>
+          <ul class="chip-list" data-cuisine-list hidden aria-label="Cuisine categories"></ul>
+
+          <div class="service-summary" data-service-summary>
+            <span class="status-dot" aria-hidden="true"></span>
+            <div>
+              <strong data-hero-status>Checking today’s details</strong>
+              <span data-hero-status-detail></span>
+            </div>
+          </div>
+
+          <div class="trust-row" data-trust-row hidden>
+            <span class="verified-note" data-owner-verified hidden>
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m7.5 12 3 3 6-7"/><circle cx="12" cy="12" r="9"/></svg>
+              Owner verified
+            </span>
+            <span data-last-updated hidden></span>
+          </div>
+
+          <div class="primary-actions" data-primary-actions></div>
+          <div class="utility-actions" data-utility-actions role="group" aria-label="More truck actions"></div>
+          <p class="hero-description" data-truck-description hidden></p>
+        </div>
+      </section>
+
+      <section class="today-section" aria-labelledby="today-heading">
+        <div class="today-heading-row">
+          <div>
+            <p class="eyebrow">Plan your visit</p>
+            <h2 id="today-heading">Today</h2>
+          </div>
+          <span class="freshness" data-today-freshness hidden></span>
+        </div>
+        <div class="today-grid">
+          <div class="today-status">
+            <span class="today-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            </span>
+            <div>
+              <strong data-today-status></strong>
+              <span data-today-time></span>
+            </div>
+          </div>
+          <div class="today-location">
+            <span class="today-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            </span>
+            <div>
+              <strong data-location-label></strong>
+              <span data-today-address></span>
+              <span data-distance hidden></span>
+            </div>
+          </div>
+          <div class="today-actions" data-today-actions></div>
+        </div>
+        <div class="today-help" data-today-help hidden></div>
+      </section>
+
+      <section id="menu" class="content-section menu-section" data-menu-section aria-labelledby="menu-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">What’s cooking</p>
+            <h2 id="menu-heading">Menu preview</h2>
+          </div>
+          <button class="text-button" type="button" data-toggle-menu hidden aria-expanded="false">View Full Menu</button>
+        </div>
+        <div class="menu-feature" data-menu-feature hidden></div>
+        <div class="menu-grid" data-menu-list></div>
+        <div class="helpful-empty" data-menu-empty hidden>
+          <div>
+            <strong>Menu hasn’t been posted yet.</strong>
+            <p>Check the truck’s public links for the latest offerings.</p>
+          </div>
+          <div class="empty-actions" data-menu-alternatives></div>
+        </div>
+        <button class="button button--outline section-action" type="button" data-menu-footer-action hidden>View Full Menu</button>
+      </section>
+
+      <section id="schedule" class="content-section schedule-section" data-schedule-section aria-labelledby="schedule-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Where to find them</p>
+            <h2 id="schedule-heading">Upcoming schedule</h2>
+          </div>
+          <button class="text-button" type="button" data-toggle-schedule hidden aria-expanded="false">View Full Schedule</button>
+        </div>
+        <ol class="schedule-timeline" data-schedule-list></ol>
+        <div class="helpful-empty" data-schedule-empty hidden>
+          <div>
+            <strong>No upcoming stops have been posted.</strong>
+            <p>Use a public truck link for updates, or explore another nearby option.</p>
+          </div>
+          <div class="empty-actions" data-schedule-alternatives></div>
+        </div>
+      </section>
+
+      <section class="content-section gallery-section" data-gallery-section hidden aria-labelledby="gallery-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">From the truck</p>
+            <h2 id="gallery-heading">Photos</h2>
+          </div>
+          <span class="section-count" data-gallery-count></span>
+        </div>
+        <div class="photo-gallery" data-gallery-list></div>
+      </section>
+
+      <section class="content-section about-section" data-about-section hidden aria-labelledby="about-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">The details</p>
+            <h2 id="about-heading">About this truck</h2>
+          </div>
+        </div>
+        <div class="about-grid">
+          <div>
+            <p class="about-copy" data-about-description hidden></p>
+            <dl class="about-facts" data-about-facts></dl>
+          </div>
+          <div class="contact-links" data-contact-links></div>
+        </div>
+      </section>
+
+      <section id="nearby" class="nearby-section" data-nearby-section aria-labelledby="nearby-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Keep exploring</p>
+            <h2 id="nearby-heading">More food trucks nearby</h2>
+          </div>
+          <a class="text-link" href="../#foodies">Explore all trucks</a>
+        </div>
+        <div class="nearby-grid" data-nearby-list aria-live="polite">
+          <div class="nearby-loading" role="status">Finding nearby trucks…</div>
+        </div>
+      </section>
+
+      <section class="app-promo" aria-labelledby="app-promo-heading">
+        <div class="app-promo-copy">
+          <p class="eyebrow">Take it with you</p>
+          <h2 id="app-promo-heading">Save this truck and get its latest stops in Food Truck Finder.</h2>
+          <p>Keep menus, locations, and updates close when hunger hits.</p>
+          <div class="store-actions" data-store-actions>
+            <a class="button button--primary app-mobile-action" data-open-app href="../open/">Open in App</a>
+            <a class="store-link" data-app-store href="https://apps.apple.com/us/app/ftf-food-truck-finder/id6742719545" target="_blank" rel="noopener noreferrer">
+              <span>Download on the</span><strong>App Store</strong>
+            </a>
+            <a class="store-link" data-play-store href="https://play.google.com/store/apps/details?id=com.innoryzen.foodtruckfinder" target="_blank" rel="noopener noreferrer">
+              <span>Get it on</span><strong>Google Play</strong>
+            </a>
+          </div>
+        </div>
+        <div class="app-qr">
+          <img src="../assets/media/ftf-get-app-qr.svg" alt="QR code to get Food Truck Finder" width="156" height="156" loading="lazy">
+          <span>Scan to get the app</span>
+        </div>
+      </section>
+
+      <section class="claim-card" aria-labelledby="claim-heading">
         <div>
-          <p class="eyebrow">Photo</p>
-          <h2 id="photo-modal-title" data-photo-modal-title>Truck photo</h2>
+          <p class="eyebrow">For truck owners</p>
+          <h2 id="claim-heading">Own this food truck?</h2>
+          <p>Claim this profile in about two minutes to update your menu, photos, location, and schedule.</p>
         </div>
-        <button class="text-button" type="button" data-photo-modal-close>Close</button>
+        <div class="claim-actions">
+          <a class="button button--outline" data-claim-link href="../claim-your-food-truck/">Claim This Profile</a>
+          <details class="claim-details">
+            <summary>Learn More</summary>
+            <p>Submit your contact details and ownership proof. The Food Truck Finder team reviews the request before connecting the profile to an owner account.</p>
+          </details>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <footer class="profile-footer">
+    <span>Food Truck Finder</span>
+    <nav aria-label="Footer">
+      <a href="../privacy-policy/">Privacy</a>
+      <a href="mailto:Foodtruckfinderinfo@gmail.com">Support</a>
+    </nav>
+  </footer>
+
+  <nav class="mobile-action-bar" data-mobile-action-bar hidden aria-label="Truck actions">
+    <div data-mobile-actions></div>
+  </nav>
+
+  <dialog class="photo-dialog" data-photo-dialog aria-labelledby="photo-dialog-title">
+    <div class="dialog-header">
+      <div>
+        <p class="eyebrow">Photo</p>
+        <h2 id="photo-dialog-title" data-photo-dialog-title>Truck photo</h2>
       </div>
-      <img data-photo-modal-image src="" alt="">
+      <button class="dialog-close" type="button" data-photo-dialog-close aria-label="Close photo viewer">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
     </div>
-  </div>
+    <div class="dialog-media">
+      <button class="dialog-nav dialog-nav--previous" type="button" data-photo-previous aria-label="Previous photo">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <img data-photo-dialog-image src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="">
+      <button class="dialog-nav dialog-nav--next" type="button" data-photo-next aria-label="Next photo">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+    <p class="dialog-position" data-photo-position aria-live="polite"></p>
+  </dialog>
 
-  <div class="toast" data-toast hidden>Copied</div>
+  <div class="toast" data-toast role="status" aria-live="polite" aria-atomic="true" hidden></div>
 
-  <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-  <script defer src="../assets/truck-page.js?v=25"></script>
+  <script defer src="../assets/attribution.js?v=1"></script>
+  <script defer src="../assets/truck-page.min.js?v=8"></script>
 </body>
 </html>
