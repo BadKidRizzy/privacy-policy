@@ -215,7 +215,7 @@ a {
 .page-shell {
   width: min(var(--container), calc(100% - 32px));
   margin: 0 auto;
-  padding: 32px 0 80px;
+  padding: 24px 0 56px;
 }
 
 h1,
@@ -270,9 +270,9 @@ h3 {
   display: grid;
   grid-template-columns: minmax(0, 1.12fr) minmax(340px, 0.88fr);
   align-items: center;
-  gap: clamp(32px, 5vw, 72px);
+  gap: clamp(24px, 4vw, 48px);
   min-width: 0;
-  padding: 8px 0 40px;
+  padding: 4px 0 24px;
 }
 
 .hero-visual,
@@ -406,7 +406,7 @@ h3 {
 
 .hero-summary {
   min-width: 0;
-  padding: 12px 0;
+  padding: 8px 0;
 }
 
 @media (min-width: 901px) {
@@ -428,7 +428,7 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 18px 0 0;
+  margin: 14px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -448,18 +448,18 @@ h3 {
 
 .hero-description {
   max-width: 38rem;
-  margin-top: 18px;
+  margin-top: 14px;
   color: var(--muted);
   font-size: 1.04rem;
-  line-height: 1.65;
+  line-height: 1.55;
 }
 
 .service-summary {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin-top: 24px;
-  padding: 16px;
+  margin-top: 18px;
+  padding: 14px;
   border-left: 4px solid var(--muted);
   border-radius: 0 14px 14px 0;
   background: #fff;
@@ -550,7 +550,7 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 24px;
+  margin-top: 18px;
 }
 
 .button {
@@ -647,7 +647,7 @@ h3 {
 .today-section {
   position: relative;
   margin: 8px 0 0;
-  padding: clamp(24px, 4vw, 38px);
+  padding: clamp(22px, 3vw, 30px);
   overflow: hidden;
   border: 1px solid #eadca0;
   border-radius: var(--radius-card);
@@ -685,8 +685,8 @@ h3 {
   display: grid;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.25fr) auto;
   align-items: center;
-  gap: clamp(20px, 3vw, 36px);
-  margin-top: 24px;
+  gap: clamp(18px, 2.5vw, 28px);
+  margin-top: 20px;
 }
 
 .today-status,
@@ -763,8 +763,8 @@ h3 {
 }
 
 .today-help {
-  margin-top: 22px;
-  padding-top: 18px;
+  margin-top: 18px;
+  padding-top: 14px;
   border-top: 1px solid #eee3b8;
   color: var(--muted);
   font-size: 1rem;
@@ -778,12 +778,12 @@ h3 {
 
 .content-section,
 .nearby-section {
-  padding: clamp(52px, 7vw, 80px) 0;
+  padding: clamp(36px, 5vw, 56px) 0;
   border-bottom: 1px solid var(--border);
 }
 
 .section-heading {
-  margin-bottom: 26px;
+  margin-bottom: 20px;
 }
 
 .text-button,
@@ -812,11 +812,12 @@ h3 {
 
 .menu-feature {
   position: relative;
-  min-height: 280px;
+  height: clamp(300px, 32vw, 420px);
+  min-height: 0;
   display: grid;
   grid-template-columns: minmax(260px, 0.85fr) minmax(0, 1.15fr);
   overflow: hidden;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   background: var(--surface);
@@ -826,7 +827,7 @@ h3 {
 .menu-feature-photo {
   width: 100%;
   height: 100%;
-  min-height: 280px;
+  min-height: 0;
   border: 0;
   padding: 0;
   background: #f2e8df;
@@ -834,6 +835,7 @@ h3 {
 }
 
 .menu-feature-photo img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -841,7 +843,7 @@ h3 {
 
 .menu-feature-copy {
   align-self: center;
-  padding: clamp(24px, 4vw, 44px);
+  padding: clamp(22px, 3vw, 34px);
 }
 
 .menu-feature-copy strong {
@@ -917,15 +919,15 @@ h3 {
 }
 
 .section-action {
-  margin-top: 22px;
+  margin-top: 18px;
 }
 
 .helpful-empty {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 22px;
+  gap: 18px;
+  padding: 18px;
   border: 1px solid var(--border);
   border-radius: 18px;
   background: #fff;
@@ -1100,21 +1102,21 @@ h3 {
 .about-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
-  gap: clamp(32px, 7vw, 80px);
+  gap: clamp(28px, 5vw, 52px);
 }
 
 .about-copy {
   max-width: 46rem;
   color: var(--muted);
   font-size: 1.02rem;
-  line-height: 1.7;
+  line-height: 1.6;
 }
 
 .about-facts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px 28px;
-  margin: 24px 0 0;
+  gap: 14px 24px;
+  margin: 18px 0 0;
 }
 
 .about-fact {
@@ -1143,7 +1145,7 @@ h3 {
 }
 
 .contact-link {
-  min-height: 54px;
+  min-height: 48px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -1206,7 +1208,7 @@ h3 {
 .nearby-photo,
 .nearby-fallback {
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
 }
 
 .nearby-photo {
@@ -1230,7 +1232,7 @@ h3 {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: 14px;
 }
 
 .nearby-card-body strong,
@@ -1261,9 +1263,9 @@ h3 {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 40px;
-  margin-top: clamp(52px, 7vw, 80px);
-  padding: clamp(28px, 5vw, 52px);
+  gap: 32px;
+  margin-top: clamp(36px, 5vw, 56px);
+  padding: clamp(24px, 4vw, 40px);
   border-radius: 24px;
   background: var(--ink);
   color: #fff;
@@ -1287,7 +1289,7 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 24px;
+  margin-top: 18px;
 }
 
 .store-link {
@@ -1347,9 +1349,9 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 32px;
-  margin-top: 24px;
-  padding: 24px 28px;
+  gap: 24px;
+  margin-top: 18px;
+  padding: 20px 24px;
   border: 1px solid var(--border);
   border-radius: 18px;
   background: #fff;
@@ -1400,13 +1402,13 @@ h3 {
 
 .profile-footer {
   width: min(var(--container), calc(100% - 32px));
-  min-height: 84px;
+  min-height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   margin: 0 auto;
-  padding: 20px 0;
+  padding: 14px 0;
   color: var(--muted);
   font-size: 0.85rem;
 }
@@ -1693,7 +1695,7 @@ h3 {
   }
 
   .profile-hero {
-    gap: 26px;
+    gap: 20px;
   }
 
   .hero-summary {
@@ -1745,8 +1747,8 @@ h3 {
   }
 
   .page-shell {
-    padding-top: 20px;
-    padding-bottom: 56px;
+    padding-top: 16px;
+    padding-bottom: 44px;
   }
 
   .profile-hero {
@@ -1787,7 +1789,7 @@ h3 {
 
   .content-section,
   .nearby-section {
-    padding: 52px 0;
+    padding: 36px 0;
   }
 
   .section-heading {
@@ -1796,15 +1798,16 @@ h3 {
 
   .menu-feature {
     grid-template-columns: 1fr;
+    height: auto;
   }
 
   .menu-feature-photo {
-    min-height: 220px;
+    min-height: 200px;
     aspect-ratio: 16 / 10;
   }
 
   .menu-feature-copy {
-    padding: 22px;
+    padding: 18px;
   }
 
   .menu-grid {
@@ -2036,7 +2039,7 @@ h3 {
   }
 
   .today-section {
-    padding: 24px 20px;
+    padding: 22px 18px;
   }
 
   .today-heading-row {
@@ -2074,7 +2077,7 @@ h3 {
   }
 
   .app-promo {
-    padding: 26px 22px;
+    padding: 22px 18px;
   }
 
   .profile-footer {
