@@ -9,7 +9,9 @@ This repo hosts the public static pages for Food Truck Finder.
 - `claim-your-food-truck/index.html`
   Public owner claim landing page served at `/claim-your-food-truck/`.
 - `claim-success/index.html`
-  Owner claim success page served at `/claim-success/`.
+  Neutral legacy owner-setup handoff served at `/claim-success/`; current claims confirm inline.
+- `claim/continue/index.html`
+  No-index secure-token handoff served at `/claim/continue/?token=...`.
 - `get-app/index.html`
   Public app download landing page served at `/get-app/`.
 - `food-trucks/baltimore/index.html`
@@ -63,12 +65,15 @@ This repo hosts the public static pages for Food Truck Finder.
 - When adding seeded truck or city pages, avoid live/open-now/verified/partner claims unless the app has evidence.
 - Add generated public truck/city pages by editing `data/public-growth-pages.json`, then running `python3 scripts/generate_public_growth_pages.py`.
 - Generated truck pages must use "profile awaiting owner claim" style wording for seeded trucks.
-- Generated claim links prefill `/claim-your-food-truck/?truck=TruckName&city=City&profile=/truck/slug/`.
-- The claim form posts to the Firebase HTTPS function `submitOwnerClaimRequest`.
+- Generated claim links pass a trusted truck ID alongside the truck name, city, and same-origin profile URL. The backend resolves the canonical truck record before enabling the form.
+- The initial claim form has exactly two visible fields: email and mobile phone. It posts `flowVersion: contact_v2` to the Firebase HTTPS function `submitOwnerClaimRequest`; legacy payloads remain backend-compatible.
+- A successful save returns a short-lived opaque continuation token. Raw email and phone values never appear in the continuation URL, QR code, or analytics payloads.
+- QR generation is vendored locally in `assets/vendor/`; do not replace it with remotely executed code on the token-bearing continuation page.
+- The website association file intentionally does not claim `/claim/continue/*` yet. Add that iOS universal-link path only after the supporting native app version is released, so existing installs continue to reach the web fallback.
 - The backend records `claim_started`, `claim_submitted`, and later management updates for `acknowledged`, `claim_verified`, `rejected`, or `needs_more_info`.
-- Claim-start emails mean a visitor opened the prefilled claim form. Those records show in the Growth Agent claim review filter as `Started`; verify/reject actions appear after the owner submits the full form.
+- Claim-start records mean a visitor opened or focused the prefilled claim flow. Submitted claim records appear in the Growth Agent review workflow; ownership must be verified before profile changes are published.
 - Public pages preserve Growth Agent tracking slugs through `ftf_attribution_slug` / `tracking_slug`, then send `claim_started`, `claim_submitted`, and app-store click events to the Growth Agent attribution loop.
-- Claim auto-response email drafts are created by the backend, but real email sending remains disabled until a provider is intentionally connected.
+- Transactional continuation email is best-effort and uses the configured Resend secret. A provider timeout or failure must never roll back a saved claim.
 - The `/admin/growth-agent/` console calls `https://food-truck-growth-agent-xmel35gaya-uc.a.run.app` with the signed-in Firebase Auth ID token from `food-truck-finder-prod`.
 - The Growth Agent page includes a Growth Autopilot panel for generating reviewable social content calendars, tracking links, scores, and recommendations.
 - The Growth Agent page includes a draft review queue with full post previews, truck profile links, tracking links, copy-caption buttons, approval actions, and filters for needs approval, approved, scheduled, published, rejected, and all drafts.
@@ -88,7 +93,9 @@ This repo hosts the public static pages for Food Truck Finder.
 - `/claim-your-food-truck/`
   Owner claim landing page
 - `/claim-success/`
-  Owner claim success page
+  Neutral legacy owner-setup handoff
+- `/claim/continue/`
+  Secure app-continuation web fallback (noindex; requires an opaque token)
 - `/get-app/`
   Public app download page for clean social links
 - `/food-trucks/baltimore/`

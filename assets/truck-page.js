@@ -419,6 +419,8 @@
 
   function buildClaimUrl(truck) {
     const url = new URL('/claim-your-food-truck/', window.location.origin);
+    url.searchParams.set('id', state.truckId);
+    url.searchParams.set('selectedTruckId', state.truckId);
     url.searchParams.set('truck', asText(truck.name));
     const city = compactLocationLabel(truck);
     if (city) url.searchParams.set('city', city);
