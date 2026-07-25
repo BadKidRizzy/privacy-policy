@@ -2,23 +2,21 @@ const APPLE_ASSOCIATION_PATHS = new Set([
   '/.well-known/apple-app-site-association',
   '/apple-app-site-association',
 ]);
+const APPLE_ASSOCIATION_JSON = '__APPLE_ASSOCIATION_JSON__';
 
 export default {
   async fetch(request, env) {
-    const response = await env.ASSETS.fetch(request);
     const {pathname} = new URL(request.url);
 
-    if (!response.ok || !APPLE_ASSOCIATION_PATHS.has(pathname)) {
-      return response;
+    if (APPLE_ASSOCIATION_PATHS.has(pathname)) {
+      return new Response(APPLE_ASSOCIATION_JSON, {
+        headers: {
+          'Cache-Control': 'public, max-age=300',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+      });
     }
 
-    const headers = new Headers(response.headers);
-    headers.set('Content-Type', 'application/json; charset=utf-8');
-
-    return new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers,
-    });
+    return env.ASSETS.fetch(request);
   },
 };
