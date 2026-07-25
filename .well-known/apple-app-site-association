@@ -5,6 +5,12 @@
       {
         "appID": "HB3M76EZS9.com.innoryzen.FoodTruckFinder",
         "paths": [
+          "/open",
+          "/open/",
+          "/open/*",
+          "/claim/continue",
+          "/claim/continue/",
+          "/claim/continue/*",
           "NOT /truck",
           "NOT /truck/",
           "NOT /truck/*"
