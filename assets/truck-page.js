@@ -425,7 +425,6 @@
     const city = compactLocationLabel(truck);
     if (city) url.searchParams.set('city', city);
     url.searchParams.set('profile', state.publicUrl);
-    url.hash = 'claim-form';
     return url.toString();
   }
 

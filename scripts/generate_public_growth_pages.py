@@ -40,8 +40,7 @@ def claim_url(truck: dict) -> str:
     if truck.get("production_id"):
         parameters["selectedTruckId"] = truck["production_id"]
     query = urlencode(parameters)
-    fragment = "#claim-form" if truck.get("production_id") else ""
-    return f"../../claim-your-food-truck/?{query}{fragment}"
+    return f"../../claim-your-food-truck/?{query}"
 
 
 def claim_cta_label(truck: dict) -> str:

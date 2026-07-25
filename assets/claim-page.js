@@ -432,12 +432,6 @@
       if (truck.profileUrl) url.searchParams.set('profile', truck.profileUrl);
       window.history.replaceState({}, '', url);
       elements.email?.focus({preventScroll: false});
-    } else if (window.location.hash === '#claim-form') {
-      const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-      window.requestAnimationFrame(() => form.scrollIntoView({
-        block: 'start',
-        behavior: reduceMotion ? 'auto' : 'smooth',
-      }));
     }
   }
 
@@ -829,7 +823,9 @@
     const normalizedName = normalizeComparison(truck.name);
     return normalizedName === normalizedQuery
       || normalizedName.startsWith(normalizedQuery)
-      || normalizedName.includes(normalizedQuery);
+      || normalizedName.includes(normalizedQuery)
+      || normalizedQuery.startsWith(normalizedName)
+      || normalizedQuery.includes(normalizedName);
   }
 
   function exactRequestedTruck(trucks, query, city) {

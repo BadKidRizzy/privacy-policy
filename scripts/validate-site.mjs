@@ -41,7 +41,7 @@ for (const truck of data.trucks) {
       html.includes(`selectedTruckId=${truck.production_id}`),
       `${truck.slug} is missing its verified production truck ID.`
     );
-    record(html.includes('#claim-form'), `${truck.slug} should hand off directly to the claim form.`);
+    record(!html.includes('#claim-form'), `${truck.slug} should keep the selected-truck confirmation in view.`);
     record(html.includes('name="robots" content="index,follow"'), `${truck.slug} should remain indexable.`);
   } else {
     record(!html.includes('selectedTruckId='), `${truck.slug} contains an unverified production truck ID.`);
