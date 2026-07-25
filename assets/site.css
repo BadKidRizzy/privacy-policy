@@ -1,3 +1,19 @@
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("./fonts/manrope-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: optional;
+  src: url("./fonts/fraunces-latin.woff2") format("woff2");
+}
+
 :root {
   --bg: #f6efe6;
   --paper: rgba(255, 249, 243, 0.88);
@@ -6,7 +22,7 @@
   --muted: #645750;
   --line: rgba(31, 23, 19, 0.1);
   --accent: #ee6c3f;
-  --accent-deep: #c44d24;
+  --accent-deep: #b8441c;
   --accent-soft: #ffe7dd;
   --cool: #0f7c82;
   --cool-soft: rgba(15, 124, 130, 0.11);
@@ -43,6 +59,23 @@ a {
   color: inherit;
 }
 
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 8px;
+  left: 8px;
+  padding: 10px 14px;
+  transform: translateY(-150%);
+  border-radius: 10px;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 800;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
 code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   background: rgba(31, 23, 19, 0.07);
@@ -52,7 +85,7 @@ code {
 
 .site-shell {
   position: relative;
-  overflow: hidden;
+  overflow-x: clip;
   min-height: 100vh;
 }
 
@@ -539,6 +572,12 @@ h1 {
   object-position: top center;
 }
 
+.owner-preview__screen picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .owner-preview__screen--main img {
   min-height: 0;
 }
@@ -645,6 +684,14 @@ h1 {
 .shot-card img {
   width: 100%;
   border-radius: 18px;
+}
+
+.shot-card img {
+  height: auto;
+}
+
+.shot-card picture {
+  display: block;
 }
 
 .demo-placeholder {
@@ -992,7 +1039,56 @@ h1 {
 }
 
 .truck-preview-hero .hero__visual {
-  min-height: 560px;
+  display: grid;
+  width: min(100%, 520px);
+  min-height: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 14px;
+  margin-left: auto;
+}
+
+.hero-card,
+.hero-stat {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--paper-strong);
+  box-shadow: var(--soft-shadow);
+}
+
+.hero-card--primary {
+  grid-column: 1 / -1;
+}
+
+.hero-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.hero-card--secondary img {
+  aspect-ratio: 1;
+  object-position: top center;
+}
+
+.hero-stat {
+  padding: 16px;
+}
+
+.hero-stat strong,
+.hero-stat span {
+  display: block;
+}
+
+.hero-stat strong {
+  margin-bottom: 6px;
+}
+
+.hero-stat span {
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
 .truck-preview-section {
@@ -1077,7 +1173,7 @@ h1 {
 
 .site-footer {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr) auto;
   gap: 16px 22px;
   align-items: end;
   margin-bottom: 34px;
@@ -1097,6 +1193,7 @@ h1 {
 
 .site-footer__links {
   display: flex;
+  max-width: 760px;
   flex-wrap: wrap;
   gap: 14px;
   justify-content: flex-end;
@@ -1218,6 +1315,16 @@ h1 {
     padding-top: 64px;
   }
 
+  .truck-preview-hero .hero__visual {
+    width: 100%;
+    grid-template-columns: 1fr;
+    margin-left: 0;
+  }
+
+  .truck-preview-hero .hero-card--primary {
+    grid-column: auto;
+  }
+
   .get-app-hero {
     padding-top: 54px;
   }
@@ -1320,5 +1427,20 @@ h1 {
   .section,
   .cta-banner {
     padding: 24px 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

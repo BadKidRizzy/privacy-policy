@@ -33,13 +33,9 @@
   <link rel="icon" type="image/png" href="./assets/brand/favicon.png">
   <link rel="apple-touch-icon" href="./assets/brand/icon.png">
   <link rel="manifest" href="./site.webmanifest">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
-    rel="stylesheet"
-  >
-  <link rel="stylesheet" href="./assets/site.css?v=5">
+  <link rel="preload" href="./assets/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="./assets/site.css?v=6">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -80,13 +76,14 @@
   </script>
 </head>
 <body>
+  <a class="skip-link" href="#top">Skip to main content</a>
   <div class="site-shell">
     <div class="ambient ambient--top"></div>
     <div class="ambient ambient--bottom"></div>
 
     <header class="site-header">
       <a class="brand" href="#top" aria-label="Food Truck Finder home">
-        <img src="./assets/brand/IconLogo.png" alt="Food Truck Finder logo" width="44" height="44">
+        <img src="./assets/brand/IconLogo-96.svg" alt="" width="44" height="44">
         <span>Food Truck Finder</span>
       </a>
 
@@ -148,8 +145,8 @@
           <div class="hero__owner-cta">
             <div>
               <p class="hero__owner-label">Owner onboarding</p>
-              <strong>No profile yet? We can help you claim it.</strong>
-              <span>Send your truck name and best contact. We will help connect the right owner account.</span>
+              <strong>Find and claim your profile in about a minute.</strong>
+              <span>Start with your truck name, email, and mobile number. We’ll guide the secure handoff.</span>
             </div>
             <a class="button button--ghost" href="./claim-your-food-truck/">
               Start Claim
@@ -173,7 +170,7 @@
         </div>
 
         <div class="hero__visual">
-          <div class="owner-preview" aria-label="Owner profile preview">
+          <div class="owner-preview" role="group" aria-label="Owner profile preview">
             <div class="owner-preview__header">
               <span>Owner Profile</span>
               <strong>Ready for today&apos;s service</strong>
@@ -181,10 +178,16 @@
 
             <div class="owner-preview__screens">
               <figure class="owner-preview__screen owner-preview__screen--main">
-                <img src="./assets/media/owners/owner-dashboard.png" alt="Owner dashboard in Food Truck Finder">
+                <picture>
+                  <source srcset="./assets/media/owners/owner-dashboard.avif" type="image/avif">
+                  <img src="./assets/media/owners/owner-dashboard.png" alt="Owner dashboard in Food Truck Finder" width="1320" height="2868">
+                </picture>
               </figure>
               <figure class="owner-preview__screen">
-                <img src="./assets/media/owners/owner-menu-explained.png" alt="Owner menu tools in Food Truck Finder">
+                <picture>
+                  <source srcset="./assets/media/owners/owner-menu-explained.avif" type="image/avif">
+                  <img src="./assets/media/owners/owner-menu-explained.png" alt="Owner menu tools in Food Truck Finder" width="1080" height="1350">
+                </picture>
               </figure>
             </div>
 
@@ -245,7 +248,7 @@
               controls
               playsinline
               preload="metadata"
-              poster="./assets/media/foodies/explore-live-simulator.png"
+              poster="./assets/media/foodies/explore-live-simulator.avif"
               data-demo-video
               hidden
             >
@@ -253,12 +256,12 @@
             </video>
 
             <div class="demo-placeholder" data-video-fallback>
-              <p class="demo-placeholder__eyebrow">Owner Walkthrough</p>
-              <h3>See how a claimed profile helps customers make a faster decision.</h3>
+              <p class="demo-placeholder__eyebrow">Product Walkthrough</p>
+              <h3>See how one current profile helps people find, choose, and work with your truck.</h3>
               <ul>
-                <li>Start with the foodie discovery flow.</li>
-                <li>Show the owner dashboard, schedule, and menu updates.</li>
-                <li>End on organizer value and a download call to action.</li>
+                <li>Foodies discover nearby trucks and compare what looks good.</li>
+                <li>Owners keep locations, schedules, menus, and photos current.</li>
+                <li>Organizers review stronger profiles when planning an event.</li>
               </ul>
               <a class="button button--ghost" href="./claim-your-food-truck/">Claim Your Truck</a>
             </div>
@@ -316,16 +319,25 @@
 
           <div class="gallery">
             <figure class="shot-card">
-              <img src="./assets/media/foodies/explore-screen.png" alt="Explore screen for foodies">
+              <picture>
+                <source srcset="./assets/media/foodies/explore-screen.avif" type="image/avif">
+                <img src="./assets/media/foodies/explore-screen.png" alt="Explore screen for foodies" width="1320" height="2868" loading="lazy" decoding="async">
+              </picture>
               <figcaption>Explore map and list browsing for quick discovery.</figcaption>
             </figure>
             <figure class="shot-card">
-              <img src="./assets/media/foodies/home-feed.png" alt="Foodie home feed">
+              <picture>
+                <source srcset="./assets/media/foodies/home-feed.avif" type="image/avif">
+                <img src="./assets/media/foodies/home-feed.png" alt="Foodie home feed" width="1320" height="2868" loading="lazy" decoding="async">
+              </picture>
               <figcaption>Home feed built to reduce the time it takes to pick a stop.</figcaption>
             </figure>
             <figure class="shot-card">
-              <img src="./assets/media/foodies/home-live-simulator.png" alt="Live foodie simulator view">
-              <figcaption>A live-feeling mobile view that works well in the hero or feature rail.</figcaption>
+              <picture>
+                <source srcset="./assets/media/foodies/home-live-simulator.avif" type="image/avif">
+                <img src="./assets/media/foodies/home-live-simulator.png" alt="Live foodie simulator view" width="1320" height="2868" loading="lazy" decoding="async">
+              </picture>
+              <figcaption>Current truck details help foodies decide before they make the trip.</figcaption>
             </figure>
           </div>
         </div>
@@ -401,19 +413,31 @@
 
           <div class="gallery gallery--dense">
             <figure class="shot-card">
-              <img src="./assets/media/owners/owner-dashboard.png" alt="Owner dashboard screenshot">
+              <picture>
+                <source srcset="./assets/media/owners/owner-dashboard.avif" type="image/avif">
+                <img src="./assets/media/owners/owner-dashboard.png" alt="Owner dashboard screenshot" width="1320" height="2868" loading="lazy" decoding="async">
+              </picture>
               <figcaption>Owner dashboard for truck-level management and updates.</figcaption>
             </figure>
             <figure class="shot-card">
-              <img src="./assets/media/owners/owner-schedule-explained.png" alt="Owner schedule management">
+              <picture>
+                <source srcset="./assets/media/owners/owner-schedule-explained.avif" type="image/avif">
+                <img src="./assets/media/owners/owner-schedule-explained.png" alt="Owner schedule management" width="1080" height="1350" loading="lazy" decoding="async">
+              </picture>
               <figcaption>Schedule updates that show people where the truck is going next.</figcaption>
             </figure>
             <figure class="shot-card">
-              <img src="./assets/media/owners/owner-menu-explained.png" alt="Owner menu management">
+              <picture>
+                <source srcset="./assets/media/owners/owner-menu-explained.avif" type="image/avif">
+                <img src="./assets/media/owners/owner-menu-explained.png" alt="Owner menu management" width="1080" height="1350" loading="lazy" decoding="async">
+              </picture>
               <figcaption>Menu and specials that help people decide before they drive.</figcaption>
             </figure>
             <figure class="shot-card">
-              <img src="./assets/media/owners/edit-truck-fields.png" alt="Truck profile editing form">
+              <picture>
+                <source srcset="./assets/media/owners/edit-truck-fields.avif" type="image/avif">
+                <img src="./assets/media/owners/edit-truck-fields.png" alt="Truck profile editing form" width="782" height="1238" loading="lazy" decoding="async">
+              </picture>
               <figcaption>Profile editing that helps owners build a stronger storefront inside the app.</figcaption>
             </figure>
           </div>
@@ -425,8 +449,8 @@
           <p class="eyebrow">Event Organizers</p>
           <h2>How organizers can use the platform to source better trucks and plan stronger events.</h2>
           <p>
-            Organizers need a cleaner path from discovery to outreach. This section is designed to
-            explain that value even when you are still expanding event-specific visuals.
+            Organizers need a cleaner path from discovery to outreach. Current truck profiles make
+            it easier to compare cuisine, service details, and event fit before making contact.
           </p>
         </div>
 
@@ -455,44 +479,27 @@
 
           <div class="gallery">
             <figure class="shot-card">
-              <img src="./assets/media/organizers/discovery-map.png" alt="Truck discovery map for organizers">
+              <picture>
+                <source srcset="./assets/media/organizers/discovery-map.avif" type="image/avif">
+                <img src="./assets/media/organizers/discovery-map.png" alt="Truck discovery map for organizers" width="1320" height="2868" loading="lazy" decoding="async">
+              </picture>
               <figcaption>Discovery matters to organizers too. Start with a real local vendor view.</figcaption>
             </figure>
             <figure class="shot-card">
-              <img src="./assets/media/organizers/invites-explained.png" alt="Organizer and invite flow">
+              <picture>
+                <source srcset="./assets/media/organizers/invites-explained.avif" type="image/avif">
+                <img src="./assets/media/organizers/invites-explained.png" alt="Organizer and invite flow" width="1080" height="1350" loading="lazy" decoding="async">
+              </picture>
               <figcaption>Invite-oriented workflow that supports coordination and event planning.</figcaption>
             </figure>
             <figure class="shot-card">
-              <img src="./assets/media/organizers/role-signup.png" alt="Role-based sign up">
+              <picture>
+                <source srcset="./assets/media/organizers/role-signup.avif" type="image/avif">
+                <img src="./assets/media/organizers/role-signup.png" alt="Role-based sign up" width="922" height="1468" loading="lazy" decoding="async">
+              </picture>
               <figcaption>Role-based entry point that makes room for foodies, owners, and organizers.</figcaption>
             </figure>
           </div>
-        </div>
-      </section>
-
-      <section class="section section--details">
-        <div class="section-heading">
-          <p class="eyebrow">Built for real usage</p>
-          <h2>What the website should make obvious in under a minute.</h2>
-        </div>
-
-        <div class="detail-grid">
-          <article class="detail-card">
-            <h3>Clear role messaging</h3>
-            <p>Each audience should instantly understand why the app matters to them, not just what screens it has.</p>
-          </article>
-          <article class="detail-card">
-            <h3>Useful screenshots</h3>
-            <p>Every screenshot on the site now has a home in the media library and a job to do on the page.</p>
-          </article>
-          <article class="detail-card">
-            <h3>How-to sections</h3>
-            <p>The page explains how people actually use the app instead of forcing visitors to infer it from UI alone.</p>
-          </article>
-          <article class="detail-card">
-            <h3>Legal and support links</h3>
-            <p>Privacy policy, account deletion, download links, and support contacts remain visible and easy to access.</p>
-          </article>
         </div>
       </section>
 
@@ -508,7 +515,7 @@
 
         <div class="city-grid">
           <article class="city-card">
-            <img src="./assets/media/seed/trucks/seed-dmv-taqueria-los-primos-ellicott-city.jpg" alt="Food truck in the Baltimore area">
+            <img src="./assets/media/seed/trucks/seed-dmv-taqueria-los-primos-ellicott-city.jpg" alt="Food truck in the Baltimore area" loading="lazy" decoding="async">
             <div>
               <p class="role-card__tag">Maryland</p>
               <h3>Food trucks in Baltimore</h3>
@@ -518,7 +525,7 @@
           </article>
 
           <article class="city-card">
-            <img src="./assets/media/seed/trucks/seed-dmv-taco-cinco-de-mayo-arlington.jpg" alt="Food truck in the Washington DC area">
+            <img src="./assets/media/seed/trucks/seed-dmv-taco-cinco-de-mayo-arlington.jpg" alt="Food truck in the Washington DC area" loading="lazy" decoding="async">
             <div>
               <p class="role-card__tag">DMV</p>
               <h3>Food trucks in Washington DC</h3>
@@ -528,7 +535,7 @@
           </article>
 
           <article class="city-card">
-            <img src="./assets/media/seed/trucks/seed-dmv-burrito-bros-arlington.jpg" alt="Food truck in the Arlington area">
+            <img src="./assets/media/seed/trucks/seed-dmv-burrito-bros-arlington.jpg" alt="Food truck in the Arlington area" loading="lazy" decoding="async">
             <div>
               <p class="role-card__tag">Virginia</p>
               <h3>Food trucks in Arlington</h3>
@@ -538,7 +545,7 @@
           </article>
 
           <article class="city-card">
-            <img src="./assets/media/seed/trucks/seed-dmv-la-gringa-manassas.jpg" alt="Food truck in the Alexandria area">
+            <img src="./assets/media/seed/trucks/seed-dmv-la-gringa-manassas.jpg" alt="Food truck in the Alexandria area" loading="lazy" decoding="async">
             <div>
               <p class="role-card__tag">Northern Virginia</p>
               <h3>Food trucks near Alexandria</h3>
@@ -548,7 +555,7 @@
           </article>
 
           <article class="city-card">
-            <img src="./assets/media/seed/trucks/seed-dmv-holy-crepes-gaithersburg.jpg" alt="Food truck in the Gaithersburg area">
+            <img src="./assets/media/seed/trucks/seed-dmv-holy-crepes-gaithersburg.jpg" alt="Food truck in the Gaithersburg area" loading="lazy" decoding="async">
             <div>
               <p class="role-card__tag">Maryland</p>
               <h3>Food trucks in Gaithersburg</h3>
@@ -558,7 +565,7 @@
           </article>
 
           <article class="city-card">
-            <img src="./assets/media/seed/trucks/seed-dmv-la-tropicana-germantown.jpg" alt="Food truck in the Germantown area">
+            <img src="./assets/media/seed/trucks/seed-dmv-la-tropicana-germantown.jpg" alt="Food truck in the Germantown area" loading="lazy" decoding="async">
             <div>
               <p class="role-card__tag">Maryland</p>
               <h3>Food trucks in Germantown</h3>
@@ -568,7 +575,7 @@
           </article>
         </div>
 
-        <div class="detail-grid profile-index-grid" aria-label="Food truck profile links">
+        <div class="detail-grid profile-index-grid" role="group" aria-label="Food truck profile links">
           <article class="detail-card">
             <h3>Maryland profiles</h3>
             <div class="profile-link-list">
@@ -605,11 +612,11 @@
         <div class="faq-grid">
           <article class="faq-card">
             <h3>Is Food Truck Finder only for food truck owners?</h3>
-            <p>No. The platform is positioned for foodies, owners, and event organizers, each with a different reason to use it.</p>
+            <p>No. Foodies use it to discover trucks, owners keep profiles current, and organizers can research event options.</p>
           </article>
           <article class="faq-card">
             <h3>Can owners update location, schedule, and menu?</h3>
-            <p>Yes. That is the core owner workflow the site now shows most clearly.</p>
+            <p>Yes. Owners can keep the location, service schedule, menu, photos, and profile details current.</p>
           </article>
           <article class="faq-card">
             <h3>What if my truck moves during the day?</h3>
@@ -636,8 +643,8 @@
 
       <section class="cta-banner">
         <div>
-          <p class="eyebrow">Ready to get trucks onboard?</p>
-          <h2>If you run a truck, get your profile live. If you follow trucks, download and start browsing.</h2>
+          <p class="eyebrow">Ready to get started?</p>
+          <h2>Claim your truck profile or download the app and discover what is nearby.</h2>
         </div>
         <div class="cta-banner__actions">
           <a

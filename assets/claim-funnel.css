@@ -1,9 +1,17 @@
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("./fonts/manrope-latin.woff2") format("woff2");
+}
+
 :root {
   --claim-bg: #fff8f1;
   --claim-surface: #ffffff;
   --claim-text: #181512;
   --claim-muted: #6f655e;
-  --claim-primary: #cf342d;
+  --claim-primary: #c22d27;
   --claim-primary-hover: #b92a24;
   --claim-coral: #ff6b55;
   --claim-yellow: #ffd431;
@@ -175,8 +183,8 @@ svg {
   display: grid;
   grid-template-areas:
     "progress"
-    "truck"
     "intro"
+    "truck"
     "form"
     "preview";
   width: min(calc(100% - 32px), 1120px);
@@ -207,22 +215,24 @@ svg {
 
 .claim-progress li {
   position: relative;
-  display: flex;
+  display: grid;
   min-width: 0;
-  align-items: center;
+  grid-template-rows: 28px auto;
+  justify-items: center;
   gap: 6px;
   color: var(--claim-muted);
   font-size: 0.75rem;
   font-weight: 700;
   line-height: 1.25;
+  text-align: center;
 }
 
 .claim-progress li:not(:last-child)::after {
   position: absolute;
-  z-index: -1;
+  z-index: 0;
   top: 13px;
-  right: 6px;
-  left: 30px;
+  right: calc(-50% + 18px);
+  left: calc(50% + 18px);
   height: 2px;
   background: var(--claim-border);
   content: "";
@@ -230,6 +240,8 @@ svg {
 
 .progress-number {
   display: inline-grid;
+  position: relative;
+  z-index: 1;
   flex: 0 0 28px;
   width: 28px;
   height: 28px;
@@ -450,6 +462,31 @@ svg {
   text-align: left;
 }
 
+.claim-recovery {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid rgba(23, 118, 90, 0.24);
+  border-radius: 15px;
+  background: rgba(235, 248, 243, 0.78);
+}
+
+.claim-recovery strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.claim-recovery p {
+  margin: 5px 0 12px;
+  color: var(--claim-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.claim-recovery .claim-button {
+  width: 100%;
+  background: var(--claim-surface);
+}
+
 .claim-intro {
   grid-area: intro;
   min-width: 0;
@@ -478,12 +515,40 @@ svg {
   line-height: 1.02;
 }
 
-.claim-intro > p:last-child {
+.claim-intro [data-claim-intro-copy] {
   max-width: 620px;
   margin: 10px 0 0;
   color: var(--claim-muted);
   font-size: 1rem;
   line-height: 1.5;
+}
+
+.claim-trust-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 14px 0 0;
+  padding: 0;
+  gap: 8px;
+  list-style: none;
+}
+
+.claim-trust-list li {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border: 1px solid var(--claim-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--claim-text);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.claim-trust-list li::before {
+  color: var(--claim-success);
+  content: "✓";
 }
 
 .claim-panel {
@@ -890,6 +955,23 @@ svg {
   height: 60px;
 }
 
+.install-return-note {
+  max-width: 440px;
+  margin: 12px auto 0;
+  color: var(--claim-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.claim-state h2[tabindex="-1"]:focus-visible {
+  outline: 0;
+  text-decoration: underline;
+  text-decoration-color: rgba(194, 45, 39, 0.35);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
 .state-actions .text-link {
   display: inline-flex;
   min-height: 44px;
@@ -965,10 +1047,6 @@ svg {
 
   .claim-progress li > span:last-child {
     max-width: 72px;
-  }
-
-  .claim-progress li:not(:last-child)::after {
-    right: 4px;
   }
 
   .selected-truck {
@@ -1054,7 +1132,7 @@ svg {
   }
 
   .truck-search__form {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr) auto;
+    grid-template-columns: minmax(0, 1.2fr) minmax(180px, 1fr) auto;
     align-items: end;
   }
 
@@ -1088,6 +1166,26 @@ svg {
     column-gap: 56px;
     row-gap: 22px;
     padding: 40px 0 72px;
+  }
+
+  .claim-main.is-searching {
+    grid-template-columns: minmax(0, 760px);
+    grid-template-areas:
+      "progress"
+      "intro"
+      "truck"
+      "preview";
+    justify-content: center;
+    row-gap: 24px;
+  }
+
+  .claim-main.is-searching .claim-intro {
+    max-width: 680px;
+    padding-top: 6px;
+  }
+
+  .claim-main.is-searching .claim-intro h1 {
+    max-width: 18ch;
   }
 
   .claim-progress {
@@ -1129,7 +1227,7 @@ svg {
     font-size: clamp(2.75rem, 4.2vw, 3.25rem);
   }
 
-  .claim-intro > p:last-child {
+  .claim-intro [data-claim-intro-copy] {
     max-width: 480px;
     margin-top: 16px;
     font-size: 1.0625rem;

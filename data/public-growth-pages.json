@@ -110,6 +110,7 @@
     {
       "slug": "holy-crepes-gaithersburg",
       "name": "Holy Crepes",
+      "production_id": "seed-dmv-prod-holy-crepes-food-truck-and-catering-gaithersburg-maryland",
       "city": "Gaithersburg",
       "region": "Maryland",
       "cuisine": "Crepes",
@@ -118,6 +119,7 @@
     {
       "slug": "la-gringa-manassas",
       "name": "La Gringa",
+      "production_id": "seed-dmv-prod-la-gringa-food-truck-manassas-virginia",
       "city": "Manassas",
       "region": "Virginia",
       "cuisine": "Mexican food",
@@ -142,6 +144,7 @@
     {
       "slug": "taco-cinco-de-mayo-arlington",
       "name": "Taco Cinco de Mayo",
+      "production_id": "seed-dmv-prod-taco-cinco-de-mayo-arlington-virginia",
       "city": "Arlington",
       "region": "Virginia",
       "cuisine": "Tacos",

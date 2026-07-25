@@ -21,13 +21,7 @@
   <link rel="icon" type="image/png" href="../assets/brand/favicon.png">
   <link rel="apple-touch-icon" href="../assets/brand/icon.png">
   <link rel="manifest" href="../site.webmanifest">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;display=swap"
-    rel="stylesheet"
-  >
-  <link rel="stylesheet" href="../assets/claim-funnel.css?v=1">
+  <link rel="stylesheet" href="../assets/claim-funnel.css?v=2">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to claim form</a>
@@ -59,7 +53,7 @@
 
   <main id="main-content" class="claim-main">
     <nav class="claim-progress" aria-label="Claim progress" data-claim-progress>
-      <p>Start here. You’ll manage your truck from the Food Truck Finder app.</p>
+      <p>Free to claim. Most owners finish this first step in about a minute.</p>
       <ol>
         <li class="is-current" aria-current="step" data-progress-step="contact">
           <span class="progress-number">1</span>
@@ -67,14 +61,30 @@
         </li>
         <li data-progress-step="app">
           <span class="progress-number">2</span>
-          <span>Get the app</span>
+          <span>Finish in app</span>
         </li>
         <li data-progress-step="update">
           <span class="progress-number">3</span>
-          <span>Update your truck</span>
+          <span>Manage profile</span>
         </li>
       </ol>
     </nav>
+
+    <section class="claim-intro" aria-labelledby="claim-heading">
+      <div class="claim-intro__icon" aria-hidden="true">
+        <img src="../assets/brand/IconLogo-96.svg" alt="" width="56" height="56">
+      </div>
+      <p class="section-label">Food Truck Owner</p>
+      <h1 id="claim-heading" data-claim-heading>Claim your food truck</h1>
+      <p data-claim-intro-copy>
+        Find your truck, add two contact details, and use the secure link to finish setting up your Owner account.
+      </p>
+      <ul class="claim-trust-list" aria-label="Claim benefits">
+        <li>Free to claim</li>
+        <li>About 1 minute</li>
+        <li>No credit card</li>
+      </ul>
+    </section>
 
     <section class="truck-context" aria-label="Selected food truck" data-truck-context aria-busy="true">
       <div class="truck-context__loading" data-truck-context-loading>
@@ -102,7 +112,7 @@
           <p class="selected-truck__name" data-selected-truck-name>Selected food truck</p>
           <span data-selected-truck-location hidden></span>
         </div>
-        <button class="text-button" type="button" aria-label="Not your truck? Choose a different food truck" data-change-truck>
+        <button class="text-button" type="button" aria-label="Change food truck. Not your truck? Choose a different food truck." data-change-truck>
           <span class="change-truck-full">Not your truck?</span>
           <span class="change-truck-short" aria-hidden="true">Change</span>
         </button>
@@ -143,18 +153,14 @@
         </form>
         <p class="search-status" role="status" aria-live="polite" data-claim-search-status hidden></p>
         <div class="truck-results" data-claim-results hidden></div>
+        <div class="claim-recovery" data-claim-recovery hidden>
+          <strong>Can’t find your truck?</strong>
+          <p>We’ll help locate the right listing or get a new profile ready—without making you start over.</p>
+          <a class="claim-button claim-button--secondary" href="mailto:Foodtruckfinderinfo@gmail.com" data-claim-support>
+            Get owner claim help
+          </a>
+        </div>
       </section>
-    </section>
-
-    <section class="claim-intro" aria-labelledby="claim-heading">
-      <div class="claim-intro__icon" aria-hidden="true">
-        <img src="../assets/brand/IconLogo-96.svg" alt="" width="56" height="56">
-      </div>
-      <p class="section-label">Food Truck Owner</p>
-      <h1 id="claim-heading" data-claim-heading>Claim your food truck</h1>
-      <p data-claim-intro-copy>
-        Enter your email and mobile number. Then continue in the Food Truck Finder app to set up your Owner account.
-      </p>
     </section>
 
     <section class="claim-panel" aria-label="Food truck claim" data-claim-panel>
@@ -166,6 +172,7 @@
         </div>
 
         <form
+          id="claim-form"
           class="claim-form"
           data-claim-form
           data-claim-endpoint="https://us-central1-food-truck-finder-prod.cloudfunctions.net/submitOwnerClaimRequest"
@@ -225,14 +232,14 @@
           </div>
 
           <button class="claim-button claim-button--primary claim-submit" type="submit" data-claim-submit>
-            <span data-claim-submit-label>Continue to App Setup</span>
+            <span data-claim-submit-label>Start My Claim</span>
             <span class="button-spinner" aria-hidden="true" data-claim-submit-spinner></span>
           </button>
 
           <p class="submit-status sr-only" role="status" aria-live="polite" aria-atomic="true" data-claim-status></p>
 
           <div class="claim-reassurance">
-            <strong>Only two fields. No documents or website needed right now.</strong>
+            <strong>Free to claim. No documents or website needed right now.</strong>
             <p>
               Your contact information will be used to process this claim and connect your Owner account.
               <a href="../privacy-policy/">Privacy Policy</a>
@@ -290,6 +297,9 @@
               <img src="../assets/media/store-badges/get-it-on-google-play.png" alt="Get Food Truck Finder on Google Play" width="155" height="60">
             </a>
           </div>
+          <p class="install-return-note">
+            Installing for the first time? After installation, return to your setup email and tap the secure link to continue.
+          </p>
         </div>
       </section>
 
@@ -408,6 +418,6 @@
   </footer>
 
   <script src="../assets/attribution.js?v=1" defer></script>
-  <script src="../assets/claim-page.js?v=2" defer></script>
+  <script src="../assets/claim-page.js?v=3" defer></script>
 </body>
 </html>

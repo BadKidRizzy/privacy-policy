@@ -31,14 +31,21 @@ def absolute(path: str) -> str:
 
 def claim_url(truck: dict) -> str:
     profile_path = f"/truck/{truck['slug']}/"
-    query = urlencode(
-        {
-            "truck": truck["name"],
-            "city": truck["city"],
-            "profile": profile_path,
-        }
-    )
-    return f"../../claim-your-food-truck/?{query}"
+    parameters = {
+        "truck": truck["name"],
+        "city": truck["city"],
+        "profile": profile_path,
+        "source": "truck_profile",
+    }
+    if truck.get("production_id"):
+        parameters["selectedTruckId"] = truck["production_id"]
+    query = urlencode(parameters)
+    fragment = "#claim-form" if truck.get("production_id") else ""
+    return f"../../claim-your-food-truck/?{query}{fragment}"
+
+
+def claim_cta_label(truck: dict) -> str:
+    return "Claim this truck" if truck.get("production_id") else "Get owner claim help"
 
 
 def store_actions() -> str:
@@ -54,7 +61,7 @@ def header(current_links: str = "") -> str:
     return f"""
     <header class="site-header">
       <a class="brand" href="../../" aria-label="Food Truck Finder home">
-        <img src="../../assets/brand/IconLogo.png" alt="Food Truck Finder logo" width="44" height="44">
+        <img src="../../assets/brand/IconLogo-96.svg" alt="" width="44" height="44">
         <span>Food Truck Finder</span>
       </a>
 
@@ -103,6 +110,7 @@ def page_shell(
     image_alt: str,
     structured_data: dict,
     body: str,
+    robots: str = "index,follow",
 ) -> str:
     structured_json = json.dumps(structured_data, ensure_ascii=False, sort_keys=True).replace("</", "<\\/")
     canonical_url = absolute(canonical_path)
@@ -115,6 +123,7 @@ def page_shell(
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{esc(title)}</title>
   <meta name="description" content="{esc(description)}">
+  <meta name="robots" content="{esc(robots)}">
   <meta name="theme-color" content="#ee6c3f">
   <link rel="canonical" href="{esc(canonical_url)}">
   <meta property="og:type" content="website">
@@ -131,16 +140,11 @@ def page_shell(
   <link rel="icon" type="image/png" href="../../assets/brand/favicon.png">
   <link rel="apple-touch-icon" href="../../assets/brand/icon.png">
   <link rel="manifest" href="../../site.webmanifest">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
-    rel="stylesheet"
-  >
-  <link rel="stylesheet" href="../../assets/site.css?v=4">
+  <link rel="stylesheet" href="../../assets/site.css?v=6">
   <script type="application/ld+json">{structured_json}</script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="site-shell">
 {body}
   </div>
@@ -155,33 +159,33 @@ def render_truck_page(truck: dict, city_links: str) -> str:
     title = f"{truck['name']} in {truck['city']} | Food Truck Finder"
     description = (
         f"View the Food Truck Finder preview profile for {truck['name']} in {truck['city']}. "
-        "This seeded profile is awaiting owner claim and is not marked live or verified."
+        "Owners can claim or request help connecting this unverified profile."
     )
     canonical_path = f"truck/{truck['slug']}/"
     image_path = truck["image"]
     page_url = absolute(canonical_path)
     body = f"""
 {header(city_links)}
-    <main>
+    <main id="main-content">
       <section class="hero truck-preview-hero">
         <div class="hero__copy">
-          <p class="eyebrow">Food Truck Preview</p>
+          <p class="eyebrow">Unclaimed food truck profile</p>
           <h1>{esc(truck['name'])}</h1>
           <p class="hero__lede">
-            {esc(truck['name'])} is listed as a seeded Food Truck Finder profile for {esc(truck['city'])}, {esc(truck['region'])}.
-            This profile is awaiting owner claim and is not marked live, verified, or officially managed yet.
+            {esc(truck['name'])} has a Food Truck Finder preview for {esc(truck['city'])}, {esc(truck['region'])}.
+            If this is your truck, claim the free profile and keep the details accurate. Until an owner
+            verifies it, information on this page may be incomplete.
           </p>
 
           <div class="hero__pills">
-            <span>Profile awaiting owner claim</span>
+            <span>Not owner-verified</span>
             <span>{esc(truck['city'])}</span>
             <span>{esc(truck['cuisine'])}</span>
           </div>
 
           <div class="hero__actions">
-            <a class="button button--primary" href="{esc(claim_url(truck))}">Claim this truck</a>
-            <a class="button button--secondary" href="{APP_STORE_URL}" target="_blank" rel="noreferrer">App Store</a>
-            <a class="button button--ghost" href="{PLAY_STORE_URL}" target="_blank" rel="noreferrer">Google Play</a>
+            <a class="button button--primary" href="{esc(claim_url(truck))}">{esc(claim_cta_label(truck))}</a>
+            <a class="button button--ghost" href="../../get-app/">See the app</a>
           </div>
         </div>
 
@@ -190,43 +194,38 @@ def render_truck_page(truck: dict, city_links: str) -> str:
             <img src="../../{esc(image_path)}" alt="{esc(truck['name'])} food truck preview image">
           </div>
           <div class="hero-stat hero-stat--one">
-            <strong>Awaiting owner claim</strong>
-            <span>Owners can claim this profile to update menu, schedule, photos, and links.</span>
+            <strong>Claim it free</strong>
+            <span>Add your menu, schedule, photos, links, and current location.</span>
           </div>
           <div class="hero-stat hero-stat--two">
-            <strong>Shareable page</strong>
-            <span>Use this page when tagging or contacting the truck owner.</span>
+            <strong>Ownership checked</strong>
+            <span>Profile changes publish after the owner claim is reviewed.</span>
           </div>
         </div>
       </section>
 
       <section class="section truck-preview-section">
         <div class="section-heading">
-          <p class="eyebrow">Profile Status</p>
-          <h2>Seeded profile awaiting owner claim.</h2>
+          <p class="eyebrow">For the owner</p>
+          <h2>Is this your truck? Make the profile yours.</h2>
           <p>
-            Food Truck Finder is building public profile previews so owners can see their truck,
-            claim it, and keep customer-facing details accurate. Until claimed, this page should not
-            be treated as live location, verified ownership, or an official partnership.
+            Start with your email and mobile number. We’ll connect you to the exact listing when it
+            is available, or help locate the right profile before anything is published.
           </p>
         </div>
 
         <div class="detail-grid">
           <article class="detail-card">
-            <h3>For foodies</h3>
-            <p>Download the app to follow trucks and check profiles as owners claim and update them.</p>
+            <h3>Your public profile</h3>
+            <p>Give customers one reliable place to check your menu, photos, links, and contact details.</p>
           </article>
           <article class="detail-card">
-            <h3>For owners</h3>
-            <p>Claim this truck to add schedule, menu, photos, website, social links, and contact details.</p>
+            <h3>Keep it current</h3>
+            <p>Manage service locations and schedules so customers know where to find you.</p>
           </article>
           <article class="detail-card">
-            <h3>For outreach</h3>
-            <p>Share this page with the truck owner instead of sending a generic claim link.</p>
-          </article>
-          <article class="detail-card">
-            <h3>Claim proof</h3>
-            <p>Website, Instagram, Facebook, business email, or photo proof can speed up manual review.</p>
+            <h3>Simple verification</h3>
+            <p>We’ll explain any proof needed before owner changes are made public.</p>
           </article>
         </div>
       </section>
@@ -237,32 +236,44 @@ def render_truck_page(truck: dict, city_links: str) -> str:
           <h2>Claim {esc(truck['name'])} and keep the profile accurate.</h2>
         </div>
         <div class="cta-banner__actions">
-          <a class="button button--primary" href="{esc(claim_url(truck))}">Claim this truck</a>
-          <a class="button button--secondary" href="{APP_STORE_URL}" target="_blank" rel="noreferrer">Download the app</a>
-          <a class="button button--ghost" href="{PLAY_STORE_URL}" target="_blank" rel="noreferrer">Google Play</a>
+          <a class="button button--primary" href="{esc(claim_url(truck))}">{esc(claim_cta_label(truck))}</a>
+          <a class="button button--secondary" href="../../get-app/">See Food Truck Finder</a>
         </div>
       </section>
     </main>
 {footer(city_links)}
 """
-    structured_data = {
-        "@context": "https://schema.org",
-        "@type": "FoodEstablishment",
-        "name": truck["name"],
-        "url": page_url,
-        "image": absolute(image_path),
-        "servesCuisine": truck["cuisine"],
-        "address": {
-            "@type": "PostalAddress",
-            "addressLocality": truck["city"],
-            "addressRegion": truck["region"],
-        },
-        "additionalProperty": {
-            "@type": "PropertyValue",
-            "name": "Food Truck Finder profile status",
-            "value": "Seeded profile awaiting owner claim; not live or verified.",
-        },
-    }
+    if truck.get("production_id"):
+        structured_data = {
+            "@context": "https://schema.org",
+            "@type": "FoodEstablishment",
+            "name": truck["name"],
+            "url": page_url,
+            "image": absolute(image_path),
+            "servesCuisine": truck["cuisine"],
+            "address": {
+                "@type": "PostalAddress",
+                "addressLocality": truck["city"],
+                "addressRegion": truck["region"],
+            },
+            "additionalProperty": {
+                "@type": "PropertyValue",
+                "name": "Food Truck Finder profile status",
+                "value": "Unclaimed profile; details are not owner-verified.",
+            },
+        }
+    else:
+        structured_data = {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": title,
+            "url": page_url,
+            "description": description,
+            "about": {
+                "@type": "Thing",
+                "name": truck["name"],
+            },
+        }
     return page_shell(
         title=title,
         description=description,
@@ -271,6 +282,7 @@ def render_truck_page(truck: dict, city_links: str) -> str:
         image_alt=f"{truck['name']} food truck preview image",
         structured_data=structured_data,
         body=body,
+        robots="index,follow" if truck.get("production_id") else "noindex,follow",
     )
 
 
@@ -282,10 +294,10 @@ def truck_card(truck: dict) -> str:
               <span class="truck-preview-card__body">
                 <strong>{esc(truck['name'])}</strong>
                 <span>{esc(truck['city'])}, {esc(truck['region'])}</span>
-                <span>Profile awaiting owner claim</span>
+                <span>Details not owner-verified</span>
               </span>
             </a>
-            <a class="truck-preview-card__claim" href="{esc(claim_url(truck))}">Claim this truck</a>
+            <a class="truck-preview-card__claim" href="{esc(claim_url(truck))}">{esc(claim_cta_label(truck))}</a>
           </article>
 """
 
@@ -294,14 +306,14 @@ def render_city_page(city: dict, trucks: list[dict], city_links: str) -> str:
     title = f"Food Trucks in {city['name']} | Food Truck Finder"
     description = (
         f"Discover {city['name']} food truck profiles on Food Truck Finder. "
-        "Browse claimable seeded profiles, download the app, and help owners keep details accurate."
+        "Browse profile previews, download the app, and help owners keep details accurate."
     )
     canonical_path = f"food-trucks/{city['slug']}/"
     hero_truck = trucks[0]
     cards = "".join(truck_card(truck) for truck in trucks)
     body = f"""
 {header(city_links)}
-    <main>
+    <main id="main-content">
       <section class="hero">
         <div class="hero__copy">
           <p class="eyebrow">{esc(city['name'])} Food Trucks</p>
@@ -309,7 +321,7 @@ def render_city_page(city: dict, trucks: list[dict], city_links: str) -> str:
           <p class="hero__lede">{esc(city['summary'])}</p>
 
           <div class="hero__pills">
-            <span>Claimable truck profiles</span>
+            <span>Food truck profile previews</span>
             <span>App download links</span>
             <span>Owner-updated when claimed</span>
           </div>
@@ -341,10 +353,10 @@ def render_city_page(city: dict, trucks: list[dict], city_links: str) -> str:
       <section class="section">
         <div class="section-heading">
           <p class="eyebrow">Known Truck Profiles</p>
-          <h2>Claimable profiles connected to this market.</h2>
+          <h2>Profile previews connected to this market.</h2>
           <p>
-            These pages are built from seeded Food Truck Finder profile assets. Owners can claim a
-            profile to add accurate schedules, menus, photos, links, and customer-facing details.
+            These pages are built from Food Truck Finder profile assets. Owners can claim a verified
+            match or ask us to locate the right listing before adding customer-facing details.
           </p>
         </div>
 
@@ -413,7 +425,11 @@ def write_sitemap(cities: list[dict], trucks: list[dict]) -> None:
         ("delete-account.html", "yearly", "0.3"),
     ]
     entries.extend((f"food-trucks/{city['slug']}/", "weekly", "0.8") for city in cities)
-    entries.extend((f"truck/{truck['slug']}/", "weekly", "0.7") for truck in trucks)
+    entries.extend(
+        (f"truck/{truck['slug']}/", "weekly", "0.7")
+        for truck in trucks
+        if truck.get("production_id")
+    )
 
     for path, changefreq, priority in entries:
         node = ET.SubElement(root, f"{{{namespace}}}url")

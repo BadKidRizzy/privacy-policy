@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build-sites.mjs"
+    "validate": "node scripts/validate-site.mjs",
+    "build": "npm run validate && node scripts/build-sites.mjs"
   },
   "engines": {
     "node": ">=20"

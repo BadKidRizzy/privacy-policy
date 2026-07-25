@@ -19,6 +19,7 @@
   const completedFields = new Set();
 
   const elements = {
+    main: document.querySelector('.claim-main'),
     backProfile: document.querySelector('[data-back-profile]'),
     openAppLink: document.querySelector('[data-open-app-link]'),
     context: document.querySelector('[data-truck-context]'),
@@ -33,6 +34,8 @@
     searchButton: document.querySelector('[data-claim-search]'),
     searchStatus: document.querySelector('[data-claim-search-status]'),
     results: document.querySelector('[data-claim-results]'),
+    recovery: document.querySelector('[data-claim-recovery]'),
+    support: document.querySelector('[data-claim-support]'),
     heading: document.querySelector('[data-claim-heading]'),
     introCopy: document.querySelector('[data-claim-intro-copy]'),
     panel: document.querySelector('[data-claim-panel]'),
@@ -96,6 +99,16 @@
 
   function clean(value) {
     return String(value == null ? '' : value).trim();
+  }
+
+  function normalizeComparison(value) {
+    return clean(value)
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/&/g, 'and')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
   }
 
   function fieldValue(name) {
@@ -189,6 +202,25 @@
   function truckLocation(truck) {
     const cityAndState = [truck.city, truck.state].filter(Boolean).join(', ');
     return cityAndState || truck.currentAddress || '';
+  }
+
+  function updateSupportLink(query, city) {
+    if (!elements.support) return;
+    const truckName = clean(query || state.requestedName);
+    const truckCity = clean(city || state.requestedCity);
+    const subject = truckName ? `Owner claim help for ${truckName}` : 'Food Truck Finder owner claim help';
+    const details = [
+      'Hi Food Truck Finder,',
+      '',
+      'I own a food truck and need help finding or creating the right profile.',
+      '',
+      `Truck name: ${truckName || 'Please add'}`,
+      `City or service area: ${truckCity || 'Please add'}`,
+      state.approvedProfileUrl ? `Profile I started from: ${state.approvedProfileUrl}` : '',
+      '',
+      'Please help me continue my owner claim.',
+    ].filter(Boolean);
+    elements.support.href = `mailto:Foodtruckfinderinfo@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(details.join('\n'))}`;
   }
 
   function deviceContext() {
@@ -335,20 +367,22 @@
     if (!elements.heading || !elements.introCopy) return;
     if (!truck) {
       elements.heading.textContent = 'Claim your food truck';
-      elements.introCopy.textContent = 'Select your truck, then enter your email and mobile number. You’ll finish setting up your Owner account in the app.';
+      elements.introCopy.textContent = 'Find your truck, add two contact details, and use the secure link to finish setting up your Owner account.';
       return;
     }
     elements.heading.textContent = state.experimentVariant === 'headline_b'
       ? `Manage ${truck.name} from the app`
       : `Claim ${truck.name}`;
-    elements.introCopy.textContent = 'Enter your email and mobile number. Then continue in the Food Truck Finder app to finish setting up your Owner account.';
+    elements.introCopy.textContent = 'Add your email and mobile number. We’ll save this claim and send a secure link to finish in the Food Truck Finder app.';
     document.title = `${truck.name} Claim | Food Truck Finder`;
   }
 
   function renderTruck(truck, options) {
     state.truck = truck;
+    elements.main?.classList.remove('is-searching');
     setContextBusy(false);
     if (elements.searchStep) elements.searchStep.hidden = true;
+    if (elements.recovery) elements.recovery.hidden = true;
     if (elements.selectedCard) elements.selectedCard.hidden = false;
     if (elements.selectedName) elements.selectedName.textContent = truck.name;
 
@@ -398,16 +432,24 @@
       if (truck.profileUrl) url.searchParams.set('profile', truck.profileUrl);
       window.history.replaceState({}, '', url);
       elements.email?.focus({preventScroll: false});
+    } else if (window.location.hash === '#claim-form') {
+      const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      window.requestAnimationFrame(() => form.scrollIntoView({
+        block: 'start',
+        behavior: reduceMotion ? 'auto' : 'smooth',
+      }));
     }
   }
 
   function showSearch(message, tone) {
     state.truck = null;
+    elements.main?.classList.add('is-searching');
     state.continuationUrl = '';
     state.lastContact = null;
     setContextBusy(false);
     if (elements.selectedCard) elements.selectedCard.hidden = true;
     if (elements.searchStep) elements.searchStep.hidden = false;
+    if (elements.recovery) elements.recovery.hidden = true;
     [
       elements.contactState,
       elements.successState,
@@ -578,10 +620,19 @@
   function setContinuationLinks(value) {
     const continuation = safeContinuationUrl(value);
     state.continuationUrl = continuation;
-    const href = continuation || new URL('../open/', window.location.href).toString();
-    [elements.primaryApp, elements.duplicateContinue, elements.connectedOpen].forEach((link) => {
-      if (link) link.href = attribution?.decorateUrl(href) || href;
+    const webHref = continuation || new URL('../open/', window.location.href).toString();
+    const device = deviceContext();
+    let primaryHref = webHref;
+    if (continuation && device.mobile) {
+      const token = clean(new URL(continuation).searchParams.get('token'));
+      primaryHref = `foodtruckfinder:///claim/continue?token=${encodeURIComponent(token)}`;
+    }
+    [elements.primaryApp, elements.duplicateContinue].forEach((link) => {
+      if (link) link.href = attribution?.decorateUrl(primaryHref) || primaryHref;
     });
+    if (elements.connectedOpen) {
+      elements.connectedOpen.href = attribution?.decorateUrl(webHref) || webHref;
+    }
     if (elements.appStore) elements.appStore.href = attribution?.decorateUrl(appStoreUrl) || appStoreUrl;
     if (elements.playStore) elements.playStore.href = attribution?.decorateUrl(playStoreUrl) || playStoreUrl;
     return continuation;
@@ -772,16 +823,47 @@
     }
   }
 
-  function renderSearchResults(results) {
+  function nameMatchesQuery(truck, query) {
+    const normalizedQuery = normalizeComparison(query);
+    if (!normalizedQuery) return true;
+    const normalizedName = normalizeComparison(truck.name);
+    return normalizedName === normalizedQuery
+      || normalizedName.startsWith(normalizedQuery)
+      || normalizedName.includes(normalizedQuery);
+  }
+
+  function exactRequestedTruck(trucks, query, city) {
+    const normalizedQuery = normalizeComparison(query);
+    const normalizedCity = normalizeComparison(city);
+    if (!normalizedQuery) return null;
+    const exact = trucks.filter((truck) => {
+      if (normalizeComparison(truck.name) !== normalizedQuery) return false;
+      return !normalizedCity || normalizeComparison(truckLocation(truck)).includes(normalizedCity);
+    });
+    return exact.length === 1 ? exact[0] : null;
+  }
+
+  function renderSearchResults(results, query, city, options) {
     if (!elements.results) return;
     elements.results.textContent = '';
-    const trucks = Array.isArray(results) ? results.map(normalizeTruck).filter(Boolean) : [];
+    const trucks = Array.isArray(results)
+      ? results.map(normalizeTruck).filter(Boolean).filter((truck) => nameMatchesQuery(truck, query))
+      : [];
+    const automaticMatch = options?.autoSelect ? exactRequestedTruck(trucks, query, city) : null;
+    if (automaticMatch) {
+      renderTruck(automaticMatch);
+      return;
+    }
     if (!trucks.length) {
       elements.results.hidden = true;
-      setSearchStatus('No matching truck profile was found. Try another name or city.', 'error');
+      if (elements.recovery) elements.recovery.hidden = false;
+      updateSupportLink(query, city);
+      setSearchStatus('We couldn’t find that truck in the current listings. Check the spelling or get one-to-one claim help below.', 'error');
       return;
     }
 
+    if (elements.recovery) elements.recovery.hidden = false;
+    updateSupportLink(query, city);
     trucks.forEach((truck) => {
       const button = document.createElement('button');
       button.type = 'button';
@@ -803,19 +885,16 @@
     setSearchStatus(`${trucks.length} matching truck${trucks.length === 1 ? '' : 's'} found. Select yours to continue.`);
   }
 
-  async function searchTrucks(event) {
-    event.preventDefault();
+  async function requestTruckSearch(query, city, options) {
     const queryField = elements.searchForm?.elements.namedItem('truckSearch');
-    const cityField = elements.searchForm?.elements.namedItem('truckSearchCity');
-    const query = clean(queryField?.value);
-    const city = clean(cityField?.value);
     if (!query) {
       setSearchStatus('Enter a truck name before searching.', 'error');
       queryField?.focus();
-      return;
+      return false;
     }
 
     if (elements.searchButton) elements.searchButton.disabled = true;
+    if (elements.recovery) elements.recovery.hidden = true;
     setSearchStatus('Searching truck profiles…');
     if (elements.results) elements.results.hidden = true;
     try {
@@ -826,12 +905,28 @@
       });
       const payload = await readJson(response);
       if (!response.ok || payload.ok !== true) throw errorFromResponse(response, payload);
-      renderSearchResults(payload.results);
+      renderSearchResults(payload.results, query, city, options);
+      return true;
     } catch (error) {
-      setSearchStatus(error.message || 'Truck search is temporarily unavailable. Try again.', 'error');
+      if (elements.recovery) elements.recovery.hidden = false;
+      updateSupportLink(query, city);
+      const message = clean(error.code)
+        ? error.message
+        : 'Truck search is temporarily unavailable. Try again or use owner claim help below.';
+      setSearchStatus(message, 'error');
+      return false;
     } finally {
       if (elements.searchButton) elements.searchButton.disabled = false;
     }
+  }
+
+  async function searchTrucks(event) {
+    event.preventDefault();
+    const queryField = elements.searchForm?.elements.namedItem('truckSearch');
+    const cityField = elements.searchForm?.elements.namedItem('truckSearchCity');
+    const query = clean(queryField?.value);
+    const city = clean(cityField?.value);
+    await requestTruckSearch(query, city);
   }
 
   async function resolveTruck(truckId) {
@@ -883,7 +978,10 @@
     prefillSearch();
 
     if (!truckId) {
-      showSearch('Search for your truck to begin.');
+      showSearch(state.requestedName ? `Looking for ${state.requestedName}…` : 'Search for your truck to begin.');
+      if (state.requestedName) {
+        await requestTruckSearch(state.requestedName, state.requestedCity, {autoSelect: true});
+      }
       return;
     }
 
@@ -898,10 +996,16 @@
         ? `We couldn’t find an available truck profile${requested}. Search for the correct truck.`
         : `We couldn’t load the selected truck${requested}. Search for it below or try again.`;
       showSearch(message, 'error');
+      if (elements.recovery) elements.recovery.hidden = false;
+      updateSupportLink(state.requestedName, state.requestedCity);
     }
   }
 
   function changeTruck() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('id');
+    url.searchParams.delete('selectedTruckId');
+    window.history.replaceState({}, '', url);
     showSearch('Search for the food truck you own.');
     prefillSearch();
     const queryField = elements.searchForm?.elements.namedItem('truckSearch');
