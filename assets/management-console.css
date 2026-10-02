@@ -1,8 +1,5 @@
 .console-body {
-  background:
-    radial-gradient(circle at 12% 8%, rgba(238, 108, 63, 0.16), transparent 30rem),
-    radial-gradient(circle at 88% 92%, rgba(15, 124, 130, 0.15), transparent 34rem),
-    linear-gradient(180deg, #fbf7f1 0%, #f4ece3 100%);
+  background: #faf9f6;
 }
 
 [hidden] {
@@ -23,11 +20,18 @@
   margin-bottom: 32px;
   padding: 14px 18px;
   border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(255, 250, 245, 0.82);
-  box-shadow: var(--shadow);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: none;
   backdrop-filter: blur(16px);
 }
+
+.console-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding-top: 20px; }
+.console-pagination p { margin: 0; color: var(--muted); font-size: .84rem; }
+.console-pagination > div { display: flex; gap: 10px; }
+.console-tabs [role="tab"] { min-height: 44px; }
+.console-body :where(button, a, input, select, textarea):focus-visible { outline: 3px solid #486653; outline-offset: 3px; }
+.console-body :where(button, input, select, textarea):disabled { opacity: .55; cursor: not-allowed; }
 
 .console-header__actions,
 .console-toolbar__actions,
@@ -53,7 +57,16 @@
 }
 
 .console-hero h1 {
-  max-width: 13ch;
+  max-width: 20ch;
+  font-family: Manrope, system-ui, sans-serif;
+  font-size: clamp(2rem, 3.5vw, 3.3rem);
+  line-height: 1.12;
+}
+
+.console-body :where(h2, h3, h4) { font-family: Manrope, system-ui, sans-serif; }
+
+@media (max-width: 700px) {
+  .console-body :is(input, select, textarea) { font-size: 16px !important; }
 }
 
 .console-hero p,
@@ -2986,3 +2999,56 @@ summary.record-section__heading::-webkit-details-marker {
     border-radius: 28px;
   }
 }
+
+/* Keep common tasks close while the truck list and optional details can grow. */
+.console-overview { border: 1px solid var(--line); border-radius: 16px; padding: 12px 16px; }
+.console-overview > summary, .seed-optional > summary { cursor: pointer; font-weight: 800; min-height: 32px; align-content: center; }
+.console-overview .metric-grid { margin-top: 16px; }
+.console-tabs { position: sticky; top: 0; z-index: 5; padding: 10px; background: var(--paper-strong); }
+.seed-dialog { max-height: calc(100dvh - 24px); }
+.seed-dialog .record-dialog__content { display: flex; flex-direction: column; max-height: calc(100dvh - 32px); overflow: hidden; gap: 12px; }
+.seed-dialog .record-dialog__header, .seed-actions, .seed-message { flex-shrink: 0; }
+.seed-dialog .record-dialog__header { padding-bottom: 12px; }
+.seed-dialog .record-dialog__header .eyebrow { min-height: 0; padding: 0; margin-bottom: 6px; background: none; }
+.seed-dialog .record-dialog__header p:not(.eyebrow) { font-size: .94rem; line-height: 1.5; margin-top: 8px; }
+.seed-dialog h2 { font-size: clamp(1.3rem, 2.3vw, 1.8rem); line-height: 1.2; }
+.seed-dialog [data-seed-fields] { min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 2px 3px 6px; }
+.seed-dialog .seed-required-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.seed-dialog .seed-required-summary span { min-height: 32px; padding: 6px 8px; font-size: .78rem; background: transparent; color: var(--muted); border-color: var(--line); }
+.seed-required-summary span::before { content: '○'; margin-right: 6px; }
+.seed-required-summary span.is-complete { background: #edf5ef; color: #255c40; border-color: #a8cdb3; }
+.seed-required-summary span.is-complete::before { content: '✓'; }
+.seed-optional { display: block; }
+.seed-optional > summary { font-size: 1rem; }
+.seed-optional > summary span { margin-left: 8px; color: var(--muted); font-size: .8rem; font-weight: 500; }
+.seed-optional:not([open]) > :not(summary) { display: none; }
+.seed-optional[open] > .field-help { margin: 10px 0 16px; }
+.seed-file-preview { display: flex; flex-wrap: wrap; gap: 8px; }
+.seed-preview-card { display: grid; gap: 4px; max-width: 132px; color: var(--muted); font-size: .75rem; line-height: 1.4; overflow-wrap: anywhere; }
+.seed-preview-card img { width: 108px; height: 76px; object-fit: contain; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.seed-remove-file { justify-self: start; padding: 4px 0; min-height: 32px; border: 0; background: none; color: var(--accent-deep); text-decoration: underline; cursor: pointer; }
+.seed-file-error { color: #a02c22; }
+.seed-file-error:empty, .seed-file-preview:empty, .seed-message:empty { display: none; }
+.seed-actions { padding-top: 12px; border-top: 1px solid var(--line); }
+.seed-message { margin: 0; font-size: .9rem; line-height: 1.5; }
+.seed-success { padding: 20px; border: 1px solid #a8cdb3; border-radius: 16px; background: #edf5ef; overflow: auto; }
+.seed-success h3 { margin: 0 0 8px; font-size: 1.4rem; }
+@media (max-width: 620px) {
+  .console-header { margin-bottom: 16px; }
+  .console-toolbar__actions { gap: 8px; }
+  .console-toolbar__actions [data-add-truck] { width: 100%; }
+  .console-tabs { gap: 6px; }
+  .seed-dialog .record-dialog__content { padding: 14px; }
+  .seed-dialog .seed-required-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .seed-dialog .record-section { padding: 12px; }
+  .seed-actions .button { flex: 1; }
+}
+.truck-controls { display: block; }
+.truck-controls > summary { cursor: pointer; display: list-item; min-height: 32px; align-content: center; font-weight: 800; }
+.truck-controls > summary span { margin-left: 10px; color: var(--muted); font-size: .8rem; font-weight: 500; }
+.truck-controls:not([open]) > :not(summary) { display: none; }
+.truck-controls__fields { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+@media (max-width: 1000px) { .truck-controls__fields { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 620px) { .truck-controls__fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.seed-dialog .record-dialog__actions { position: static; margin: 0; padding: 12px 0 0; background: none; backdrop-filter: none; }
+.seed-success .record-dialog__actions { border-top: 0; }

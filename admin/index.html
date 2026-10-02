@@ -9,19 +9,15 @@
     name="description"
     content="Secure Food Truck Finder management console for owners, trucks, foodies, event organizers, and events."
   >
-  <meta name="theme-color" content="#1f1713">
+  <meta name="theme-color" content="#18231d">
   <link rel="canonical" href="https://www.ftf-foodtruckfinder.com/admin/">
   <link rel="icon" type="image/png" href="../assets/brand/favicon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
-    rel="stylesheet"
-  >
-  <link rel="stylesheet" href="../assets/site.css?v=1">
-  <link rel="stylesheet" href="../assets/management-console.css?v=35">
+  <link rel="preload" href="../assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../assets/site.css?v=7">
+  <link rel="stylesheet" href="../assets/management-console.css?v=39">
 </head>
 <body class="console-body">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <div class="console-shell">
     <header class="console-header">
       <a class="brand" href="../" aria-label="Food Truck Finder home">
@@ -38,14 +34,13 @@
       </div>
     </header>
 
-    <main>
+    <main id="main-content">
       <section class="console-hero" data-auth-section>
         <div>
           <p class="eyebrow">Private Console</p>
-          <h1>Manage the people, trucks, and events behind Food Truck Finder.</h1>
+          <h1>Manage Food Truck Finder.</h1>
           <p>
-            Sign in with an approved admin account to review owners, transfer trucks, support
-            foodies, manage event organizers, and update event records.
+            Sign in to manage truck profiles, support accounts, and review events.
           </p>
         </div>
 
@@ -60,7 +55,7 @@
             <input name="password" type="password" autocomplete="current-password" required>
           </label>
           <button class="button button--primary" type="submit">Open Console</button>
-          <p class="console-message" data-auth-message></p>
+          <p class="console-message" data-auth-message role="status" aria-live="polite"></p>
         </form>
       </section>
 
@@ -69,36 +64,39 @@
           <div class="console-toolbar__copy">
             <p class="eyebrow">Live Admin View</p>
             <h2>Management Console</h2>
-            <p data-session-summary>Loading account...</p>
+            <p data-session-summary role="status" aria-live="polite">Loading account...</p>
           </div>
 
           <div class="console-toolbar__actions">
-            <a class="button button--secondary" href="./marketing/">Marketing Calls</a>
-            <a class="button button--primary" href="./growth-agent/">Growth Agent</a>
+            <button class="button button--primary" type="button" data-add-truck>Add truck from photos</button>
             <button class="button button--secondary" type="button" data-refresh>Refresh</button>
           </div>
         </div>
 
-        <div class="metric-grid" data-metrics></div>
+        <details class="console-overview">
+          <summary>Overview and totals</summary>
+          <div class="metric-grid" data-metrics></div>
+        </details>
 
-        <nav class="console-tabs" aria-label="Management sections">
-          <button type="button" class="is-active" data-tab="owners">Owners</button>
-          <button type="button" data-tab="trucks">Trucks</button>
-          <button type="button" data-tab="foodies">Foodies</button>
-          <button type="button" data-tab="organizers">Event Organizers</button>
-          <button type="button" data-tab="events">Events</button>
+        <nav class="console-tabs" role="tablist" aria-label="Management sections">
+          <button type="button" class="is-active" id="tab-trucks" role="tab" aria-controls="management-panel" aria-selected="true" data-tab="trucks">Trucks</button>
+          <button type="button" id="tab-owners" role="tab" aria-controls="management-panel" aria-selected="false" tabindex="-1" data-tab="owners">Owners</button>
+          <button type="button" id="tab-foodies" role="tab" aria-controls="management-panel" aria-selected="false" tabindex="-1" data-tab="foodies">Foodies</button>
+          <button type="button" id="tab-organizers" role="tab" aria-controls="management-panel" aria-selected="false" tabindex="-1" data-tab="organizers">Organizers</button>
+          <button type="button" id="tab-events" role="tab" aria-controls="management-panel" aria-selected="false" tabindex="-1" data-tab="events">Events</button>
+
         </nav>
 
-        <div class="console-panel">
+        <div class="console-panel" id="management-panel" data-management-panel role="tabpanel" aria-labelledby="tab-trucks">
           <div class="panel-heading">
             <div>
-              <h3 data-panel-title>Owners</h3>
-              <p data-panel-description>Owner account management and truck access.</p>
+              <h3 data-panel-title>Trucks</h3>
+              <p data-panel-description>Add trucks and keep existing listings up to date.</p>
             </div>
             <div class="panel-heading__actions">
               <span data-loaded-at></span>
-              <button class="button button--secondary" type="button" data-bulk-import hidden>Bulk Import</button>
-              <button class="button button--secondary" type="button" data-seed-truck hidden>Seed Truck From Photos</button>
+              <button class="button button--secondary" type="button" data-bulk-import hidden>Import a list</button>
+              <button class="button button--secondary" type="button" data-seed-truck hidden>Add from photos</button>
               <button class="button button--secondary" type="button" data-create-record hidden>Create</button>
             </div>
           </div>
@@ -109,14 +107,12 @@
               <input type="search" placeholder="Search owner name, email, phone, address..." data-search>
             </label>
             <button class="button button--ghost" type="button" data-clear-search>Clear Search</button>
-            <span class="filter-summary" data-filter-summary>Showing records</span>
+            <span class="filter-summary" data-filter-summary role="status" aria-live="polite" aria-atomic="true">Showing records</span>
           </div>
 
-          <div class="truck-controls" data-truck-controls hidden>
-            <div class="truck-controls__header">
-              <strong>Truck Filters</strong>
-              <span>Search by name first, then narrow the list here.</span>
-            </div>
+          <details class="truck-controls" data-truck-controls hidden>
+            <summary class="truck-controls__header">Filter and sort trucks <span data-truck-filter-count></span></summary>
+            <div class="truck-controls__fields">
             <label>
               Claim Status
               <select data-truck-filter="claim">
@@ -175,6 +171,7 @@
               </select>
             </label>
           </div>
+          </details>
 
           <div class="table-wrap">
             <table class="management-table">
@@ -186,17 +183,21 @@
           <div class="empty-state" data-empty-state hidden>
             No records match the current search.
           </div>
+          <nav class="console-pagination" data-pagination aria-label="Table pages" hidden>
+            <p data-page-summary role="status" aria-live="polite"></p>
+            <div><button class="button button--ghost" type="button" data-previous-page>Previous</button><button class="button button--secondary" type="button" data-next-page>Next</button></div>
+          </nav>
         </div>
       </section>
     </main>
   </div>
 
-  <dialog class="record-dialog" data-record-dialog>
+  <dialog class="record-dialog" data-record-dialog aria-labelledby="record-dialog-title">
     <form method="dialog" class="record-dialog__content" data-record-form>
       <div class="record-dialog__header">
         <div>
           <p class="eyebrow" data-dialog-eyebrow>Record</p>
-          <h2 data-dialog-title>Edit Record</h2>
+          <h2 id="record-dialog-title" data-dialog-title>Edit Record</h2>
           <p data-dialog-subtitle></p>
         </div>
         <button type="button" class="icon-button" data-close-dialog aria-label="Close dialog">X</button>
@@ -213,40 +214,40 @@
         <button class="button button--ghost" type="button" data-close-dialog>Cancel</button>
       </div>
 
-      <p class="console-message" data-record-message></p>
+      <p class="console-message" data-record-message role="status" aria-live="polite"></p>
     </form>
   </dialog>
 
-  <dialog class="record-dialog seed-dialog" data-seed-dialog>
+  <dialog class="record-dialog seed-dialog" data-seed-dialog aria-labelledby="seed-dialog-title">
     <form method="dialog" class="record-dialog__content" data-seed-form>
       <div class="record-dialog__header">
         <div>
-          <p class="eyebrow">Truck Seed</p>
-          <h2>Seed Truck From Photos</h2>
-          <p>AI always scans the truck and menu photos, then enriches the listing with menu items, profile text, links, and map details. Required: truck name, address, one truck photo, and at least one menu photo.</p>
+          <p class="eyebrow">Add a truck</p>
+          <h2 id="seed-dialog-title">Start with the name, location and photos</h2>
+          <p>We’ll read the menu and fill in the profile. You can review and edit the listing after it’s added.</p>
         </div>
         <button type="button" class="icon-button" data-close-seed-dialog aria-label="Close seed dialog">X</button>
       </div>
 
-      <div class="record-grid">
+      <div class="record-grid" data-seed-fields>
         <div class="seed-required-summary" aria-label="Required seed fields">
-          <span>Truck name</span>
-          <span>Address</span>
-          <span>Truck photo</span>
-          <span>Menu photo</span>
+          <span data-seed-check="name">Truck name</span>
+          <span data-seed-check="address">Address</span>
+          <span data-seed-check="truckImage">Truck photo</span>
+          <span data-seed-check="menuImages">Menu photos</span>
         </div>
 
         <section class="record-section record-section--required">
           <div class="record-section__heading">
             <div>
-              <h3>Required To Seed</h3>
-              <p>Start here. AI uses these four items to create and enrich the truck listing.</p>
+              <h3>Truck details</h3>
+              <p>Four things to get started. Everything below this section is optional.</p>
             </div>
           </div>
           <div class="record-section__grid">
             <label class="record-field">
               <span class="record-field__label">Truck Name <span class="required-pill">Required</span></span>
-              <input name="name" type="text" maxlength="80" placeholder="Required" required>
+              <input name="name" type="text" maxlength="80" placeholder="e.g. River Street Tacos" autocomplete="off" required>
               <small class="field-help">Use the exact name shown on the truck when possible.</small>
             </label>
 
@@ -256,27 +257,29 @@
               <small class="field-help">Street address, event address, or closest public location for the map pin.</small>
             </label>
 
-            <label class="record-field record-field--file">
-              <span class="record-field__label">Truck Photo <span class="required-pill">Required</span></span>
-              <input name="truckImage" type="file" accept="image/jpeg,image/png,image/webp" required>
-              <small class="field-help">Photo of the actual truck. Max 5 MB.</small>
-            </label>
+            <div class="record-field record-field--file">
+              <label class="record-field__label" for="seed-truck-photo">Truck Photo <span class="required-pill">Required</span></label>
+              <input id="seed-truck-photo" name="truckImage" type="file" accept="image/jpeg,image/png,image/webp" required>
+              <small class="field-help">JPG, PNG or WebP. Up to 5 MB.</small>
+              <span class="seed-file-preview" data-seed-preview="truckImage"></span>
+              <span class="field-help seed-file-error" data-seed-file-error="truckImage" role="status"></span>
+              <button class="seed-remove-file" type="button" data-clear-seed-file="truckImage" hidden>Remove truck photo</button>
+            </div>
 
-            <label class="record-field record-field--file">
-              <span class="record-field__label">Menu Photos <span class="required-pill">Required</span></span>
-              <input name="menuImages" type="file" accept="image/jpeg,image/png,image/webp" multiple required>
-              <small class="field-help">Upload one to three menu photos. Max 5 MB each.</small>
-            </label>
+            <div class="record-field record-field--file">
+              <label class="record-field__label" for="seed-menu-photos">Menu Photos <span class="required-pill">Required</span></label>
+              <input id="seed-menu-photos" name="menuImages" type="file" accept="image/jpeg,image/png,image/webp" multiple required>
+              <small class="field-help">One to three clear menu photos. JPG, PNG or WebP, up to 5 MB each.</small>
+              <span class="seed-file-preview" data-seed-preview="menuImages"></span>
+              <span class="field-help seed-file-error" data-seed-file-error="menuImages" role="status"></span>
+              <button class="seed-remove-file" type="button" data-clear-seed-file="menuImages" hidden>Clear menu photos</button>
+            </div>
           </div>
         </section>
 
-        <section class="record-section">
-          <div class="record-section__heading">
-            <div>
-              <h3>AI Profile Overrides</h3>
-              <p>AI fills these automatically. Add values only when you already know the answer.</p>
-            </div>
-          </div>
+        <details class="record-section seed-optional">
+          <summary>Owner and profile details <span>Optional</span></summary>
+          <p class="field-help">Leave these blank to use the seed owner account and generate the profile from your photos.</p>
           <div class="record-section__grid">
             <label class="record-field">
               Owner Email
@@ -305,15 +308,11 @@
               <textarea name="tags" placeholder="Optional, comma separated"></textarea>
             </label>
           </div>
-        </section>
+        </details>
 
-        <section class="record-section">
-          <div class="record-section__heading">
-            <div>
-              <h3>AI Lookup Help</h3>
-              <p>AI always searches for public profiles. Paste known links or notes here to guide the search.</p>
-            </div>
-          </div>
+        <details class="record-section seed-optional">
+          <summary>Known links and source notes <span>Optional</span></summary>
+          <p class="field-help">Add links you already have to help us match the right truck.</p>
           <div class="record-section__grid">
             <label class="record-field record-field--wide">
               Social Links
@@ -378,17 +377,27 @@
               <small class="field-help">Use this when the truck name is common or the source has multiple vendors.</small>
             </label>
           </div>
-        </section>
+        </details>
       </div>
 
       <datalist id="seed-owner-email-options" data-seed-owner-options></datalist>
 
-      <div class="record-dialog__actions">
-        <button class="button button--primary" type="submit">Seed Truck</button>
+      <div class="record-dialog__actions seed-actions" data-seed-actions>
+        <button class="button button--primary" type="submit">Add truck</button>
         <button class="button button--ghost" type="button" data-close-seed-dialog>Cancel</button>
       </div>
 
-      <p class="console-message" data-seed-message></p>
+      <p class="console-message seed-message" data-seed-message role="status" aria-live="polite"></p>
+      <section class="seed-success" data-seed-success hidden tabindex="-1" aria-labelledby="seed-success-title">
+        <h3 id="seed-success-title">Truck added</h3>
+        <p data-seed-result></p>
+        <p class="field-help">Review the menu, location and suggested links before sharing the listing.</p>
+        <div class="record-dialog__actions">
+          <a class="button button--secondary" data-seed-profile target="_blank" rel="noopener" hidden>View truck profile</a>
+          <button class="button button--primary" type="button" data-seed-another>Add another truck</button>
+          <button class="button button--ghost" type="button" data-seed-done>Back to trucks</button>
+        </div>
+      </section>
     </form>
   </dialog>
 
@@ -433,7 +442,7 @@
         <button class="button button--ghost" type="button" data-close-transfer-dialog>Cancel</button>
       </div>
 
-      <p class="console-message" data-transfer-message></p>
+      <p class="console-message" data-transfer-message role="status" aria-live="polite"></p>
     </form>
   </dialog>
 
@@ -533,13 +542,13 @@
         <button class="button button--ghost" type="button" data-close-bulk-dialog>Cancel</button>
       </div>
 
-      <p class="console-message" data-bulk-message></p>
+      <p class="console-message" data-bulk-message role="status" aria-live="polite"></p>
     </form>
   </dialog>
 
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
-  <script defer src="../assets/management-console.js?v=31"></script>
+  <script defer src="../assets/management-console.js?v=33"></script>
 </body>
 </html>
