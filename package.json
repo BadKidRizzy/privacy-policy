@@ -4,10 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "node --test scripts/*.test.mjs",
     "validate": "node scripts/validate-site.mjs",
     "build": "npm run validate && node scripts/build-sites.mjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0"
   }
 }

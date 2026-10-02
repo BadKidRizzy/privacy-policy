@@ -8,6 +8,7 @@ const assetsRoot = path.join(outputRoot, 'assets');
 const excludedRootEntries = new Set([
   '.DS_Store',
   '.git',
+  '.gitignore',
   '.idea',
   '.open-next',
   '.openai',
@@ -15,6 +16,7 @@ const excludedRootEntries = new Set([
   'package-lock.json',
   'package.json',
   'sites',
+  'scripts',
 ]);
 
 await rm(outputRoot, {force: true, recursive: true});

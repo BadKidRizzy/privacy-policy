@@ -8,7 +8,7 @@ const firebaseConfig = {
 };
 
 const state = {
-  activeTab: 'owners',
+  activeTab: 'trucks',
   loading: false,
   loadedAt: '',
   admin: null,
@@ -43,7 +43,21 @@ const state = {
   truckSort: 'recently_updated',
   bulkPreview: null,
   selected: null,
+  savingRecord: false,
+  seedingTruck: false,
+  seedResult: null,
+  pageByTab: {},
+  criteriaByTab: {},
 };
+
+const TABLE_PAGE_SIZE = 50;
+let searchRenderTimer = 0;
+let snapshotRequest = 0;
+let sessionUserId = null;
+let sessionGeneration = 0;
+let restoreRecordForm = null;
+let restoreSeedForm = null;
+let seedPreviewUrls = [];
 
 const selectors = {
   authSection: document.querySelector('[data-auth-section]'),
@@ -63,14 +77,21 @@ const selectors = {
   panelDescription: document.querySelector('[data-panel-description]'),
   loadedAt: document.querySelector('[data-loaded-at]'),
   truckControls: document.querySelector('[data-truck-controls]'),
+  truckFilterCount: document.querySelector('[data-truck-filter-count]'),
   truckFilterInputs: Array.from(document.querySelectorAll('[data-truck-filter]')),
   truckSort: document.querySelector('[data-truck-sort]'),
   bulkImport: document.querySelector('[data-bulk-import]'),
   seedTruck: document.querySelector('[data-seed-truck]'),
+  addTruck: document.querySelector('[data-add-truck]'),
   createRecord: document.querySelector('[data-create-record]'),
   managementTable: document.querySelector('.management-table'),
   tableHead: document.querySelector('[data-table-head]'),
   tableBody: document.querySelector('[data-table-body]'),
+  pagination: document.querySelector('[data-pagination]'),
+  pageSummary: document.querySelector('[data-page-summary]'),
+  previousPage: document.querySelector('[data-previous-page]'),
+  nextPage: document.querySelector('[data-next-page]'),
+  panel: document.querySelector('[data-management-panel]'),
   empty: document.querySelector('[data-empty-state]'),
   dialog: document.querySelector('[data-record-dialog]'),
   recordForm: document.querySelector('[data-record-form]'),
@@ -86,6 +107,13 @@ const selectors = {
   closeDialog: Array.from(document.querySelectorAll('[data-close-dialog]')),
   seedDialog: document.querySelector('[data-seed-dialog]'),
   seedForm: document.querySelector('[data-seed-form]'),
+  seedFields: document.querySelector('[data-seed-fields]'),
+  seedActions: document.querySelector('[data-seed-actions]'),
+  seedSuccess: document.querySelector('[data-seed-success]'),
+  seedResult: document.querySelector('[data-seed-result]'),
+  seedProfile: document.querySelector('[data-seed-profile]'),
+  seedAnother: document.querySelector('[data-seed-another]'),
+  seedDone: document.querySelector('[data-seed-done]'),
   seedMessage: document.querySelector('[data-seed-message]'),
   seedOwnerOptions: document.querySelector('[data-seed-owner-options]'),
   closeSeedDialog: Array.from(document.querySelectorAll('[data-close-seed-dialog]')),
@@ -153,7 +181,7 @@ const tabConfig = {
     columns: ['Truck', 'Owner', 'Phone', 'Location', 'Public Status', 'Profile Health', 'Created', 'Updated', 'Actions'],
     searchLabel: 'Search Trucks',
     searchPlaceholder: 'Search truck, phone, owner email, location, cuisine, tag...',
-    createLabel: 'Create Truck',
+    createLabel: 'Add manually',
   },
   foodies: {
     title: 'Foodies',
@@ -1054,6 +1082,15 @@ function renderTable() {
   const currentSearch = getCurrentSearch();
   const activeTruckFilterCount = state.activeTab === 'trucks' ? getActiveTruckFilterCount() : 0;
   const currentSort = getCurrentTableSort();
+  const criteria = JSON.stringify([currentSearch, currentSort, state.truckFilters, state.truckSort]);
+  if (state.criteriaByTab[state.activeTab] !== criteria) state.pageByTab[state.activeTab] = 0;
+  state.criteriaByTab[state.activeTab] = criteria;
+  const pageCount = Math.max(1, Math.ceil(records.length / TABLE_PAGE_SIZE));
+  const page = Math.min(state.pageByTab[state.activeTab] || 0, pageCount - 1);
+  state.pageByTab[state.activeTab] = page;
+  const offset = page * TABLE_PAGE_SIZE;
+  const visibleRecords = records.slice(offset, offset + TABLE_PAGE_SIZE);
+  const focusedSort = document.activeElement?.getAttribute('data-sort-column');
 
   selectors.panelTitle.textContent = config.title;
   selectors.panelDescription.textContent = config.description;
@@ -1074,6 +1111,7 @@ function renderTable() {
   if (selectors.truckControls) {
     selectors.truckControls.hidden = state.activeTab !== 'trucks';
   }
+  if (selectors.truckFilterCount) selectors.truckFilterCount.textContent = activeTruckFilterCount ? `${activeTruckFilterCount} active` : 'Optional';
   syncTruckFilterInputs();
   if (selectors.searchLabel) {
     selectors.searchLabel.textContent = config.searchLabel || 'Search';
@@ -1101,16 +1139,25 @@ function renderTable() {
   }
 
   selectors.tabs.forEach((tab) => {
-    tab.classList.toggle('is-active', tab.dataset.tab === state.activeTab);
+    const active = tab.dataset.tab === state.activeTab;
+    tab.classList.toggle('is-active', active);
+    tab.setAttribute('aria-selected', String(active));
+    tab.tabIndex = active ? 0 : -1;
   });
+  selectors.panel?.setAttribute('aria-labelledby', `tab-${state.activeTab}`);
+  if (selectors.pagination) selectors.pagination.hidden = records.length <= TABLE_PAGE_SIZE;
+  if (selectors.pageSummary) selectors.pageSummary.textContent = `Rows ${formatCount(offset + 1)}–${formatCount(offset + visibleRecords.length)} of ${formatCount(records.length)} · Page ${page + 1} of ${pageCount}`;
+  if (selectors.previousPage) selectors.previousPage.disabled = page === 0;
+  if (selectors.nextPage) selectors.nextPage.disabled = page >= pageCount - 1;
 
-  selectors.tableBody.innerHTML = records.map((record) => {
+  selectors.tableBody.innerHTML = visibleRecords.map((record) => {
     if (state.activeTab === 'owners') return renderOwnerRow(record);
     if (state.activeTab === 'foodies') return renderFoodieRow(record);
     if (state.activeTab === 'organizers') return renderOrganizerRow(record);
     if (state.activeTab === 'trucks') return renderTruckRow(record);
     return renderEventRow(record);
   }).join('');
+  if (focusedSort) selectors.tableHead.querySelector(`[data-sort-column="${CSS.escape(focusedSort)}"]`)?.focus();
 }
 
 function renderTableHead(columns, currentSort) {
@@ -1350,13 +1397,84 @@ function clearCurrentSearchAndFilters() {
   selectors.search?.focus();
 }
 
+function isCurrentSession(generation, userId) {
+  return generation === sessionGeneration && auth.currentUser?.uid === userId;
+}
+
+function lockForm(form) {
+  const controls = [...form.querySelectorAll('button, input, select, textarea')];
+  const disabledStates = controls.map((control) => control.disabled);
+  let restored = false;
+  form.setAttribute('aria-busy', 'true');
+  controls.forEach((control) => { control.disabled = true; });
+  return () => {
+    if (restored) return;
+    restored = true;
+    form.removeAttribute('aria-busy');
+    controls.forEach((control, index) => { control.disabled = disabledStates[index]; });
+  };
+}
+
+function synchronizeSession(user) {
+  const userId = user?.uid || null;
+  if (userId === sessionUserId) return;
+  sessionUserId = userId;
+  sessionGeneration += 1;
+  snapshotRequest += 1;
+  clearTimeout(searchRenderTimer);
+  restoreRecordForm?.();
+  restoreSeedForm?.();
+  restoreRecordForm = null;
+  restoreSeedForm = null;
+  state.savingRecord = false;
+  state.seedingTruck = false;
+  state.loading = false;
+  state.admin = null;
+  state.loadedAt = '';
+  state.users = [];
+  state.trucks = [];
+  state.events = [];
+  state.seedEvents = [];
+  state.selected = null;
+  state.bulkPreview = null;
+  state.counts = {};
+  state.loadedCounts = {};
+  state.hasMore = {};
+  state.pageByTab = {};
+  state.criteriaByTab = {};
+  Object.keys(state.searchByTab).forEach((tab) => { state.searchByTab[tab] = ''; });
+  resetSeedForm();
+  document.querySelectorAll('dialog[open]').forEach((dialog) => dialog.close());
+  [selectors.tableBody, selectors.metrics, selectors.recordFields, selectors.seedOwnerOptions,
+    selectors.transferOwnerOptions, selectors.transferEmailSelect, selectors.bulkOwnerOptions,
+    selectors.bulkEventOptions, selectors.bulkRows, selectors.dialogTitle, selectors.dialogSubtitle,
+    selectors.transferTitle, selectors.loadedAt, selectors.pageSummary].forEach((element) => {
+    if (element) element.textContent = '';
+  });
+  [selectors.recordForm, selectors.transferForm, selectors.bulkForm].forEach((form) => form?.reset());
+  [selectors.authMessage, selectors.sessionSummary, selectors.recordMessage,
+    selectors.transferMessage, selectors.bulkMessage].forEach((element) => setMessage(element, ''));
+  selectors.search.value = '';
+  selectors.refresh.disabled = false;
+  selectors.refresh.textContent = 'Refresh';
+  selectors.app.hidden = true;
+  setAuthenticatedView(false);
+}
+
 async function loadSnapshot() {
+  synchronizeSession(auth.currentUser);
+  const requestedUserId = auth.currentUser?.uid;
+  if (!requestedUserId) return;
+  // A mutation must refresh even if an earlier read is still in flight. Only the
+  // newest request may paint data or change the refresh controls.
+  const request = ++snapshotRequest;
   state.loading = true;
   selectors.refresh.disabled = true;
   selectors.refresh.textContent = 'Loading...';
 
   try {
     const result = await getSnapshot({limit: 1000});
+    if (auth.currentUser?.uid !== requestedUserId || request !== snapshotRequest) return;
     const data = result.data || {};
     state.admin = data.admin || null;
     state.loadedAt = data.loadedAt || new Date().toISOString();
@@ -1374,13 +1492,20 @@ async function loadSnapshot() {
     const truckLoadSummary = loadedTrucks < totalTrucks
       ? `Showing ${formatCount(loadedTrucks)} of ${formatCount(totalTrucks)} truck profiles.`
       : `Loaded ${formatCount(totalTrucks)} truck profiles.`;
-    selectors.sessionSummary.textContent = `Signed in as ${auth.currentUser?.email || state.admin?.email || 'admin'}. ${truckLoadSummary}`;
+    setMessage(selectors.sessionSummary, `Signed in as ${auth.currentUser?.email || state.admin?.email || 'admin'}. ${truckLoadSummary}`);
     renderAll();
   } catch (error) {
-    selectors.app.hidden = true;
-    setAuthenticatedView(false);
-    setMessage(selectors.authMessage, error.message || 'Unable to load management data.', true);
+    if (auth.currentUser?.uid !== requestedUserId || request !== snapshotRequest) return;
+    if (state.loadedAt) {
+      // A failed refresh should not discard the admin's current table or filters.
+      setMessage(selectors.sessionSummary, 'Refresh failed. Your previously loaded data is still shown. Check your connection and try Refresh again.', true);
+    } else {
+      selectors.app.hidden = true;
+      setAuthenticatedView(false);
+      setMessage(selectors.authMessage, error.message || 'Unable to load management data. Try signing in again.', true);
+    }
   } finally {
+    if (request !== snapshotRequest) return;
     state.loading = false;
     selectors.refresh.disabled = false;
     selectors.refresh.textContent = 'Refresh';
@@ -1484,21 +1609,92 @@ function renderTransferEmailOptions() {
   }
 }
 
-function openSeedTruckDialog() {
-  renderSeedOwnerOptions();
-  if (selectors.seedForm) {
-    selectors.seedForm.reset();
-  }
-  setMessage(selectors.seedMessage, '');
+function seedImageError(input) {
+  const files = Array.from(input?.files || []);
+  if (input?.name === 'menuImages' && files.length > 3) return 'Choose up to three menu photos.';
+  const unsupported = files.find((file) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type));
+  if (unsupported) return `${unsupported.name}: choose a JPG, PNG or WebP image.`;
+  const oversized = files.find((file) => file.size > MAX_ADMIN_UPLOAD_BYTES);
+  if (oversized) return `${oversized.name} is larger than 5 MB. Choose a smaller image.`;
+  return '';
+}
 
+function clearSeedPreviews() {
+  seedPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+  seedPreviewUrls = [];
+  selectors.seedForm?.querySelectorAll('[data-seed-preview]').forEach((element) => { element.textContent = ''; });
+}
+
+function updateSeedFormState(renderPreviews = false) {
+  if (!selectors.seedForm) return;
+  if (renderPreviews) clearSeedPreviews();
+  ['truckImage', 'menuImages'].forEach((name) => {
+    const input = selectors.seedForm.elements.namedItem(name);
+    const files = Array.from(input?.files || []);
+    const message = seedImageError(input);
+    input?.setCustomValidity(message);
+    input?.setAttribute('aria-invalid', String(Boolean(message)));
+    const error = selectors.seedForm.querySelector(`[data-seed-file-error="${name}"]`);
+    if (error) error.textContent = message;
+    const clear = selectors.seedForm.querySelector(`[data-clear-seed-file="${name}"]`);
+    if (clear) clear.hidden = files.length === 0;
+    if (!renderPreviews) return;
+    const preview = selectors.seedForm.querySelector(`[data-seed-preview="${name}"]`);
+    files.slice(0, 3).forEach((file) => {
+      const card = document.createElement('span');
+      card.className = 'seed-preview-card';
+      if (['image/jpeg', 'image/png', 'image/webp'].includes(file.type) && file.size <= MAX_ADMIN_UPLOAD_BYTES) {
+        const image = document.createElement('img');
+        const url = URL.createObjectURL(file);
+        seedPreviewUrls.push(url);
+        image.src = url;
+        image.alt = `Selected ${name === 'truckImage' ? 'truck' : 'menu'} photo`;
+        card.append(image);
+      }
+      const caption = document.createElement('span');
+      caption.textContent = `${file.name} · ${formatFileSize(file.size)}`;
+      card.append(caption);
+      preview?.append(card);
+    });
+  });
+  selectors.seedForm.querySelectorAll('[data-seed-check]').forEach((item) => {
+    const input = selectors.seedForm.elements.namedItem(item.dataset.seedCheck);
+    const complete = input?.type === 'file'
+      ? input.files.length > 0 && !seedImageError(input)
+      : Boolean(input?.value.trim());
+    item.classList.toggle('is-complete', complete);
+  });
+}
+
+function resetSeedForm() {
+  state.seedResult = null;
+  selectors.seedForm?.reset();
+  selectors.seedForm?.querySelectorAll('details').forEach((details) => { details.open = false; });
+  if (selectors.seedFields) selectors.seedFields.hidden = false;
+  if (selectors.seedActions) selectors.seedActions.hidden = false;
+  if (selectors.seedSuccess) selectors.seedSuccess.hidden = true;
+  if (selectors.seedProfile) { selectors.seedProfile.hidden = true; selectors.seedProfile.removeAttribute('href'); }
+  if (selectors.seedResult) selectors.seedResult.textContent = '';
+  setMessage(selectors.seedMessage, '');
+  updateSeedFormState(true);
+}
+
+function openSeedTruckDialog() {
+  if (state.seedingTruck) return;
+  renderSeedOwnerOptions();
+  // Closing a draft preserves entered details and selected photos.
+  if (state.seedResult) resetSeedForm();
+  updateSeedFormState(true);
   if (typeof selectors.seedDialog?.showModal === 'function') {
     selectors.seedDialog.showModal();
   } else {
     selectors.seedDialog?.setAttribute('open', '');
   }
+  selectors.seedForm?.elements.namedItem('name')?.focus();
 }
 
 function closeSeedTruckDialog() {
+  if (state.seedingTruck) return;
   if (typeof selectors.seedDialog?.close === 'function') {
     selectors.seedDialog.close();
   } else {
@@ -2126,38 +2322,56 @@ async function copyTruckShareLink(button) {
 }
 
 async function saveSelectedRecord() {
-  if (!state.selected) return;
-
+  if (!state.selected || state.savingRecord || !auth.currentUser) return;
+  const selected = state.selected;
+  const collection = selected.collection;
+  const generation = sessionGeneration;
+  const userId = auth.currentUser.uid;
+  const isCurrentSave = () => isCurrentSession(generation, userId) && state.selected === selected;
   const updates = readFormUpdates();
   const uploads = getSelectedUploads();
-  const isCreate = state.selected.mode === 'create';
+  const isCreate = selected.mode === 'create';
 
   if (Object.keys(updates).length === 0 && uploads.length === 0) {
     setMessage(selectors.recordMessage, 'No changes to save.');
     return;
   }
 
+  const oversized = uploads.find((upload) => upload.file.size > MAX_ADMIN_UPLOAD_BYTES);
+  if (oversized) {
+    setMessage(selectors.recordMessage, `${oversized.file.name} is larger than 5 MB. Choose a smaller image before saving.`, true);
+    return;
+  }
+  state.savingRecord = true;
+  const restoreForm = lockForm(selectors.recordForm);
+  restoreRecordForm = restoreForm;
+
   setMessage(selectors.recordMessage, isCreate ? 'Creating record...' : 'Saving updates...');
 
   try {
-    let recordId = state.selected.id;
+    let recordId = selected.id;
 
     if (isCreate) {
       const result = await createRecord({
-        collection: state.selected.collection,
+        collection,
         record: updates,
       });
+      if (!isCurrentSave()) return;
       recordId = result.data?.id || '';
 
       if (!recordId) {
         throw new Error('Create succeeded but no record id was returned.');
       }
+      // If media fails later, retry edits this record instead of creating a duplicate.
+      selected.id = recordId;
+      selected.mode = 'edit';
     } else if (Object.keys(updates).length > 0) {
       await updateRecord({
-        collection: state.selected.collection,
+        collection,
         id: recordId,
         updates,
       });
+      if (!isCurrentSave()) return;
     }
 
     for (let index = 0; index < uploads.length; index += 1) {
@@ -2169,22 +2383,31 @@ async function saveSelectedRecord() {
 
       setMessage(selectors.recordMessage, `Uploading image ${index + 1} of ${uploads.length}...`);
       const dataUrl = await readFileAsDataUrl(upload.file);
-
+      if (!isCurrentSave()) return;
       await uploadMedia({
-        collection: state.selected.collection,
+        collection,
         id: recordId,
         mediaType: upload.mediaType,
         fileName: upload.file.name,
         contentType: upload.file.type,
         dataUrl,
       });
+      if (!isCurrentSave()) return;
     }
 
     setMessage(selectors.recordMessage, 'Saved. Refreshing data...');
     await loadSnapshot();
+    if (!isCurrentSave()) return;
+    state.savingRecord = false;
     closeDialog();
   } catch (error) {
-    setMessage(selectors.recordMessage, error.message || 'Save failed.', true);
+    if (isCurrentSave()) setMessage(selectors.recordMessage, error.message || 'Save failed.', true);
+  } finally {
+    if (isCurrentSession(generation, userId)) {
+      state.savingRecord = false;
+      restoreForm();
+      restoreRecordForm = null;
+    }
   }
 }
 
@@ -2234,7 +2457,11 @@ async function buildSeedImagePayload(file) {
 }
 
 async function seedTruckFromForm() {
-  if (!selectors.seedForm) return;
+  if (!selectors.seedForm || state.seedingTruck || state.seedResult || !auth.currentUser) return;
+  const requestedUserId = auth.currentUser.uid;
+  const generation = sessionGeneration;
+  const isCurrentSeed = () => isCurrentSession(generation, requestedUserId);
+  updateSeedFormState();
 
   const formData = new FormData(selectors.seedForm);
   const address = String(formData.get('address') || '').trim();
@@ -2270,19 +2497,37 @@ async function seedTruckFromForm() {
     return;
   }
 
+  const imageError = seedImageError(selectors.seedForm.elements.namedItem('truckImage'))
+    || seedImageError(selectors.seedForm.elements.namedItem('menuImages'));
+  if (imageError) {
+    setMessage(selectors.seedMessage, imageError, true);
+    selectors.seedForm.reportValidity();
+    return;
+  }
+  if (!selectors.seedForm.reportValidity()) return;
+
+  state.seedingTruck = true;
+  const unlockForm = lockForm(selectors.seedForm);
+  const restoreForm = () => {
+    unlockForm();
+    if (submitButton) submitButton.textContent = 'Add truck';
+  };
+  restoreSeedForm = restoreForm;
   try {
     if (submitButton) {
       submitButton.disabled = true;
-      submitButton.textContent = 'Seeding...';
+      submitButton.textContent = 'Adding truck…';
     }
 
     setMessage(selectors.seedMessage, 'Optimizing truck image...');
     const truckImage = await buildSeedImagePayload(truckFile);
+    if (!isCurrentSeed()) return;
     const menuImages = [];
 
     for (let index = 0; index < menuFiles.length; index += 1) {
       setMessage(selectors.seedMessage, `Optimizing menu image ${index + 1} of ${menuFiles.length}...`);
       menuImages.push(await buildSeedImagePayload(menuFiles[index]));
+      if (!isCurrentSeed()) return;
     }
 
     const seedPayload = {
@@ -2322,8 +2567,10 @@ async function seedTruckFromForm() {
       throw new Error(`Selected photos are too large for one seed request (${formatFileSize(payloadBytes)}). Use fewer menu photos or crop the images.`);
     }
 
-    setMessage(selectors.seedMessage, 'Uploading, scanning menu, writing description, and finding links...');
+    if (!isCurrentSeed()) return;
+    setMessage(selectors.seedMessage, 'Uploading photos and reading the menu. This can take a minute. Keep this window open.');
     const result = await seedTruck(seedPayload);
+    if (!isCurrentSeed()) return;
     const seededTruckName = result.data?.name || truckName;
     const menuItemCount = Number(result.data?.menuItemCount || 0);
     const linkCount = [
@@ -2334,20 +2581,30 @@ async function seedTruckFromForm() {
       ...(Array.isArray(result.data?.socialLinks) ? result.data.socialLinks : []),
     ].filter(Boolean).length;
 
-    setMessage(
-      selectors.seedMessage,
-      `${seededTruckName} seeded with ${menuItemCount} menu item${menuItemCount === 1 ? '' : 's'} and ${linkCount} discovered link${linkCount === 1 ? '' : 's'}. Refreshing...`
-    );
+    state.seedResult = {id: result.data?.truckId || result.data?.id || '', name: seededTruckName};
+    selectors.seedFields.hidden = true;
+    selectors.seedActions.hidden = true;
+    selectors.seedSuccess.hidden = false;
+    selectors.seedResult.textContent = `${seededTruckName} was added with ${menuItemCount} menu item${menuItemCount === 1 ? '' : 's'} and ${linkCount} suggested link${linkCount === 1 ? '' : 's'}.`;
+    if (state.seedResult.id) {
+      selectors.seedProfile.href = `${PUBLIC_TRUCK_SHARE_BASE_URL}?id=${encodeURIComponent(state.seedResult.id)}`;
+      selectors.seedProfile.hidden = false;
+    }
+    setMessage(selectors.seedMessage, '');
     state.activeTab = 'trucks';
+    window.history.replaceState(null, '', '#trucks');
+    clearSeedPreviews();
     await loadSnapshot();
-    closeSeedTruckDialog();
-    window.alert(`${seededTruckName} was seeded successfully.`);
+    if (isCurrentSeed()) selectors.seedSuccess.focus();
   } catch (error) {
-    setMessage(selectors.seedMessage, error.message || 'Truck seed failed.', true);
+    if (isCurrentSeed()) {
+      setMessage(selectors.seedMessage, `${error.message || 'Truck upload could not finish.'} Your details and photos are still here.`, true);
+    }
   } finally {
-    if (submitButton) {
-      submitButton.disabled = false;
-      submitButton.textContent = 'Seed Truck';
+    if (isCurrentSeed()) {
+      state.seedingTruck = false;
+      restoreForm();
+      restoreSeedForm = null;
     }
   }
 }
@@ -2656,6 +2913,7 @@ async function archiveSelectedTruck() {
 }
 
 function closeDialog() {
+  if (state.savingRecord) return;
   state.selected = null;
   if (typeof selectors.dialog.close === 'function') {
     selectors.dialog.close();
@@ -2666,17 +2924,29 @@ function closeDialog() {
 
 selectors.loginForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
+  const submit = selectors.loginForm.querySelector('[type="submit"]');
+  if (submit.disabled) return;
   const formData = new FormData(selectors.loginForm);
   const email = String(formData.get('email') || '').trim();
   const password = String(formData.get('password') || '');
 
   setMessage(selectors.authMessage, 'Signing in...');
+  submit.disabled = true;
+  selectors.loginForm.setAttribute('aria-busy', 'true');
 
   try {
     await auth.signInWithEmailAndPassword(email, password);
     setMessage(selectors.authMessage, '');
   } catch (error) {
-    setMessage(selectors.authMessage, error.message || 'Sign in failed.', true);
+    const message = error.code === 'auth/network-request-failed'
+      ? 'Could not connect. Check your connection and try again.'
+      : error.code === 'auth/too-many-requests'
+        ? 'Too many sign-in attempts. Wait a few minutes and try again.'
+        : 'We couldn’t sign you in. Check your email and password, then try again.';
+    setMessage(selectors.authMessage, message, true);
+  } finally {
+    submit.disabled = false;
+    selectors.loginForm.removeAttribute('aria-busy');
   }
 });
 
@@ -2687,6 +2957,7 @@ selectors.signOut?.addEventListener('click', async () => {
 selectors.refresh?.addEventListener('click', loadSnapshot);
 selectors.createRecord?.addEventListener('click', openCreateDialog);
 selectors.seedTruck?.addEventListener('click', openSeedTruckDialog);
+selectors.addTruck?.addEventListener('click', openSeedTruckDialog);
 selectors.bulkImport?.addEventListener('click', openBulkImportDialog);
 selectors.transferTruck?.addEventListener('click', openTransferDialog);
 selectors.markReviewed?.addEventListener('click', markSelectedTruckReviewed);
@@ -2707,7 +2978,8 @@ selectors.truckSort?.addEventListener('change', (event) => {
 
 selectors.search?.addEventListener('input', (event) => {
   state.searchByTab[state.activeTab] = event.target.value || '';
-  renderTable();
+  window.clearTimeout(searchRenderTimer);
+  searchRenderTimer = window.setTimeout(renderTable, 160);
 });
 
 selectors.clearSearch?.addEventListener('click', clearCurrentSearchAndFilters);
@@ -2724,9 +2996,41 @@ selectors.tableHead?.addEventListener('click', (event) => {
 selectors.tabs.forEach((tab) => {
   tab.addEventListener('click', () => {
     state.activeTab = tab.dataset.tab || 'owners';
+    window.history.replaceState(null, '', `#${state.activeTab}`);
     renderAll();
   });
+  tab.addEventListener('keydown', (event) => {
+    const index = selectors.tabs.indexOf(tab);
+    let next;
+    if (event.key === 'ArrowRight') next = (index + 1) % selectors.tabs.length;
+    if (event.key === 'ArrowLeft') next = (index + selectors.tabs.length - 1) % selectors.tabs.length;
+    if (event.key === 'Home') next = 0;
+    if (event.key === 'End') next = selectors.tabs.length - 1;
+    if (next === undefined) return;
+    event.preventDefault();
+    selectors.tabs[next].click();
+    selectors.tabs[next].focus();
+  });
 });
+
+selectors.previousPage?.addEventListener('click', () => {
+  state.pageByTab[state.activeTab] = Math.max(0, (state.pageByTab[state.activeTab] || 0) - 1);
+  renderTable();
+});
+selectors.nextPage?.addEventListener('click', () => {
+  state.pageByTab[state.activeTab] = (state.pageByTab[state.activeTab] || 0) + 1;
+  renderTable();
+});
+selectors.dialog?.addEventListener('cancel', (event) => {
+  if (state.savingRecord) event.preventDefault();
+});
+function restoreManagementTab() {
+  const tab = window.location.hash.slice(1);
+  if (Object.hasOwn(tabConfig, tab)) state.activeTab = tab;
+  if (!selectors.app.hidden) renderAll();
+}
+restoreManagementTab();
+window.addEventListener('hashchange', restoreManagementTab);
 
 selectors.tableBody?.addEventListener('click', (event) => {
   const target = event.target instanceof Element ? event.target : null;
@@ -2763,6 +3067,36 @@ selectors.recordForm?.addEventListener('submit', async (event) => {
   await saveSelectedRecord();
 });
 
+selectors.seedForm?.addEventListener('input', () => updateSeedFormState());
+selectors.seedForm?.addEventListener('change', (event) => {
+  if (event.target.type === 'file') updateSeedFormState(true);
+});
+selectors.seedForm?.addEventListener('invalid', (event) => {
+  const details = event.target.closest('details');
+  if (details) details.open = true;
+}, true);
+selectors.seedForm?.querySelectorAll('[data-clear-seed-file]').forEach((button) => {
+  button.addEventListener('click', () => {
+    if (state.seedingTruck) return;
+    selectors.seedForm.elements.namedItem(button.dataset.clearSeedFile).value = '';
+    updateSeedFormState(true);
+  });
+});
+selectors.seedDialog?.addEventListener('cancel', (event) => {
+  if (state.seedingTruck) event.preventDefault();
+});
+selectors.seedAnother?.addEventListener('click', () => {
+  if (state.seedingTruck) return;
+  resetSeedForm();
+  selectors.seedForm.elements.namedItem('name').focus();
+});
+selectors.seedDone?.addEventListener('click', () => {
+  if (state.seedingTruck) return;
+  state.activeTab = 'trucks';
+  window.history.replaceState(null, '', '#trucks');
+  renderAll();
+  closeSeedTruckDialog();
+});
 selectors.seedForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   await seedTruckFromForm();
@@ -2807,13 +3141,8 @@ selectors.closeTransferDialog.forEach((button) => button.addEventListener('click
 selectors.closeBulkDialog.forEach((button) => button.addEventListener('click', closeBulkImportDialog));
 
 auth.onAuthStateChanged(async (user) => {
-  if (!user) {
-    selectors.app.hidden = true;
-    setAuthenticatedView(false);
-    selectors.sessionSummary.textContent = '';
-    return;
-  }
-
+  synchronizeSession(user);
+  if (!user) return;
   setAuthenticatedView(true);
   await loadSnapshot();
 });
